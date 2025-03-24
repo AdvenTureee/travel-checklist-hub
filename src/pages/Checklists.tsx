@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -85,6 +84,7 @@ const Checklists: React.FC = () => {
     items: [],
     pointId: '',
   });
+  const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
   const handleAddChecklist = () => {
@@ -97,29 +97,48 @@ const Checklists: React.FC = () => {
       return;
     }
 
-    const checklist: Checklist = {
-      id: Date.now().toString(),
-      name: newChecklist.name,
-      description: newChecklist.description || '',
-      items: newChecklist.items || [],
-      pointId: newChecklist.pointId,
-      createdAt: new Date().toISOString(),
-      isComplete: false,
-    };
+    if (isEditing && newChecklist.id) {
+      // Update existing checklist
+      const updatedChecklists = checklists.map(c => 
+        c.id === newChecklist.id ? {...newChecklist as Checklist} : c
+      );
+      
+      setChecklists(updatedChecklists);
+      toast({
+        title: "Checklist updated",
+        description: `${newChecklist.name} has been updated.`,
+      });
+    } else {
+      // Add new checklist
+      const checklist: Checklist = {
+        id: Date.now().toString(),
+        name: newChecklist.name,
+        description: newChecklist.description || '',
+        items: newChecklist.items || [],
+        pointId: newChecklist.pointId,
+        createdAt: new Date().toISOString(),
+        isComplete: false,
+      };
 
-    setChecklists([checklist, ...checklists]);
+      setChecklists([checklist, ...checklists]);
+      toast({
+        title: "Checklist added",
+        description: `${checklist.name} has been created.`,
+      });
+    }
+    
+    resetFormAndCloseDialog();
+  };
+
+  const resetFormAndCloseDialog = () => {
     setNewChecklist({
       name: '',
       description: '',
       items: [],
       pointId: '',
     });
+    setIsEditing(false);
     setIsAddDialogOpen(false);
-    
-    toast({
-      title: "Checklist added",
-      description: `${checklist.name} has been created.`,
-    });
   };
 
   const handleDeleteChecklist = (id: string) => {
@@ -159,6 +178,15 @@ const Checklists: React.FC = () => {
   const viewChecklist = (checklist: Checklist) => {
     setCurrentChecklist(checklist);
     setIsViewDialogOpen(true);
+  };
+
+  const editChecklist = (checklist: Checklist) => {
+    setNewChecklist({
+      ...checklist,
+      items: [...checklist.items],
+    });
+    setIsEditing(true);
+    setIsAddDialogOpen(true);
   };
 
   const toggleItemCompletion = (checklistId: string, itemId: string) => {
@@ -212,7 +240,10 @@ const Checklists: React.FC = () => {
           <h1 className="text-3xl font-bold text-travel-dark">Checklists</h1>
           <p className="text-travel-dark/70">Manage your travel checklists and tasks</p>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <Dialog open={isAddDialogOpen} onOpenChange={(open) => {
+          setIsAddDialogOpen(open);
+          if (!open) resetFormAndCloseDialog();
+        }}>
           <DialogTrigger asChild>
             <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -221,7 +252,7 @@ const Checklists: React.FC = () => {
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Create New Checklist</DialogTitle>
+              <DialogTitle>{isEditing ? 'Edit Checklist' : 'Create New Checklist'}</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
@@ -305,7 +336,7 @@ const Checklists: React.FC = () => {
             <div className="flex justify-end gap-2">
               <Button 
                 variant="outline" 
-                onClick={() => setIsAddDialogOpen(false)}
+                onClick={resetFormAndCloseDialog}
               >
                 Cancel
               </Button>
@@ -313,7 +344,7 @@ const Checklists: React.FC = () => {
                 className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
                 onClick={handleAddChecklist}
               >
-                Create Checklist
+                {isEditing ? 'Update Checklist' : 'Create Checklist'}
               </Button>
             </div>
           </DialogContent>
@@ -353,7 +384,12 @@ const Checklists: React.FC = () => {
                     </CardDescription>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => editChecklist(checklist)}
+                    >
                       <Edit className="h-4 w-4 text-travel-blue" />
                     </Button>
                     <Button 
