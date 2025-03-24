@@ -46,6 +46,8 @@ const initialPoints: Point[] = [
 const Points: React.FC = () => {
   const [points, setPoints] = useState<Point[]>(initialPoints);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editPointId, setEditPointId] = useState<string | null>(null);
   const [newPoint, setNewPoint] = useState<Partial<Point>>({
     name: '',
     description: '',
@@ -96,6 +98,69 @@ const Points: React.FC = () => {
     toast({
       title: "Point deleted",
       description: `${pointToDelete?.name} has been removed.`,
+    });
+  };
+
+  const handleEditPoint = (id: string) => {
+    const pointToEdit = points.find(p => p.id === id);
+    if (pointToEdit) {
+      setNewPoint({
+        name: pointToEdit.name,
+        description: pointToEdit.description,
+        address: pointToEdit.address,
+        type: pointToEdit.type,
+        imageUrl: pointToEdit.imageUrl,
+      });
+      setEditPointId(id);
+      setIsEditDialogOpen(true);
+    }
+  };
+
+  const handleUpdatePoint = () => {
+    if (!newPoint.name || !newPoint.address || !editPointId) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in at least the name and address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setPoints(points.map(point => {
+      if (point.id === editPointId) {
+        return {
+          ...point,
+          name: newPoint.name!,
+          description: newPoint.description || '',
+          address: newPoint.address!,
+          type: newPoint.type as Point['type'],
+          imageUrl: newPoint.imageUrl,
+        };
+      }
+      return point;
+    }));
+
+    setNewPoint({
+      name: '',
+      description: '',
+      address: '',
+      type: 'tourist',
+    });
+    setEditPointId(null);
+    setIsEditDialogOpen(false);
+    
+    toast({
+      title: "Point updated",
+      description: `${newPoint.name} has been updated.`,
+    });
+  };
+
+  const resetForm = () => {
+    setNewPoint({
+      name: '',
+      description: '',
+      address: '',
+      type: 'tourist',
     });
   };
 
@@ -176,7 +241,10 @@ const Points: React.FC = () => {
             <div className="flex justify-end gap-2">
               <Button 
                 variant="outline" 
-                onClick={() => setIsAddDialogOpen(false)}
+                onClick={() => {
+                  resetForm();
+                  setIsAddDialogOpen(false);
+                }}
               >
                 Cancel
               </Button>
@@ -185,6 +253,89 @@ const Points: React.FC = () => {
                 onClick={handleAddPoint}
               >
                 Add Point
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+        
+        {/* Edit Dialog */}
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="sm:max-w-[550px]">
+            <DialogHeader>
+              <DialogTitle>Edit Point of Interest</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-name">Name</Label>
+                <Input
+                  id="edit-name"
+                  value={newPoint.name}
+                  onChange={(e) => setNewPoint({ ...newPoint, name: e.target.value })}
+                  placeholder="e.g., Eiffel Tower"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  value={newPoint.description}
+                  onChange={(e) => setNewPoint({ ...newPoint, description: e.target.value })}
+                  placeholder="Brief description of this place..."
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-address">Address</Label>
+                <Input
+                  id="edit-address"
+                  value={newPoint.address}
+                  onChange={(e) => setNewPoint({ ...newPoint, address: e.target.value })}
+                  placeholder="Full address"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-type">Type</Label>
+                <Select 
+                  value={newPoint.type} 
+                  onValueChange={(value) => setNewPoint({ ...newPoint, type: value as Point['type'] })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tourist">Tourist Attraction</SelectItem>
+                    <SelectItem value="shopping">Shopping</SelectItem>
+                    <SelectItem value="restaurant">Restaurant</SelectItem>
+                    <SelectItem value="accommodation">Accommodation</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-imageUrl">Image URL (optional)</Label>
+                <Input
+                  id="edit-imageUrl"
+                  value={newPoint.imageUrl || ''}
+                  onChange={(e) => setNewPoint({ ...newPoint, imageUrl: e.target.value })}
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  resetForm();
+                  setEditPointId(null);
+                  setIsEditDialogOpen(false);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+                onClick={handleUpdatePoint}
+              >
+                Update Point
               </Button>
             </div>
           </DialogContent>
@@ -226,7 +377,12 @@ const Points: React.FC = () => {
                     </CardDescription>
                   </div>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8"
+                      onClick={() => handleEditPoint(point.id)}
+                    >
                       <Edit className="h-4 w-4 text-travel-blue" />
                     </Button>
                     <Button 
