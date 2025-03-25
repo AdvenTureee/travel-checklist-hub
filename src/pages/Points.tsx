@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -49,7 +48,7 @@ const Points: React.FC = () => {
 
   // Add point mutation
   const addPointMutation = useMutation({
-    mutationFn: async (point: Omit<Point, 'id' | 'createdAt'>) => {
+    mutationFn: async (point: Omit<Point, 'id' | 'created_at'>) => {
       const { data, error } = await supabase
         .from('points')
         .insert([
@@ -167,7 +166,7 @@ const Points: React.FC = () => {
       type: newPoint.type as Point['type'],
       imageUrl: newPoint.imageUrl,
       user_id: user!.id
-    });
+    } as any);
   };
 
   const handleDeletePoint = (id: string) => {

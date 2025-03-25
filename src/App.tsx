@@ -13,10 +13,11 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import RequireAuth from "@/components/layout/RequireAuth";
+import { useState } from "react";
 
 const App = () => {
-  // Create a new QueryClient instance within the component
-  const queryClient = new QueryClient();
+  // Create the client as a state variable to ensure it's only created once
+  const [queryClient] = useState(() => new QueryClient());
   
   return (
     <QueryClientProvider client={queryClient}>
