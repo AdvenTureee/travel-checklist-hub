@@ -5,8 +5,11 @@ export interface Point {
   description: string;
   address: string;
   type: 'tourist' | 'shopping' | 'restaurant' | 'accommodation' | 'other';
+  image_url?: string;
   imageUrl?: string;
-  createdAt: string;
+  created_at: string;
+  createdAt?: string;
+  user_id: string;
 }
 
 export interface ChecklistItem {

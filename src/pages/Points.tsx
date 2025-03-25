@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -8,43 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, MapPin, Edit, Trash } from 'lucide-react';
+import { PlusCircle, MapPin, Edit, Trash, Loader2 } from 'lucide-react';
 import { Point } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-
-// Mock data for points of interest
-const initialPoints: Point[] = [
-  {
-    id: '1',
-    name: 'Sagrada Familia',
-    description: 'Beautiful basilica designed by Antoni Gaudí.',
-    address: 'Carrer de Mallorca, 401, 08013 Barcelona, Spain',
-    type: 'tourist',
-    imageUrl: 'https://images.unsplash.com/photo-1583779457094-ab6f9164a948?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date('2023-01-15').toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Mercado de San Miguel',
-    description: 'Historic market with delicious Spanish cuisine.',
-    address: 'Plaza de San Miguel, s/n, 28005 Madrid, Spain',
-    type: 'restaurant',
-    imageUrl: 'https://images.unsplash.com/photo-1519077336050-4ca5cac9d64f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date('2023-02-20').toISOString(),
-  },
-  {
-    id: '3',
-    name: 'Copacabana Beach',
-    description: 'Famous beach in Rio de Janeiro.',
-    address: 'Av. Atlântica, Rio de Janeiro - RJ, Brazil',
-    type: 'tourist',
-    imageUrl: 'https://images.unsplash.com/photo-1483729558449-99ef09a8c325?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    createdAt: new Date('2023-03-10').toISOString(),
-  }
-];
+import { useAuth } from '@/components/auth/AuthProvider';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 const Points: React.FC = () => {
-  const [points, setPoints] = useState<Point[]>(initialPoints);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editPointId, setEditPointId] = useState<string | null>(null);
@@ -55,6 +26,129 @@ const Points: React.FC = () => {
     type: 'tourist',
   });
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  // Fetch points from Supabase
+  const {
+    data: points = [],
+    isLoading,
+    error: fetchError,
+  } = useQuery({
+    queryKey: ['points'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('points')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as Point[];
+    },
+  });
+
+  // Add point mutation
+  const addPointMutation = useMutation({
+    mutationFn: async (point: Omit<Point, 'id' | 'createdAt'>) => {
+      const { data, error } = await supabase
+        .from('points')
+        .insert([
+          {
+            name: point.name,
+            description: point.description,
+            address: point.address,
+            type: point.type,
+            image_url: point.imageUrl,
+            user_id: user?.id
+          }
+        ])
+        .select();
+
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['points'] });
+      setIsAddDialogOpen(false);
+      toast({
+        title: "Point added",
+        description: `${newPoint.name} has been added to your points.`,
+      });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error adding point",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Update point mutation
+  const updatePointMutation = useMutation({
+    mutationFn: async ({ id, point }: { id: string, point: Partial<Point> }) => {
+      const { data, error } = await supabase
+        .from('points')
+        .update({
+          name: point.name,
+          description: point.description,
+          address: point.address,
+          type: point.type,
+          image_url: point.imageUrl
+        })
+        .eq('id', id)
+        .select();
+
+      if (error) throw error;
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['points'] });
+      setIsEditDialogOpen(false);
+      setEditPointId(null);
+      toast({
+        title: "Point updated",
+        description: `${newPoint.name} has been updated.`,
+      });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error updating point",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Delete point mutation
+  const deletePointMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('points')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['points'] });
+      const pointToDelete = points.find(p => p.id === id);
+      toast({
+        title: "Point deleted",
+        description: `${pointToDelete?.name} has been removed.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error deleting point",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
 
   const handleAddPoint = () => {
     if (!newPoint.name || !newPoint.address) {
@@ -66,39 +160,18 @@ const Points: React.FC = () => {
       return;
     }
 
-    const point: Point = {
-      id: Date.now().toString(),
+    addPointMutation.mutate({
       name: newPoint.name,
       description: newPoint.description || '',
       address: newPoint.address,
-      type: newPoint.type as Point['type'] || 'tourist',
+      type: newPoint.type as Point['type'],
       imageUrl: newPoint.imageUrl,
-      createdAt: new Date().toISOString(),
-    };
-
-    setPoints([point, ...points]);
-    setNewPoint({
-      name: '',
-      description: '',
-      address: '',
-      type: 'tourist',
-    });
-    setIsAddDialogOpen(false);
-    
-    toast({
-      title: "Point added",
-      description: `${point.name} has been added to your points.`,
+      user_id: user!.id
     });
   };
 
   const handleDeletePoint = (id: string) => {
-    const pointToDelete = points.find(p => p.id === id);
-    setPoints(points.filter(point => point.id !== id));
-    
-    toast({
-      title: "Point deleted",
-      description: `${pointToDelete?.name} has been removed.`,
-    });
+    deletePointMutation.mutate(id);
   };
 
   const handleEditPoint = (id: string) => {
@@ -109,7 +182,7 @@ const Points: React.FC = () => {
         description: pointToEdit.description,
         address: pointToEdit.address,
         type: pointToEdit.type,
-        imageUrl: pointToEdit.imageUrl,
+        imageUrl: pointToEdit.image_url,
       });
       setEditPointId(id);
       setIsEditDialogOpen(true);
@@ -126,32 +199,9 @@ const Points: React.FC = () => {
       return;
     }
 
-    setPoints(points.map(point => {
-      if (point.id === editPointId) {
-        return {
-          ...point,
-          name: newPoint.name!,
-          description: newPoint.description || '',
-          address: newPoint.address!,
-          type: newPoint.type as Point['type'],
-          imageUrl: newPoint.imageUrl,
-        };
-      }
-      return point;
-    }));
-
-    setNewPoint({
-      name: '',
-      description: '',
-      address: '',
-      type: 'tourist',
-    });
-    setEditPointId(null);
-    setIsEditDialogOpen(false);
-    
-    toast({
-      title: "Point updated",
-      description: `${newPoint.name} has been updated.`,
+    updatePointMutation.mutate({ 
+      id: editPointId, 
+      point: newPoint 
     });
   };
 
@@ -163,6 +213,29 @@ const Points: React.FC = () => {
       type: 'tourist',
     });
   };
+
+  // Show error if fetch failed
+  useEffect(() => {
+    if (fetchError) {
+      toast({
+        title: "Error fetching points",
+        description: (fetchError as any).message,
+        variant: "destructive",
+      });
+    }
+  }, [fetchError, toast]);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <PageContainer>
+        <div className="flex justify-center items-center h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-travel-blue" />
+          <span className="ml-2">Loading points...</span>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
@@ -251,8 +324,16 @@ const Points: React.FC = () => {
               <Button 
                 className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
                 onClick={handleAddPoint}
+                disabled={addPointMutation.isPending}
               >
-                Add Point
+                {addPointMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Adding...
+                  </>
+                ) : (
+                  "Add Point"
+                )}
               </Button>
             </div>
           </DialogContent>
@@ -334,8 +415,16 @@ const Points: React.FC = () => {
               <Button 
                 className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
                 onClick={handleUpdatePoint}
+                disabled={updatePointMutation.isPending}
               >
-                Update Point
+                {updatePointMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Point"
+                )}
               </Button>
             </div>
           </DialogContent>
@@ -359,10 +448,10 @@ const Points: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {points.map((point) => (
             <Card key={point.id} className="overflow-hidden card-hover">
-              {point.imageUrl && (
+              {point.image_url && (
                 <div className="h-48 overflow-hidden">
                   <img 
-                    src={point.imageUrl} 
+                    src={point.image_url} 
                     alt={point.name} 
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                   />
@@ -373,7 +462,7 @@ const Points: React.FC = () => {
                   <div>
                     <CardTitle>{point.name}</CardTitle>
                     <CardDescription className="mt-1">
-                      {new Date(point.createdAt).toLocaleDateString()}
+                      {new Date(point.created_at).toLocaleDateString()}
                     </CardDescription>
                   </div>
                   <div className="flex gap-1">

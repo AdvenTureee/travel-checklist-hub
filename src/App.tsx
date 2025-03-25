@@ -10,6 +10,9 @@ import Points from "./pages/Points";
 import Checklists from "./pages/Checklists";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
+import Auth from "./pages/Auth";
+import { AuthProvider } from "@/components/auth/AuthProvider";
+import RequireAuth from "@/components/layout/RequireAuth";
 
 const App = () => {
   // Create a new QueryClient instance within the component
@@ -21,14 +24,17 @@ const App = () => {
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/points" element={<Points />} />
-            <Route path="/checklists" element={<Checklists />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
+              <Route path="/points" element={<RequireAuth><Points /></RequireAuth>} />
+              <Route path="/checklists" element={<RequireAuth><Checklists /></RequireAuth>} />
+              <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
