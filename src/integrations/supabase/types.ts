@@ -9,6 +9,76 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      checklist_items: {
+        Row: {
+          checklist_id: string
+          completed: boolean
+          created_at: string
+          id: string
+          text: string
+        }
+        Insert: {
+          checklist_id: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          text: string
+        }
+        Update: {
+          checklist_id?: string
+          completed?: boolean
+          created_at?: string
+          id?: string
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklist_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "checklists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      checklists: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_complete: boolean
+          name: string
+          point_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_complete?: boolean
+          name: string
+          point_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_complete?: boolean
+          name?: string
+          point_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "checklists_point_id_fkey"
+            columns: ["point_id"]
+            isOneToOne: false
+            referencedRelation: "points"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       points: {
         Row: {
           address: string
