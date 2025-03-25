@@ -84,6 +84,7 @@ export type Database = {
           address: string
           created_at: string
           description: string | null
+          google_maps_url: string | null
           id: string
           image_url: string | null
           name: string
@@ -94,6 +95,7 @@ export type Database = {
           address: string
           created_at?: string
           description?: string | null
+          google_maps_url?: string | null
           id?: string
           image_url?: string | null
           name: string
@@ -104,6 +106,7 @@ export type Database = {
           address?: string
           created_at?: string
           description?: string | null
+          google_maps_url?: string | null
           id?: string
           image_url?: string | null
           name?: string
