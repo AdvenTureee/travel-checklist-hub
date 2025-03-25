@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -7,22 +8,26 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, MapPin, Edit, Trash, Loader2 } from 'lucide-react';
+import { PlusCircle, MapPin, Edit, Trash, Loader2, ExternalLink, Globe } from 'lucide-react';
 import { Point } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import PointDetailsModal from '@/components/points/PointDetailsModal';
 
 const Points: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editPointId, setEditPointId] = useState<string | null>(null);
+  const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [newPoint, setNewPoint] = useState<Partial<Point>>({
     name: '',
     description: '',
     address: '',
     type: 'tourist',
+    googleMapsUrl: '',
   });
   const { toast } = useToast();
   const { user } = useAuth();
@@ -58,6 +63,7 @@ const Points: React.FC = () => {
             address: point.address,
             type: point.type,
             image_url: point.imageUrl,
+            google_maps_url: point.googleMapsUrl,
             user_id: user?.id
           }
         ])
@@ -94,7 +100,8 @@ const Points: React.FC = () => {
           description: point.description,
           address: point.address,
           type: point.type,
-          image_url: point.imageUrl
+          image_url: point.imageUrl,
+          google_maps_url: point.googleMapsUrl
         })
         .eq('id', id)
         .select();
@@ -165,6 +172,7 @@ const Points: React.FC = () => {
       address: newPoint.address,
       type: newPoint.type as Point['type'],
       imageUrl: newPoint.imageUrl,
+      googleMapsUrl: newPoint.googleMapsUrl,
       user_id: user!.id
     } as any);
   };
@@ -182,10 +190,16 @@ const Points: React.FC = () => {
         address: pointToEdit.address,
         type: pointToEdit.type,
         imageUrl: pointToEdit.image_url,
+        googleMapsUrl: pointToEdit.google_maps_url,
       });
       setEditPointId(id);
       setIsEditDialogOpen(true);
     }
+  };
+
+  const handleOpenDetails = (point: Point) => {
+    setSelectedPoint(point);
+    setIsDetailsModalOpen(true);
   };
 
   const handleUpdatePoint = () => {
@@ -210,6 +224,7 @@ const Points: React.FC = () => {
       description: '',
       address: '',
       type: 'tourist',
+      googleMapsUrl: '',
     });
   };
 
@@ -280,6 +295,15 @@ const Points: React.FC = () => {
                   value={newPoint.address}
                   onChange={(e) => setNewPoint({ ...newPoint, address: e.target.value })}
                   placeholder="Full address"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="googleMapsUrl">Google Maps URL (optional)</Label>
+                <Input
+                  id="googleMapsUrl"
+                  value={newPoint.googleMapsUrl || ''}
+                  onChange={(e) => setNewPoint({ ...newPoint, googleMapsUrl: e.target.value })}
+                  placeholder="https://maps.google.com/..."
                 />
               </div>
               <div className="grid gap-2">
@@ -370,6 +394,15 @@ const Points: React.FC = () => {
                   value={newPoint.address}
                   onChange={(e) => setNewPoint({ ...newPoint, address: e.target.value })}
                   placeholder="Full address"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-googleMapsUrl">Google Maps URL (optional)</Label>
+                <Input
+                  id="edit-googleMapsUrl"
+                  value={newPoint.googleMapsUrl || ''}
+                  onChange={(e) => setNewPoint({ ...newPoint, googleMapsUrl: e.target.value })}
+                  placeholder="https://maps.google.com/..."
                 />
               </div>
               <div className="grid gap-2">
@@ -490,13 +523,32 @@ const Points: React.FC = () => {
                   <MapPin className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-travel-dark/70">{point.address}</span>
                 </div>
+                {point.google_maps_url && (
+                  <div className="flex items-start gap-2 mt-2">
+                    <Globe className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
+                    <a 
+                      href={point.google_maps_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-travel-blue hover:underline flex items-center"
+                    >
+                      Google Maps
+                      <ExternalLink className="h-3 w-3 ml-1" />
+                    </a>
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
                 <div className="w-full flex justify-between items-center">
                   <span className="inline-block text-xs px-2 py-1 rounded-full bg-travel-light-blue text-travel-blue">
                     {point.type.charAt(0).toUpperCase() + point.type.slice(1)}
                   </span>
-                  <Button variant="outline" size="sm" className="ml-auto text-travel-dark">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="ml-auto text-travel-dark"
+                    onClick={() => handleOpenDetails(point)}
+                  >
                     View Details
                   </Button>
                 </div>
@@ -505,6 +557,13 @@ const Points: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* Details Modal */}
+      <PointDetailsModal 
+        point={selectedPoint} 
+        isOpen={isDetailsModalOpen} 
+        onClose={() => setIsDetailsModalOpen(false)} 
+      />
     </PageContainer>
   );
 };

@@ -1,0 +1,142 @@
+
+import React from 'react';
+import { Checklist, ChecklistItem } from '@/lib/types';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Edit, Trash, Plus, ListChecks } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+
+interface ChecklistListViewProps {
+  checklists: Checklist[];
+  checklistItems: ChecklistItem[];
+  onEdit: (id: string) => void;
+  onDelete: (id: string) => void;
+  onChecklistView: (id: string) => void;
+  onToggleItem: (id: string, completed: boolean) => void;
+  onDeleteItem: (id: string) => void;
+  onAddItem: (checklistId: string) => void;
+}
+
+const ChecklistListView: React.FC<ChecklistListViewProps> = ({
+  checklists,
+  checklistItems,
+  onEdit,
+  onDelete,
+  onChecklistView,
+  onToggleItem,
+  onDeleteItem,
+  onAddItem
+}) => {
+  // Calculate completion percentage for a checklist
+  const calculateCompletion = (checklistId: string) => {
+    const items = checklistItems.filter(item => item.checklist_id === checklistId);
+    if (items.length === 0) return 0;
+    const completedItems = items.filter(item => item.completed).length;
+    return Math.round((completedItems / items.length) * 100);
+  };
+
+  return (
+    <div className="space-y-4">
+      {checklists.map(checklist => {
+        const items = checklistItems.filter(item => item.checklist_id === checklist.id);
+        const completionPercentage = calculateCompletion(checklist.id);
+        
+        return (
+          <Card key={checklist.id} className="border-l-4 border-l-travel-blue">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-xl">{checklist.name}</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {checklist.description || 'No description'}
+                  </p>
+                </div>
+                <div className="flex space-x-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => onEdit(checklist.id)}
+                  >
+                    <Edit className="h-4 w-4 text-travel-blue" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => onDelete(checklist.id)}
+                  >
+                    <Trash className="h-4 w-4 text-travel-red" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="mb-4">
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-xs text-muted-foreground">Completion</span>
+                  <span className="text-xs font-medium">{completionPercentage}%</span>
+                </div>
+                <Progress value={completionPercentage} className="h-2" />
+              </div>
+              
+              {items.length > 0 && (
+                <div className="space-y-2 mt-4">
+                  {items.slice(0, 3).map(item => (
+                    <div key={item.id} className="flex items-center justify-between group">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          id={`list-item-${item.id}`}
+                          checked={item.completed}
+                          onCheckedChange={(checked) => 
+                            onToggleItem(item.id, checked as boolean)
+                          }
+                        />
+                        <label
+                          htmlFor={`list-item-${item.id}`}
+                          className={`text-sm ${
+                            item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                          }`}
+                        >
+                          {item.text}
+                        </label>
+                      </div>
+                    </div>
+                  ))}
+                  {items.length > 3 && (
+                    <div className="text-sm text-muted-foreground mt-1">
+                      + {items.length - 3} more items
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+            <CardFooter className="flex justify-between pt-1">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-travel-blue hover:text-travel-blue/80 p-0"
+                onClick={() => onAddItem(checklist.id)}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Item
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onChecklistView(checklist.id)}
+                className="text-travel-dark"
+              >
+                <ListChecks className="h-4 w-4 mr-1" />
+                View All
+              </Button>
+            </CardFooter>
+          </Card>
+        );
+      })}
+    </div>
+  );
+};
+
+export default ChecklistListView;

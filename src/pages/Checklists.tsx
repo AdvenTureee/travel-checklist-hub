@@ -1,60 +1,66 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { PageContainer } from '@/components/layout/PageContainer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CheckCircle, Clock, Edit, MapPin, MoreHorizontal, Plus, Trash2 } from 'lucide-react';
+import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
-import { Checklist, ChecklistItem, Point } from '@/lib/types';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Checklist, ChecklistItem, Point } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Progress } from '@/components/ui/progress';
+import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin } from 'lucide-react';
+import ChecklistViewToggle from '@/components/checklists/ChecklistViewToggle';
+import ChecklistListView from '@/components/checklists/ChecklistListView';
 
-const Checklists: React.FC = () => {
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  
-  // State for checklist form
-  const [newChecklist, setNewChecklist] = useState<{
-    name: string;
-    description: string;
-    pointId: string | null;
-  }>({
+const Checklists = () => {
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
+  const [currentChecklist, setCurrentChecklist] = useState<Checklist | null>(null);
+  const [newItemText, setNewItemText] = useState('');
+  const [newChecklist, setNewChecklist] = useState<Partial<Checklist>>({
     name: '',
     description: '',
     pointId: null,
+    isComplete: false,
   });
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
-  // State for checklist item form
-  const [newItem, setNewItem] = useState<{
-    text: string;
-    checklistId: string | null;
-  }>({
-    text: '',
-    checklistId: null,
-  });
-  
-  // State for dialogs
-  const [isNewChecklistOpen, setIsNewChecklistOpen] = useState(false);
-  const [isNewItemOpen, setIsNewItemOpen] = useState(false);
-  const [isEditChecklistOpen, setIsEditChecklistOpen] = useState(false);
-  const [editingChecklist, setEditingChecklist] = useState<Checklist | null>(null);
-  const [selectedPointId, setSelectedPointId] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  // Fetch user's checklists
-  const { data: checklists, isLoading: isLoadingChecklists } = useQuery({
+  // Fetch points for association with checklists
+  const { data: points = [] } = useQuery({
+    queryKey: ['points'],
+    queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error("User not authenticated");
+      }
+      
+      const { data, error } = await supabase
+        .from('points')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data as Point[];
+    },
+  });
+
+  // Fetch checklists
+  const { data: checklists = [], isLoading: isLoadingChecklists } = useQuery({
     queryKey: ['checklists'],
     queryFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
@@ -66,46 +72,31 @@ const Checklists: React.FC = () => {
         .from('checklists')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
-      
-      // Convert snake_case to camelCase for TypeScript compatibility
-      return (data as Checklist[]).map(checklist => ({
+
+      return data.map((checklist: any) => ({
         ...checklist,
         pointId: checklist.point_id,
-        createdAt: checklist.created_at,
         isComplete: checklist.is_complete,
-        items: []
-      }));
+        createdAt: checklist.created_at
+      })) as Checklist[];
     },
   });
 
-  // Fetch user's points for the dropdown
-  const { data: points } = useQuery({
-    queryKey: ['points'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('points')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as Point[];
-    },
-  });
-
-  // Fetch checklist items for all checklists
-  const { data: checklistItems } = useQuery({
-    queryKey: ['checklistItems'],
+  // Fetch checklist items
+  const { data: checklistItems = [] } = useQuery({
+    queryKey: ['checklist-items'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('checklist_items')
         .select('*')
         .order('created_at', { ascending: true });
-      
+
       if (error) throw error;
       return data as ChecklistItem[];
     },
+    enabled: checklists.length > 0,
   });
 
   // Create checklist mutation
@@ -120,8 +111,8 @@ const Checklists: React.FC = () => {
       const { data, error } = await supabase
         .from('checklists')
         .insert([
-          { 
-            name: checklist.name, 
+          {
+            name: checklist.name,
             description: checklist.description,
             point_id: checklist.pointId,
             is_complete: false,
@@ -138,630 +129,770 @@ const Checklists: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checklists'] });
+      setIsAddDialogOpen(false);
       toast({
-        title: 'Success',
-        description: 'Checklist created successfully',
+        title: "Checklist created",
+        description: "Your new checklist has been created successfully.",
       });
-      setNewChecklist({ name: '', description: '', pointId: null });
-      setIsNewChecklistOpen(false);
+      resetChecklistForm();
     },
     onError: (error) => {
-      console.error('Error creating checklist:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to create checklist',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to create checklist: ${error.message}`,
+        variant: "destructive",
       });
     },
   });
 
   // Update checklist mutation
   const updateChecklistMutation = useMutation({
-    mutationFn: async (checklist: Checklist) => {
+    mutationFn: async ({ id, checklist }: { id: string, checklist: Partial<Checklist> }) => {
       const { data, error } = await supabase
         .from('checklists')
-        .update({ 
-          name: checklist.name, 
+        .update({
+          name: checklist.name,
           description: checklist.description,
-          point_id: checklist.pointId || checklist.point_id,
-          is_complete: checklist.isComplete || checklist.is_complete
+          point_id: checklist.pointId,
         })
-        .eq('id', checklist.id)
+        .eq('id', id)
         .select();
-      
+
       if (error) throw error;
       return data[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checklists'] });
+      setIsEditDialogOpen(false);
       toast({
-        title: 'Success',
-        description: 'Checklist updated successfully',
+        title: "Checklist updated",
+        description: "Your checklist has been updated successfully.",
       });
-      setEditingChecklist(null);
-      setIsEditChecklistOpen(false);
+      setCurrentChecklist(null);
+      resetChecklistForm();
     },
     onError: (error) => {
-      console.error('Error updating checklist:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to update checklist',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to update checklist: ${error.message}`,
+        variant: "destructive",
       });
     },
   });
 
   // Delete checklist mutation
   const deleteChecklistMutation = useMutation({
-    mutationFn: async (checklistId: string) => {
+    mutationFn: async (id: string) => {
+      // First delete all items in the checklist
+      const { error: itemsError } = await supabase
+        .from('checklist_items')
+        .delete()
+        .eq('checklist_id', id);
+
+      if (itemsError) throw itemsError;
+
+      // Then delete the checklist
       const { error } = await supabase
         .from('checklists')
         .delete()
-        .eq('id', checklistId);
-      
+        .eq('id', id);
+
       if (error) throw error;
-      return checklistId;
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ['checklists'] });
+      queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
       toast({
-        title: 'Success',
-        description: 'Checklist deleted successfully',
+        title: "Checklist deleted",
+        description: "The checklist has been deleted successfully.",
       });
     },
     onError: (error) => {
-      console.error('Error deleting checklist:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete checklist',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to delete checklist: ${error.message}`,
+        variant: "destructive",
       });
     },
   });
 
   // Create checklist item mutation
   const createChecklistItemMutation = useMutation({
-    mutationFn: async (item: { text: string; checklistId: string }) => {
+    mutationFn: async ({ checklistId, text }: { checklistId: string, text: string }) => {
       const { data, error } = await supabase
         .from('checklist_items')
         .insert([
-          { 
-            text: item.text, 
-            checklist_id: item.checklistId,
-            completed: false
+          {
+            text,
+            completed: false,
+            checklist_id: checklistId,
           }
         ])
         .select();
-      
+
       if (error) throw error;
       return data[0];
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['checklistItems'] });
+      queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
+      setIsAddItemDialogOpen(false);
+      setNewItemText('');
       toast({
-        title: 'Success',
-        description: 'Item added successfully',
+        title: "Item added",
+        description: "The item has been added to your checklist.",
       });
-      setNewItem({ text: '', checklistId: null });
-      setIsNewItemOpen(false);
     },
     onError: (error) => {
-      console.error('Error creating checklist item:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to add item',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to add item: ${error.message}`,
+        variant: "destructive",
       });
     },
   });
 
-  // Update checklist item mutation
-  const updateChecklistItemMutation = useMutation({
-    mutationFn: async (item: { id: string; completed: boolean }) => {
+  // Toggle checklist item completion
+  const toggleChecklistItemMutation = useMutation({
+    mutationFn: async ({ id, completed }: { id: string, completed: boolean }) => {
       const { data, error } = await supabase
         .from('checklist_items')
-        .update({ completed: item.completed })
-        .eq('id', item.id)
+        .update({ completed })
+        .eq('id', id)
         .select();
-      
+
       if (error) throw error;
+      
+      // Get the checklist_id to update its completion status
+      const checklist_id = data[0].checklist_id;
+      
+      // Check if all items in this checklist are completed
+      const { data: items } = await supabase
+        .from('checklist_items')
+        .select('*')
+        .eq('checklist_id', checklist_id);
+      
+      if (items && items.length > 0) {
+        const allCompleted = items.every(item => item.completed);
+        
+        // Update checklist completion status
+        await supabase
+          .from('checklists')
+          .update({ is_complete: allCompleted })
+          .eq('id', checklist_id);
+      }
+      
       return data[0];
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['checklistItems'] });
-      checkAndUpdateChecklistStatus();
+      queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
+      queryClient.invalidateQueries({ queryKey: ['checklists'] });
     },
     onError: (error) => {
-      console.error('Error updating checklist item:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to update item',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to update item: ${error.message}`,
+        variant: "destructive",
       });
     },
   });
 
-  // Delete checklist item mutation
+  // Delete checklist item
   const deleteChecklistItemMutation = useMutation({
-    mutationFn: async (itemId: string) => {
-      const { error } = await supabase
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase
         .from('checklist_items')
         .delete()
-        .eq('id', itemId);
-      
+        .eq('id', id)
+        .select();
+
       if (error) throw error;
-      return itemId;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['checklistItems'] });
+      queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
       toast({
-        title: 'Success',
-        description: 'Item deleted successfully',
+        title: "Item deleted",
+        description: "The item has been removed from your checklist.",
       });
-      checkAndUpdateChecklistStatus();
     },
     onError: (error) => {
-      console.error('Error deleting checklist item:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to delete item',
-        variant: 'destructive',
+        title: "Error",
+        description: `Failed to delete item: ${error.message}`,
+        variant: "destructive",
       });
     },
   });
 
-  // Function to check and update checklist completion status
-  const checkAndUpdateChecklistStatus = () => {
-    if (!checklists || !checklistItems) return;
-    
-    checklists.forEach(checklist => {
-      const items = checklistItems.filter(item => item.checklist_id === checklist.id);
-      if (items.length === 0) return;
-      
-      const allCompleted = items.every(item => item.completed);
-      if (allCompleted !== checklist.is_complete) {
-        updateChecklistMutation.mutate({
-          ...checklist,
-          isComplete: allCompleted
-        });
-      }
-    });
-  };
-
-  // Function to handle new checklist submission
-  const handleCreateChecklist = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateChecklist = () => {
     if (!newChecklist.name) {
       toast({
-        title: 'Error',
-        description: 'Please enter a checklist name',
-        variant: 'destructive',
+        title: "Missing information",
+        description: "Please provide a name for your checklist.",
+        variant: "destructive",
       });
       return;
     }
-    
-    createChecklistMutation.mutate(newChecklist);
+
+    createChecklistMutation.mutate({
+      name: newChecklist.name,
+      description: newChecklist.description || '',
+      pointId: newChecklist.pointId,
+    });
   };
 
-  // Function to handle edit checklist submission
-  const handleUpdateChecklist = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingChecklist) return;
-    
-    updateChecklistMutation.mutate(editingChecklist);
+  const handleEditChecklist = (id: string) => {
+    const checklistToEdit = checklists.find(c => c.id === id);
+    if (checklistToEdit) {
+      setCurrentChecklist(checklistToEdit);
+      setNewChecklist({
+        name: checklistToEdit.name,
+        description: checklistToEdit.description || '',
+        pointId: checklistToEdit.pointId,
+      });
+      setIsEditDialogOpen(true);
+    }
   };
 
-  // Function to handle new checklist item submission
-  const handleCreateChecklistItem = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newItem.text || !newItem.checklistId) {
+  const handleUpdateChecklist = () => {
+    if (!currentChecklist || !newChecklist.name) {
       toast({
-        title: 'Error',
-        description: 'Please enter an item text',
-        variant: 'destructive',
+        title: "Missing information",
+        description: "Please provide a name for your checklist.",
+        variant: "destructive",
       });
       return;
     }
-    
+
+    updateChecklistMutation.mutate({
+      id: currentChecklist.id,
+      checklist: newChecklist,
+    });
+  };
+
+  const handleViewChecklist = (id: string) => {
+    const checklistToView = checklists.find(c => c.id === id);
+    if (checklistToView) {
+      setCurrentChecklist(checklistToView);
+      setIsViewDialogOpen(true);
+    }
+  };
+
+  const handleAddItem = (checklistId: string) => {
+    const checklist = checklists.find(c => c.id === checklistId);
+    if (checklist) {
+      setCurrentChecklist(checklist);
+      setIsAddItemDialogOpen(true);
+    }
+  };
+
+  const handleCreateItem = () => {
+    if (!currentChecklist || !newItemText.trim()) {
+      toast({
+        title: "Missing information",
+        description: "Please provide text for your item.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     createChecklistItemMutation.mutate({
-      text: newItem.text,
-      checklistId: newItem.checklistId
+      checklistId: currentChecklist.id,
+      text: newItemText.trim(),
     });
   };
 
-  // Function to toggle checklist item completion
-  const toggleItemCompletion = (item: ChecklistItem) => {
-    updateChecklistItemMutation.mutate({
-      id: item.id,
-      completed: !item.completed
+  const resetChecklistForm = () => {
+    setNewChecklist({
+      name: '',
+      description: '',
+      pointId: null,
+      isComplete: false,
     });
   };
 
-  // Function to delete checklist item
-  const deleteChecklistItem = (itemId: string) => {
-    if (confirm('Are you sure you want to delete this item?')) {
-      deleteChecklistItemMutation.mutate(itemId);
-    }
-  };
-
-  // Function to delete checklist
-  const deleteChecklist = (checklistId: string) => {
-    if (confirm('Are you sure you want to delete this checklist?')) {
-      deleteChecklistMutation.mutate(checklistId);
-    }
-  };
-
-  // Function to open edit checklist dialog
-  const openEditDialog = (checklist: Checklist) => {
-    setEditingChecklist({
-      ...checklist,
-      pointId: checklist.point_id || checklist.pointId || null
-    });
-    setIsEditChecklistOpen(true);
-  };
-
-  // Function to open new item dialog
-  const openNewItemDialog = (checklistId: string) => {
-    setNewItem({
-      text: '',
-      checklistId
-    });
-    setIsNewItemOpen(true);
-  };
-
-  // Function to get point name by ID
-  const getPointNameById = (pointId: string | null) => {
-    if (!pointId || !points) return 'None';
-    const point = points.find(p => p.id === pointId);
-    return point ? point.name : 'None';
-  };
-
-  // Function to calculate checklist progress
-  const calculateProgress = (checklistId: string) => {
-    if (!checklistItems) return { completed: 0, total: 0, percentage: 0 };
-    
+  // Calculate completion percentage for a checklist
+  const calculateCompletion = (checklistId: string) => {
     const items = checklistItems.filter(item => item.checklist_id === checklistId);
-    const completed = items.filter(item => item.completed).length;
-    const total = items.length;
-    const percentage = total ? Math.round((completed / total) * 100) : 0;
-    
-    return { completed, total, percentage };
+    if (items.length === 0) return 0;
+    const completedItems = items.filter(item => item.completed).length;
+    return Math.round((completedItems / items.length) * 100);
   };
+
+  // Find the associated point for a checklist
+  const getAssociatedPoint = (pointId: string | null | undefined) => {
+    if (!pointId) return null;
+    return points.find(p => p.id === pointId);
+  };
+
+  if (isLoadingChecklists) {
+    return (
+      <PageContainer>
+        <div className="flex justify-center items-center h-[400px]">
+          <Loader2 className="h-8 w-8 animate-spin text-travel-blue" />
+          <span className="ml-2">Loading checklists...</span>
+        </div>
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer>
-      <div className="mb-6 flex justify-between items-center">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-travel-dark">Travel Checklists</h1>
-          <p className="text-travel-dark/70">Create and manage checklists for your trips</p>
+          <h1 className="text-3xl font-bold text-travel-dark">Checklists</h1>
+          <p className="text-travel-dark/70">Manage your travel checklists and tasks</p>
         </div>
-        <Button 
-          className="bg-travel-mustard hover:bg-travel-mustard/90 text-travel-dark"
-          onClick={() => setIsNewChecklistOpen(true)}
-        >
-          <Plus className="mr-1 h-4 w-4" /> New Checklist
-        </Button>
+        <div className="flex gap-4 items-center">
+          <ChecklistViewToggle currentView={viewMode} onViewChange={setViewMode} />
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Checklist
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Create a New Checklist</DialogTitle>
+                <DialogDescription>
+                  Add a new checklist to organize your tasks.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    value={newChecklist.name}
+                    onChange={(e) => setNewChecklist({ ...newChecklist, name: e.target.value })}
+                    placeholder="e.g., Paris Trip Essentials"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Description (optional)</Label>
+                  <Textarea
+                    id="description"
+                    value={newChecklist.description || ''}
+                    onChange={(e) => setNewChecklist({ ...newChecklist, description: e.target.value })}
+                    placeholder="Brief description of this checklist..."
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="point">Associated Point (optional)</Label>
+                  <Select
+                    value={newChecklist.pointId || ''}
+                    onValueChange={(value) => setNewChecklist({ ...newChecklist, pointId: value || null })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a point" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {points.map((point) => (
+                        <SelectItem key={point.id} value={point.id}>
+                          {point.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateChecklist}
+                  disabled={createChecklistMutation.isPending}
+                  className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+                >
+                  {createChecklistMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating...
+                    </>
+                  ) : (
+                    "Create Checklist"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
-      
-      {isLoadingChecklists ? (
-        <div className="flex items-center justify-center h-64">
-          <p>Loading checklists...</p>
-        </div>
-      ) : (!checklists || checklists.length === 0) ? (
+
+      {checklists.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[400px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">
-          <h3 className="text-xl font-medium text-travel-dark">No Checklists Yet</h3>
-          <p className="text-travel-dark/70 mt-2 mb-4">Create your first checklist to keep track of your travel items</p>
+          <ClipboardList className="h-16 w-16 text-travel-mustard/50 mb-4" />
+          <h3 className="text-xl font-medium text-travel-dark">No checklists yet</h3>
+          <p className="text-travel-dark/70 mb-4">Create your first checklist to start organizing your tasks</p>
           <Button 
-            className="bg-travel-mustard hover:bg-travel-mustard/90 text-travel-dark"
-            onClick={() => setIsNewChecklistOpen(true)}
+            className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            onClick={() => setIsAddDialogOpen(true)}
           >
-            <Plus className="mr-1 h-4 w-4" /> Create Checklist
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Create Your First Checklist
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6">
-          {checklists.map(checklist => {
-            const progress = calculateProgress(checklist.id);
-            return (
-              <div 
-                key={checklist.id} 
-                className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden"
-              >
-                <div className="p-4 md:p-6 border-b border-gray-100">
-                  <div className="flex justify-between items-start mb-2">
-                    <div className="flex items-center">
-                      <h3 className="text-xl font-semibold text-travel-dark">{checklist.name}</h3>
-                      {checklist.is_complete && (
-                        <CheckCircle className="ml-2 h-5 w-5 text-green-500" />
-                      )}
+        viewMode === 'grid' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {checklists.map((checklist) => {
+              const completionPercentage = calculateCompletion(checklist.id);
+              const associatedPoint = getAssociatedPoint(checklist.pointId || checklist.point_id);
+              
+              return (
+                <Card key={checklist.id} className="overflow-hidden">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>{checklist.name}</CardTitle>
+                        <CardDescription className="mt-1">
+                          {new Date(checklist.createdAt || checklist.created_at).toLocaleDateString()}
+                        </CardDescription>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => handleEditChecklist(checklist.id)}
+                        >
+                          <Edit className="h-4 w-4 text-travel-blue" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8" 
+                          onClick={() => deleteChecklistMutation.mutate(checklist.id)}
+                        >
+                          <Trash className="h-4 w-4 text-travel-red" />
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => openNewItemDialog(checklist.id)}
-                      >
-                        <Plus className="h-4 w-4 mr-1" /> Add Item
-                      </Button>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-40 p-2">
-                          <div className="flex flex-col space-y-1">
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="justify-start"
-                              onClick={() => openEditDialog(checklist)}
-                            >
-                              <Edit className="mr-2 h-4 w-4" /> Edit
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="justify-start text-red-500"
-                              onClick={() => deleteChecklist(checklist.id)}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" /> Delete
-                            </Button>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-                  </div>
-                  
-                  {checklist.description && (
-                    <p className="text-travel-dark/70 mb-3">{checklist.description}</p>
-                  )}
-                  
-                  <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-                    {(checklist.point_id || checklist.pointId) && (
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-1 text-travel-red" />
-                        <span>{getPointNameById(checklist.point_id || checklist.pointId)}</span>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-travel-dark/80 mb-4">{checklist.description || 'No description'}</p>
+                    
+                    {associatedPoint && (
+                      <div className="flex items-start gap-2 mb-4">
+                        <MapPin className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
+                        <span className="text-sm text-travel-dark/70">{associatedPoint.name}</span>
                       </div>
                     )}
-                    <div className="flex items-center">
-                      <Clock className="h-4 w-4 mr-1 text-travel-blue" />
-                      <span>{new Date(checklist.created_at || checklist.createdAt || '').toLocaleDateString()}</span>
+                    
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs text-travel-dark/70">Completion</span>
+                        <span className="text-xs font-medium">{completionPercentage}%</span>
+                      </div>
+                      <Progress value={completionPercentage} className="h-2" />
                     </div>
-                    <div className="flex items-center">
-                      <span className="font-medium text-gray-700">{progress.completed}/{progress.total} completed</span>
-                      <span className="ml-2 text-xs bg-travel-beige/50 rounded-full px-2 py-0.5">
-                        {progress.percentage}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="p-4 md:p-6">
-                  {checklistItems && checklistItems.filter(item => item.checklist_id === checklist.id).length > 0 ? (
-                    <ul className="divide-y divide-gray-100">
+                    
+                    <div className="space-y-2 mt-4">
                       {checklistItems
                         .filter(item => item.checklist_id === checklist.id)
+                        .slice(0, 3)
                         .map(item => (
-                          <li key={item.id} className="py-3 flex items-center justify-between group">
-                            <div className="flex items-center gap-3">
+                          <div key={item.id} className="flex items-center justify-between group">
+                            <div className="flex items-center gap-2">
                               <Checkbox 
                                 id={`item-${item.id}`}
                                 checked={item.completed}
-                                onCheckedChange={() => toggleItemCompletion(item)}
+                                onCheckedChange={(checked) => 
+                                  toggleChecklistItemMutation.mutate({
+                                    id: item.id,
+                                    completed: checked as boolean
+                                  })
+                                }
                               />
-                              <label 
+                              <label
                                 htmlFor={`item-${item.id}`}
-                                className={`text-sm md:text-base ${item.completed ? 'line-through text-gray-400' : 'text-travel-dark'}`}
+                                className={`text-sm ${
+                                  item.completed ? 'line-through text-travel-dark/50' : 'text-travel-dark'
+                                }`}
                               >
                                 {item.text}
                               </label>
                             </div>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              className="text-red-500 opacity-0 group-hover:opacity-100 focus:opacity-100"
-                              onClick={() => deleteChecklistItem(item.id)}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                              onClick={() => deleteChecklistItemMutation.mutate(item.id)}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <Trash className="h-3 w-3 text-travel-red" />
                             </Button>
-                          </li>
+                          </div>
                         ))}
-                    </ul>
-                  ) : (
-                    <div className="text-center py-6 text-gray-400">
-                      <p>No items in this checklist</p>
+                    </div>
+                    
+                    {checklistItems.filter(item => item.checklist_id === checklist.id).length > 3 && (
+                      <p className="text-xs text-travel-dark/50 mt-2">
+                        +{checklistItems.filter(item => item.checklist_id === checklist.id).length - 3} more items
+                      </p>
+                    )}
+                  </CardContent>
+                  <CardFooter>
+                    <div className="w-full flex justify-between items-center">
                       <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="mt-2"
-                        onClick={() => openNewItemDialog(checklist.id)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-travel-blue p-0"
+                        onClick={() => handleAddItem(checklist.id)}
                       >
-                        <Plus className="mr-1 h-4 w-4" /> Add Item
+                        <PlusCircle className="h-4 w-4 mr-1" />
+                        Add Item
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-travel-dark"
+                        onClick={() => handleViewChecklist(checklist.id)}
+                      >
+                        <ListChecks className="h-4 w-4 mr-1" />
+                        View All
                       </Button>
                     </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+                  </CardFooter>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <ChecklistListView 
+            checklists={checklists}
+            checklistItems={checklistItems}
+            onEdit={handleEditChecklist}
+            onDelete={(id) => deleteChecklistMutation.mutate(id)}
+            onChecklistView={handleViewChecklist}
+            onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({ id, completed })}
+            onDeleteItem={(id) => deleteChecklistItemMutation.mutate(id)}
+            onAddItem={handleAddItem}
+          />
+        )
       )}
 
-      {/* New Checklist Dialog */}
-      <Dialog open={isNewChecklistOpen} onOpenChange={setIsNewChecklistOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create New Checklist</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleCreateChecklist}>
-            <div className="space-y-4 py-2">
-              <div>
-                <label htmlFor="name" className="text-sm font-medium block mb-1">
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="name"
-                  value={newChecklist.name}
-                  onChange={(e) => setNewChecklist({...newChecklist, name: e.target.value})}
-                  placeholder="e.g., Trip to Paris Checklist"
-                  className="w-full"
-                  required
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="description" className="text-sm font-medium block mb-1">
-                  Description
-                </label>
-                <Textarea
-                  id="description"
-                  value={newChecklist.description}
-                  onChange={(e) => setNewChecklist({...newChecklist, description: e.target.value})}
-                  placeholder="Optional description for your checklist"
-                  className="w-full"
-                />
-              </div>
-              
-              <div>
-                <label htmlFor="pointId" className="text-sm font-medium block mb-1">
-                  Associated Point
-                </label>
-                <select
-                  id="pointId"
-                  value={newChecklist.pointId || ''}
-                  onChange={(e) => setNewChecklist({
-                    ...newChecklist, 
-                    pointId: e.target.value === '' ? null : e.target.value
-                  })}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  <option value="">Not associated with a point</option>
-                  {points && points.map(point => (
-                    <option key={point.id} value={point.id}>
-                      {point.name} - {point.type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            
-            <DialogFooter className="mt-4">
-              <Button type="button" variant="outline" onClick={() => setIsNewChecklistOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-travel-mustard text-travel-dark hover:bg-travel-mustard/90">
-                Create Checklist
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
       {/* Edit Checklist Dialog */}
-      <Dialog open={isEditChecklistOpen} onOpenChange={setIsEditChecklistOpen}>
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Checklist</DialogTitle>
           </DialogHeader>
-          {editingChecklist && (
-            <form onSubmit={handleUpdateChecklist}>
-              <div className="space-y-4 py-2">
-                <div>
-                  <label htmlFor="edit-name" className="text-sm font-medium block mb-1">
-                    Name <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    id="edit-name"
-                    value={editingChecklist.name}
-                    onChange={(e) => setEditingChecklist({...editingChecklist, name: e.target.value})}
-                    placeholder="e.g., Trip to Paris Checklist"
-                    className="w-full"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="edit-description" className="text-sm font-medium block mb-1">
-                    Description
-                  </label>
-                  <Textarea
-                    id="edit-description"
-                    value={editingChecklist.description || ''}
-                    onChange={(e) => setEditingChecklist({...editingChecklist, description: e.target.value})}
-                    placeholder="Optional description for your checklist"
-                    className="w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label htmlFor="edit-pointId" className="text-sm font-medium block mb-1">
-                    Associated Point
-                  </label>
-                  <select
-                    id="edit-pointId"
-                    value={editingChecklist.pointId || editingChecklist.point_id || ''}
-                    onChange={(e) => setEditingChecklist({
-                      ...editingChecklist, 
-                      pointId: e.target.value === '' ? null : e.target.value
-                    })}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                  >
-                    <option value="">Not associated with a point</option>
-                    {points && points.map(point => (
-                      <option key={point.id} value={point.id}>
-                        {point.name} - {point.type}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              
-              <DialogFooter className="mt-4">
-                <Button type="button" variant="outline" onClick={() => setIsEditChecklistOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" className="bg-travel-mustard text-travel-dark hover:bg-travel-mustard/90">
-                  Update Checklist
-                </Button>
-              </DialogFooter>
-            </form>
-          )}
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                value={newChecklist.name}
+                onChange={(e) => setNewChecklist({ ...newChecklist, name: e.target.value })}
+                placeholder="e.g., Paris Trip Essentials"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-description">Description (optional)</Label>
+              <Textarea
+                id="edit-description"
+                value={newChecklist.description || ''}
+                onChange={(e) => setNewChecklist({ ...newChecklist, description: e.target.value })}
+                placeholder="Brief description of this checklist..."
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-point">Associated Point (optional)</Label>
+              <Select
+                value={newChecklist.pointId || ''}
+                onValueChange={(value) => setNewChecklist({ ...newChecklist, pointId: value || null })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a point" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {points.map((point) => (
+                    <SelectItem key={point.id} value={point.id}>
+                      {point.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsEditDialogOpen(false);
+                setCurrentChecklist(null);
+                resetChecklistForm();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateChecklist}
+              disabled={updateChecklistMutation.isPending}
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            >
+              {updateChecklistMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Checklist"
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* New Checklist Item Dialog */}
-      <Dialog open={isNewItemOpen} onOpenChange={setIsNewItemOpen}>
-        <DialogContent>
+      {/* View Checklist Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
-            <DialogTitle>Add Checklist Item</DialogTitle>
+            <DialogTitle>{currentChecklist?.name}</DialogTitle>
+            <DialogDescription>
+              {currentChecklist?.description || 'No description'}
+            </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleCreateChecklistItem}>
-            <div className="space-y-4 py-2">
-              <div>
-                <label htmlFor="item-text" className="text-sm font-medium block mb-1">
-                  Item <span className="text-red-500">*</span>
-                </label>
-                <Input
-                  id="item-text"
-                  value={newItem.text}
-                  onChange={(e) => setNewItem({...newItem, text: e.target.value})}
-                  placeholder="e.g., Pack passport"
-                  className="w-full"
-                  required
-                />
-              </div>
+          <div className="py-4">
+            {currentChecklist && (
+              <>
+                {getAssociatedPoint(currentChecklist.pointId || currentChecklist.point_id) && (
+                  <div className="flex items-center gap-2 mb-4 text-travel-dark/70">
+                    <MapPin className="h-4 w-4 text-travel-blue" />
+                    <span>
+                      Associated with: {getAssociatedPoint(currentChecklist.pointId || currentChecklist.point_id)?.name}
+                    </span>
+                  </div>
+                )}
+                
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs text-travel-dark/70">Completion</span>
+                    <span className="text-xs font-medium">{calculateCompletion(currentChecklist.id)}%</span>
+                  </div>
+                  <Progress value={calculateCompletion(currentChecklist.id)} className="h-2" />
+                </div>
+                
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                  {checklistItems
+                    .filter(item => item.checklist_id === currentChecklist.id)
+                    .map(item => (
+                      <div key={item.id} className="py-3 flex items-center justify-between group">
+                        <div className="flex items-center gap-3">
+                          <Checkbox 
+                            id={`item-${item.id}`}
+                            checked={item.completed}
+                            onCheckedChange={(checked) => 
+                              toggleChecklistItemMutation.mutate({
+                                id: item.id,
+                                completed: checked as boolean
+                              })
+                            }
+                          />
+                          <label
+                            htmlFor={`item-${item.id}`}
+                            className={`${
+                              item.completed ? 'line-through text-travel-dark/50' : 'text-travel-dark'
+                            }`}
+                          >
+                            {item.text}
+                          </label>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 h-8 w-8 p-0"
+                          onClick={() => deleteChecklistItemMutation.mutate(item.id)}
+                        >
+                          <Trash className="h-4 w-4 text-travel-red" />
+                        </Button>
+                      </div>
+                    ))}
+                    
+                  {checklistItems.filter(item => item.checklist_id === currentChecklist.id).length === 0 && (
+                    <div className="text-center py-8 text-travel-dark/50">
+                      <ClipboardList className="h-10 w-10 mx-auto mb-2 opacity-30" />
+                      <p>No items in this checklist yet</p>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter className="flex justify-between sm:justify-between">
+            <Button
+              variant="outline"
+              className="text-travel-blue"
+              onClick={() => {
+                if (currentChecklist) {
+                  handleAddItem(currentChecklist.id);
+                  setIsViewDialogOpen(false);
+                }
+              }}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Item
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsViewDialogOpen(false);
+                setCurrentChecklist(null);
+              }}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Item Dialog */}
+      <Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle>Add Item to {currentChecklist?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="item-text">Item Text</Label>
+              <Input
+                id="item-text"
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                placeholder="e.g., Pack passport"
+              />
             </div>
-            
-            <DialogFooter className="mt-4">
-              <Button type="button" variant="outline" onClick={() => setIsNewItemOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" className="bg-travel-mustard text-travel-dark hover:bg-travel-mustard/90">
-                Add Item
-              </Button>
-            </DialogFooter>
-          </form>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsAddItemDialogOpen(false);
+                setNewItemText('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateItem}
+              disabled={createChecklistItemMutation.isPending}
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            >
+              {createChecklistItemMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Item"
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </PageContainer>

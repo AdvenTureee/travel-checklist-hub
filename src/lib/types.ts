@@ -10,6 +10,8 @@ export interface Point {
   created_at: string;
   createdAt?: string;
   user_id: string;
+  googleMapsUrl?: string;
+  google_maps_url?: string;
 }
 
 export interface ChecklistItem {
