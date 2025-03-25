@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useNavigate } from 'react-router-dom';
@@ -482,14 +481,14 @@ const Checklists = () => {
                 <div className="grid gap-2">
                   <Label htmlFor="point">Associated Point (optional)</Label>
                   <Select
-                    value={newChecklist.pointId || ''}
-                    onValueChange={(value) => setNewChecklist({ ...newChecklist, pointId: value || null })}
+                    value={newChecklist.pointId || 'none'}
+                    onValueChange={(value) => setNewChecklist({ ...newChecklist, pointId: value === 'none' ? null : value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a point" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {points.map((point) => (
                         <SelectItem key={point.id} value={point.id}>
                           {point.name}
@@ -703,14 +702,14 @@ const Checklists = () => {
             <div className="grid gap-2">
               <Label htmlFor="edit-point">Associated Point (optional)</Label>
               <Select
-                value={newChecklist.pointId || ''}
-                onValueChange={(value) => setNewChecklist({ ...newChecklist, pointId: value || null })}
+                value={newChecklist.pointId || 'none'}
+                onValueChange={(value) => setNewChecklist({ ...newChecklist, pointId: value === 'none' ? null : value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a point" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {points.map((point) => (
                     <SelectItem key={point.id} value={point.id}>
                       {point.name}
