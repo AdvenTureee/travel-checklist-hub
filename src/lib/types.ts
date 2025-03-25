@@ -16,16 +16,22 @@ export interface ChecklistItem {
   id: string;
   text: string;
   completed: boolean;
+  checklist_id: string;
+  created_at: string;
 }
 
 export interface Checklist {
   id: string;
   name: string;
   description?: string;
-  items: ChecklistItem[];
-  pointId?: string;
-  createdAt: string;
-  isComplete: boolean;
+  point_id?: string | null;
+  pointId?: string | null;
+  created_at: string;
+  createdAt?: string;
+  is_complete: boolean;
+  isComplete?: boolean;
+  user_id: string;
+  items?: ChecklistItem[];
 }
 
 export interface User {

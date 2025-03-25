@@ -64,7 +64,15 @@ const Checklists: React.FC = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Checklist[];
+      
+      // Convert snake_case to camelCase for TypeScript compatibility
+      return (data as Checklist[]).map(checklist => ({
+        ...checklist,
+        pointId: checklist.point_id,
+        createdAt: checklist.created_at,
+        isComplete: checklist.is_complete,
+        items: []
+      }));
     },
   });
 
@@ -106,7 +114,8 @@ const Checklists: React.FC = () => {
             name: checklist.name, 
             description: checklist.description,
             point_id: checklist.pointId,
-            is_complete: false
+            is_complete: false,
+            user_id: (await supabase.auth.getUser()).data.user?.id
           }
         ])
         .select();
@@ -141,8 +150,8 @@ const Checklists: React.FC = () => {
         .update({ 
           name: checklist.name, 
           description: checklist.description,
-          point_id: checklist.pointId,
-          is_complete: checklist.isComplete
+          point_id: checklist.pointId || checklist.point_id,
+          is_complete: checklist.isComplete || checklist.is_complete
         })
         .eq('id', checklist.id)
         .select();
@@ -297,7 +306,7 @@ const Checklists: React.FC = () => {
       if (items.length === 0) return;
       
       const allCompleted = items.every(item => item.completed);
-      if (allCompleted !== checklist.isComplete) {
+      if (allCompleted !== checklist.is_complete) {
         updateChecklistMutation.mutate({
           ...checklist,
           isComplete: allCompleted
@@ -373,7 +382,7 @@ const Checklists: React.FC = () => {
   const openEditDialog = (checklist: Checklist) => {
     setEditingChecklist({
       ...checklist,
-      pointId: checklist.point_id || null
+      pointId: checklist.point_id || checklist.pointId || null
     });
     setIsEditChecklistOpen(true);
   };
@@ -449,7 +458,7 @@ const Checklists: React.FC = () => {
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center">
                       <h3 className="text-xl font-semibold text-travel-dark">{checklist.name}</h3>
-                      {checklist.isComplete && (
+                      {checklist.is_complete && (
                         <CheckCircle className="ml-2 h-5 w-5 text-green-500" />
                       )}
                     </div>
@@ -496,15 +505,15 @@ const Checklists: React.FC = () => {
                   )}
                   
                   <div className="flex flex-wrap gap-3 text-sm text-gray-500">
-                    {checklist.point_id && (
+                    {(checklist.point_id || checklist.pointId) && (
                       <div className="flex items-center">
                         <MapPin className="h-4 w-4 mr-1 text-travel-red" />
-                        <span>{getPointNameById(checklist.point_id)}</span>
+                        <span>{getPointNameById(checklist.point_id || checklist.pointId)}</span>
                       </div>
                     )}
                     <div className="flex items-center">
                       <Clock className="h-4 w-4 mr-1 text-travel-blue" />
-                      <span>{new Date(checklist.created_at).toLocaleDateString()}</span>
+                      <span>{new Date(checklist.created_at || checklist.createdAt || '').toLocaleDateString()}</span>
                     </div>
                     <div className="flex items-center">
                       <span className="font-medium text-gray-700">{progress.completed}/{progress.total} completed</span>
@@ -678,7 +687,7 @@ const Checklists: React.FC = () => {
                   </label>
                   <select
                     id="edit-pointId"
-                    value={editingChecklist.pointId || ''}
+                    value={editingChecklist.pointId || editingChecklist.point_id || ''}
                     onChange={(e) => setEditingChecklist({
                       ...editingChecklist, 
                       pointId: e.target.value === '' ? null : e.target.value
