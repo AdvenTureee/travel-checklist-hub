@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -58,6 +57,11 @@ const Checklists: React.FC = () => {
   const { data: checklists, isLoading: isLoadingChecklists } = useQuery({
     queryKey: ['checklists'],
     queryFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        throw new Error("User not authenticated");
+      }
+      
       const { data, error } = await supabase
         .from('checklists')
         .select('*')
@@ -107,6 +111,12 @@ const Checklists: React.FC = () => {
   // Create checklist mutation
   const createChecklistMutation = useMutation({
     mutationFn: async (checklist: { name: string; description: string; pointId: string | null }) => {
+      const { data: userData } = await supabase.auth.getUser();
+      
+      if (!userData.user) {
+        throw new Error("User not authenticated");
+      }
+      
       const { data, error } = await supabase
         .from('checklists')
         .insert([
@@ -115,12 +125,15 @@ const Checklists: React.FC = () => {
             description: checklist.description,
             point_id: checklist.pointId,
             is_complete: false,
-            user_id: (await supabase.auth.getUser()).data.user?.id
+            user_id: userData.user.id
           }
         ])
         .select();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Error creating checklist:", error);
+        throw error;
+      }
       return data[0];
     },
     onSuccess: () => {
@@ -530,7 +543,7 @@ const Checklists: React.FC = () => {
                       {checklistItems
                         .filter(item => item.checklist_id === checklist.id)
                         .map(item => (
-                          <li key={item.id} className="py-3 flex items-center justify-between">
+                          <li key={item.id} className="py-3 flex items-center justify-between group">
                             <div className="flex items-center gap-3">
                               <Checkbox 
                                 id={`item-${item.id}`}
