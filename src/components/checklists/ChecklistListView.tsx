@@ -98,53 +98,30 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
               
               <Collapsible open={isExpanded} onOpenChange={() => toggleExpansion(checklist.id)}>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="text-sm font-medium">Items ({items.length})</div>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                      {isExpanded ? 
-                        <ChevronUp className="h-4 w-4" /> : 
-                        <ChevronDown className="h-4 w-4" />
-                      }
-                    </Button>
-                  </CollapsibleTrigger>
+                  <div className="text-sm font-medium flex items-center">
+                    Items ({items.length})
+                    <CollapsibleTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-7 w-7 p-0 ml-2">
+                        {isExpanded ? 
+                          <ChevronUp className="h-4 w-4" /> : 
+                          <ChevronDown className="h-4 w-4" />
+                        }
+                      </Button>
+                    </CollapsibleTrigger>
+                  </div>
                 </div>
                 
                 {!isExpanded && items.length > 0 && (
-                  <div className="space-y-2 mt-4">
-                    {items.slice(0, 3).map(item => (
-                      <div key={item.id} className="flex items-center justify-between group">
-                        <div className="flex items-center gap-2">
-                          <Checkbox
-                            id={`list-item-${item.id}`}
-                            checked={item.completed}
-                            onCheckedChange={(checked) => 
-                              onToggleItem(item.id, checked as boolean)
-                            }
-                          />
-                          <label
-                            htmlFor={`list-item-${item.id}`}
-                            className={`text-sm ${
-                              item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                            }`}
-                          >
-                            {item.text}
-                          </label>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                          onClick={() => onDeleteItem(item.id)}
-                        >
-                          <Trash className="h-3 w-3 text-travel-red" />
-                        </Button>
-                      </div>
-                    ))}
-                    {items.length > 3 && (
-                      <div className="text-sm text-muted-foreground mt-1">
-                        + {items.length - 3} more items
-                      </div>
-                    )}
+                  <div className="flex justify-center mt-2 mb-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-travel-dark hover:bg-travel-light-mustard" 
+                      onClick={() => toggleExpansion(checklist.id)}
+                    >
+                      <ChevronDown className="h-4 w-4 mr-1" />
+                      Show all items
+                    </Button>
                   </div>
                 )}
                 
@@ -188,12 +165,12 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                 </CollapsibleContent>
               </Collapsible>
             </CardContent>
-            <CardFooter className="flex justify-between pt-1">
-              <div className="flex space-x-2">
+            <CardFooter className="flex justify-between pt-3">
+              <div className="flex gap-3">
                 <Button 
-                  variant="ghost" 
+                  variant="outline" 
                   size="sm" 
-                  className="text-travel-blue hover:text-travel-blue/80 p-0"
+                  className="text-travel-blue border-travel-blue/30 hover:bg-travel-light-blue/10 hover:text-travel-blue"
                   onClick={() => onAddItem(checklist.id)}
                 >
                   <Plus className="h-4 w-4 mr-1" />
@@ -201,9 +178,9 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                 </Button>
                 {onBulkAddItems && (
                   <Button 
-                    variant="ghost" 
+                    variant="outline" 
                     size="sm" 
-                    className="text-travel-blue hover:text-travel-blue/80 p-0"
+                    className="text-travel-blue border-travel-blue/30 hover:bg-travel-light-blue/10 hover:text-travel-blue"
                     onClick={() => onBulkAddItems(checklist.id)}
                   >
                     <ListPlus className="h-4 w-4 mr-1" />
@@ -215,7 +192,7 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onChecklistView(checklist.id)}
-                className="text-travel-dark"
+                className="text-travel-dark border-travel-dark/30 hover:bg-travel-dark/10"
               >
                 <ListChecks className="h-4 w-4 mr-1" />
                 View All
