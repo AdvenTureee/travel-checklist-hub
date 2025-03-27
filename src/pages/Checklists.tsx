@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin, ListPlus, ChevronDown } from 'lucide-react';
+import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin, ListPlus } from 'lucide-react';
 import ChecklistViewToggle from '@/components/checklists/ChecklistViewToggle';
 import ChecklistListView from '@/components/checklists/ChecklistListView';
 import BulkItemsDialog from '@/components/checklists/BulkItemsDialog';
@@ -594,7 +595,6 @@ const Checklists = () => {
             {checklists.map((checklist) => {
               const completionPercentage = calculateCompletion(checklist.id);
               const associatedPoint = getAssociatedPoint(checklist.pointId || checklist.point_id);
-              const items = checklistItems.filter(item => item.checklist_id === checklist.id);
               
               return (
                 <Card key={checklist.id} className="overflow-hidden">
@@ -645,70 +645,65 @@ const Checklists = () => {
                     </div>
                     
                     <div className="space-y-2 mt-4">
-                      {items.slice(0, 3).map(item => (
-                        <div key={item.id} className="flex items-center justify-between group">
-                          <div className="flex items-center gap-2">
-                            <Checkbox 
-                              id={`item-${item.id}`}
-                              checked={item.completed}
-                              onCheckedChange={(checked) => 
-                                toggleChecklistItemMutation.mutate({
-                                  id: item.id,
-                                  completed: checked as boolean
-                                })
-                              }
-                            />
-                            <label
-                              htmlFor={`item-${item.id}`}
-                              className={`text-sm ${
-                                item.completed ? 'line-through text-travel-dark/50' : 'text-travel-dark'
-                              }`}
+                      {checklistItems
+                        .filter(item => item.checklist_id === checklist.id)
+                        .slice(0, 3)
+                        .map(item => (
+                          <div key={item.id} className="flex items-center justify-between group">
+                            <div className="flex items-center gap-2">
+                              <Checkbox 
+                                id={`item-${item.id}`}
+                                checked={item.completed}
+                                onCheckedChange={(checked) => 
+                                  toggleChecklistItemMutation.mutate({
+                                    id: item.id,
+                                    completed: checked as boolean
+                                  })
+                                }
+                              />
+                              <label
+                                htmlFor={`item-${item.id}`}
+                                className={`text-sm ${
+                                  item.completed ? 'line-through text-travel-dark/50' : 'text-travel-dark'
+                                }`}
+                              >
+                                {item.text}
+                              </label>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                              onClick={() => deleteChecklistItemMutation.mutate(item.id)}
                             >
-                              {item.text}
-                            </label>
+                              <Trash className="h-3 w-3 text-travel-red" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                            onClick={() => deleteChecklistItemMutation.mutate(item.id)}
-                          >
-                            <Trash className="h-3 w-3 text-travel-red" />
-                          </Button>
-                        </div>
-                      ))}
+                        ))}
                     </div>
                     
-                    {items.length > 3 && (
-                      <div className="flex justify-center mt-4">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-travel-dark hover:bg-travel-light-mustard"
-                          onClick={() => handleViewChecklist(checklist.id)}
-                        >
-                          <ChevronDown className="h-4 w-4 mr-1" />
-                          Show {items.length - 3} more items
-                        </Button>
-                      </div>
+                    {checklistItems.filter(item => item.checklist_id === checklist.id).length > 3 && (
+                      <p className="text-xs text-travel-dark/50 mt-2">
+                        +{checklistItems.filter(item => item.checklist_id === checklist.id).length - 3} more items
+                      </p>
                     )}
                   </CardContent>
                   <CardFooter>
                     <div className="w-full flex justify-between items-center">
-                      <div className="flex gap-3">
+                      <div className="flex space-x-2">
                         <Button 
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          className="text-travel-blue border-travel-blue/30 hover:bg-travel-light-blue/10 hover:text-travel-blue"
+                          className="text-travel-blue p-0"
                           onClick={() => handleAddItem(checklist.id)}
                         >
                           <PlusCircle className="h-4 w-4 mr-1" />
                           Add Item
                         </Button>
                         <Button 
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
-                          className="text-travel-blue border-travel-blue/30 hover:bg-travel-light-blue/10 hover:text-travel-blue"
+                          className="text-travel-blue p-0"
                           onClick={() => handleBulkAddItems(checklist.id)}
                         >
                           <ListPlus className="h-4 w-4 mr-1" />
@@ -718,7 +713,7 @@ const Checklists = () => {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="text-travel-dark border-travel-dark/30 hover:bg-travel-dark/10"
+                        className="text-travel-dark"
                         onClick={() => handleViewChecklist(checklist.id)}
                       >
                         <ListChecks className="h-4 w-4 mr-1" />
@@ -943,3 +938,55 @@ const Checklists = () => {
             <DialogTitle>Add Item to {currentChecklist?.name}</DialogTitle>
           </DialogHeader>
           <div className="py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="item-text">Item Text</Label>
+              <Input
+                id="item-text"
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                placeholder="e.g., Pack passport"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setIsAddItemDialogOpen(false);
+                setNewItemText('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateItem}
+              disabled={createChecklistItemMutation.isPending || !newItemText.trim()}
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            >
+              {createChecklistItemMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Item"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Add Items Dialog */}
+      <BulkItemsDialog
+        checklistId={currentChecklist?.id || ''}
+        checklistName={currentChecklist?.name || ''}
+        open={isBulkAddDialogOpen}
+        onOpenChange={setIsBulkAddDialogOpen}
+        onAddItems={handleCreateMultipleItems}
+        isAdding={createMultipleChecklistItemsMutation.isPending}
+      />
+    </PageContainer>
+  );
+};
+
+export default Checklists;

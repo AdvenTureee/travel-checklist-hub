@@ -12,7 +12,7 @@ const Index: React.FC = () => {
       <header className="bg-travel-blue py-6">
         <div className="container mx-auto px-4">
           <div className="flex justify-between items-center">
-            <div className="text-white font-bold text-2xl">Travel Hub</div>
+            <div className="text-white font-bold text-2xl">Travel Points</div>
             <div>
               {user ? (
                 <Link to="/points">
@@ -98,8 +98,8 @@ const Index: React.FC = () => {
       <footer className="bg-travel-dark text-white py-8">
         <div className="container mx-auto px-4">
           <div className="text-center">
-            <p className="mb-2">Travel Hub - Your Personal Travel Companion</p>
-            <p className="text-white/60 text-sm">© {new Date().getFullYear()} Travel Hub. All rights reserved.</p>
+            <p className="mb-2">Travel Points - Your Personal Travel Companion</p>
+            <p className="text-white/60 text-sm">© {new Date().getFullYear()} Travel Points. All rights reserved.</p>
           </div>
         </div>
       </footer>
