@@ -1,8 +1,10 @@
 
 import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MapPin, ListChecks, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -36,10 +38,30 @@ interface SidebarProps {
 
 export function Sidebar({ className }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const [isCollapsed, setIsCollapsed] = useState(false);
   
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logout successful",
+        description: "You have been logged out successfully.",
+      });
+      navigate('/auth');
+    } catch (error) {
+      console.error('Error during logout:', error);
+      toast({
+        title: "Logout failed",
+        description: "There was an error logging out.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -89,16 +111,16 @@ export function Sidebar({ className }: SidebarProps) {
       </div>
       
       <div className="p-2 border-t border-border">
-        <Link
-          to="/"
+        <button
+          onClick={handleLogout}
           className={cn(
-            "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-300 text-travel-red hover:bg-travel-light-red",
+            "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-300 text-travel-red hover:bg-travel-light-red w-full",
             isCollapsed && "justify-center"
           )}
         >
           <LogOut className="h-5 w-5" />
           {!isCollapsed && <span className="animate-fade-in">Logout</span>}
-        </Link>
+        </button>
       </div>
     </div>
   );
