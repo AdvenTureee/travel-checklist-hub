@@ -4,7 +4,7 @@ import { Checklist, ChecklistItem } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, Trash, Plus, ListChecks } from 'lucide-react';
+import { Edit, Trash, Plus, ListChecks, ListPlus } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
 interface ChecklistListViewProps {
@@ -16,6 +16,7 @@ interface ChecklistListViewProps {
   onToggleItem: (id: string, completed: boolean) => void;
   onDeleteItem: (id: string) => void;
   onAddItem: (checklistId: string) => void;
+  onBulkAddItems?: (checklistId: string) => void;
 }
 
 const ChecklistListView: React.FC<ChecklistListViewProps> = ({
@@ -26,7 +27,8 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
   onChecklistView,
   onToggleItem,
   onDeleteItem,
-  onAddItem
+  onAddItem,
+  onBulkAddItems
 }) => {
   // Calculate completion percentage for a checklist
   const calculateCompletion = (checklistId: string) => {
@@ -113,15 +115,28 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
               )}
             </CardContent>
             <CardFooter className="flex justify-between pt-1">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-travel-blue hover:text-travel-blue/80 p-0"
-                onClick={() => onAddItem(checklist.id)}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Add Item
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-travel-blue hover:text-travel-blue/80 p-0"
+                  onClick={() => onAddItem(checklist.id)}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Item
+                </Button>
+                {onBulkAddItems && (
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-travel-blue hover:text-travel-blue/80 p-0"
+                    onClick={() => onBulkAddItems(checklist.id)}
+                  >
+                    <ListPlus className="h-4 w-4 mr-1" />
+                    Bulk Add
+                  </Button>
+                )}
+              </div>
               <Button
                 variant="outline"
                 size="sm"

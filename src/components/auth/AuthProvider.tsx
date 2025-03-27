@@ -78,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      navigate('/auth');
+      navigate('/auth'); // Changed from '/points' to '/auth'
     } catch (error: any) {
       toast({
         title: "Error signing out",

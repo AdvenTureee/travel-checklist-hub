@@ -15,15 +15,17 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin } from 'lucide-react';
+import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin, ListPlus } from 'lucide-react';
 import ChecklistViewToggle from '@/components/checklists/ChecklistViewToggle';
 import ChecklistListView from '@/components/checklists/ChecklistListView';
+import BulkItemsDialog from '@/components/checklists/BulkItemsDialog';
 
 const Checklists = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
+  const [isBulkAddDialogOpen, setIsBulkAddDialogOpen] = useState(false);
   const [currentChecklist, setCurrentChecklist] = useState<Checklist | null>(null);
   const [newItemText, setNewItemText] = useState('');
   const [newChecklist, setNewChecklist] = useState<Partial<Checklist>>({
@@ -296,6 +298,40 @@ const Checklists = () => {
     },
   });
 
+  // Create multiple checklist items mutation
+  const createMultipleChecklistItemsMutation = useMutation({
+    mutationFn: async ({ checklistId, items }: { checklistId: string, items: string[] }) => {
+      const itemsToInsert = items.map(text => ({
+        text,
+        completed: false,
+        checklist_id: checklistId,
+      }));
+
+      const { data, error } = await supabase
+        .from('checklist_items')
+        .insert(itemsToInsert)
+        .select();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
+      setIsBulkAddDialogOpen(false);
+      toast({
+        title: "Items added",
+        description: "The items have been added to your checklist.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to add items: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Delete checklist item
   const deleteChecklistItemMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -386,6 +422,14 @@ const Checklists = () => {
     }
   };
 
+  const handleBulkAddItems = (checklistId: string) => {
+    const checklist = checklists.find(c => c.id === checklistId);
+    if (checklist) {
+      setCurrentChecklist(checklist);
+      setIsBulkAddDialogOpen(true);
+    }
+  };
+
   const handleCreateItem = () => {
     if (!currentChecklist || !newItemText.trim()) {
       toast({
@@ -399,6 +443,15 @@ const Checklists = () => {
     createChecklistItemMutation.mutate({
       checklistId: currentChecklist.id,
       text: newItemText.trim(),
+    });
+  };
+
+  const handleCreateMultipleItems = (items: string[]) => {
+    if (!currentChecklist || items.length === 0) return;
+
+    createMultipleChecklistItemsMutation.mutate({
+      checklistId: currentChecklist.id,
+      items,
     });
   };
 
@@ -636,15 +689,26 @@ const Checklists = () => {
                   </CardContent>
                   <CardFooter>
                     <div className="w-full flex justify-between items-center">
-                      <Button 
-                        variant="ghost"
-                        size="sm"
-                        className="text-travel-blue p-0"
-                        onClick={() => handleAddItem(checklist.id)}
-                      >
-                        <PlusCircle className="h-4 w-4 mr-1" />
-                        Add Item
-                      </Button>
+                      <div className="flex space-x-2">
+                        <Button 
+                          variant="ghost"
+                          size="sm"
+                          className="text-travel-blue p-0"
+                          onClick={() => handleAddItem(checklist.id)}
+                        >
+                          <PlusCircle className="h-4 w-4 mr-1" />
+                          Add Item
+                        </Button>
+                        <Button 
+                          variant="ghost"
+                          size="sm"
+                          className="text-travel-blue p-0"
+                          onClick={() => handleBulkAddItems(checklist.id)}
+                        >
+                          <ListPlus className="h-4 w-4 mr-1" />
+                          Bulk Add
+                        </Button>
+                      </div>
                       <Button
                         variant="outline"
                         size="sm"
@@ -670,6 +734,7 @@ const Checklists = () => {
             onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({ id, completed })}
             onDeleteItem={(id) => deleteChecklistItemMutation.mutate(id)}
             onAddItem={handleAddItem}
+            onBulkAddItems={handleBulkAddItems}
           />
         )
       )}
@@ -824,19 +889,34 @@ const Checklists = () => {
             )}
           </div>
           <DialogFooter className="flex justify-between sm:justify-between">
-            <Button
-              variant="outline"
-              className="text-travel-blue"
-              onClick={() => {
-                if (currentChecklist) {
-                  handleAddItem(currentChecklist.id);
-                  setIsViewDialogOpen(false);
-                }
-              }}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Item
-            </Button>
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                className="text-travel-blue"
+                onClick={() => {
+                  if (currentChecklist) {
+                    handleAddItem(currentChecklist.id);
+                    setIsViewDialogOpen(false);
+                  }
+                }}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Item
+              </Button>
+              <Button
+                variant="outline"
+                className="text-travel-blue"
+                onClick={() => {
+                  if (currentChecklist) {
+                    handleBulkAddItems(currentChecklist.id);
+                    setIsViewDialogOpen(false);
+                  }
+                }}
+              >
+                <ListPlus className="mr-2 h-4 w-4" />
+                Bulk Add
+              </Button>
+            </div>
             <Button
               variant="outline"
               onClick={() => {
@@ -869,33 +949,4 @@ const Checklists = () => {
           </div>
           <DialogFooter>
             <Button 
-              variant="outline" 
-              onClick={() => {
-                setIsAddItemDialogOpen(false);
-                setNewItemText('');
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateItem}
-              disabled={createChecklistItemMutation.isPending}
-              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
-            >
-              {createChecklistItemMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Adding...
-                </>
-              ) : (
-                "Add Item"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </PageContainer>
-  );
-};
-
-export default Checklists;
+              variant="outline"
