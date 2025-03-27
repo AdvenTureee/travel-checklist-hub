@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useNavigate } from 'react-router-dom';
@@ -949,4 +950,43 @@ const Checklists = () => {
           </div>
           <DialogFooter>
             <Button 
-              variant="outline"
+              variant="outline" 
+              onClick={() => {
+                setIsAddItemDialogOpen(false);
+                setNewItemText('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateItem}
+              disabled={createChecklistItemMutation.isPending || !newItemText.trim()}
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            >
+              {createChecklistItemMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Item"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Add Items Dialog */}
+      <BulkItemsDialog
+        checklistId={currentChecklist?.id || ''}
+        checklistName={currentChecklist?.name || ''}
+        open={isBulkAddDialogOpen}
+        onOpenChange={setIsBulkAddDialogOpen}
+        onAddItems={handleCreateMultipleItems}
+        isAdding={createMultipleChecklistItemsMutation.isPending}
+      />
+    </PageContainer>
+  );
+};
+
+export default Checklists;
