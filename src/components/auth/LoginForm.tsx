@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin } from 'lucide-react';
+import { Plane } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,7 +36,7 @@ export function LoginForm() {
       localStorage.setItem('token', 'dummy-token');
       toast({
         title: "Login successful",
-        description: "Welcome to Travel Checklist Hub!",
+        description: "Welcome to Travel Hub!",
       });
       setIsLoading(false);
       navigate('/points');
@@ -48,10 +48,10 @@ export function LoginForm() {
       <CardHeader className="space-y-1 text-center">
         <div className="flex justify-center mb-2">
           <div className="bg-travel-mustard p-3 rounded-full">
-            <MapPin className="h-6 w-6 text-travel-dark" />
+            <Plane className="h-6 w-6 text-travel-dark" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+        <CardTitle className="text-2xl font-bold">Welcome To Travel Hub</CardTitle>
         <CardDescription>
           Enter your credentials to access your travel plans
         </CardDescription>

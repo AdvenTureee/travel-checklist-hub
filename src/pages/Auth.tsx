@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Navigate } from 'react-router-dom';
+import { Plane } from 'lucide-react';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -32,8 +33,11 @@ const Auth: React.FC = () => {
     <PageContainer>
       <div className="flex justify-center items-center min-h-[80vh]">
         <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center text-travel-dark">Welcome to Travel Points</CardTitle>
+          <CardHeader className="text-center">
+            <div className="mx-auto bg-travel-mustard w-16 h-16 rounded-full flex items-center justify-center mb-4">
+              <Plane className="h-8 w-8 text-travel-dark" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-center text-travel-dark">Welcome To Travel Hub</CardTitle>
             <CardDescription className="text-center">Sign in or create an account to manage your points of interest</CardDescription>
           </CardHeader>
           <Tabs defaultValue="signin" className="w-full">
