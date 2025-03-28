@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin, ListPlus, ChevronDown } from 'lucide-react';
+import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin, ListPlus, ChevronDown, Plus } from 'lucide-react';
 import ChecklistViewToggle from '@/components/checklists/ChecklistViewToggle';
 import ChecklistListView from '@/components/checklists/ChecklistListView';
 import BulkItemsDialog from '@/components/checklists/BulkItemsDialog';
@@ -932,7 +933,93 @@ const Checklists = () => {
                       <div key={item.id} className="py-3 flex items-center justify-between group">
                         <div className="flex items-center gap-3">
                           <Checkbox 
-                            id={`item-${item.id}`}
+                            id={`view-item-${item.id}`}
                             checked={item.completed}
                             onCheckedChange={(checked) => 
-                              toggleCheck
+                              toggleChecklistItemMutation.mutate({
+                                id: item.id,
+                                completed: checked as boolean
+                              })
+                            }
+                          />
+                          <label
+                            htmlFor={`view-item-${item.id}`}
+                            className={`${
+                              item.completed ? 'line-through text-travel-dark/50' : 'text-travel-dark'
+                            }`}
+                          >
+                            {item.text}
+                          </label>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 h-8 w-8 p-0"
+                          onClick={() => deleteChecklistItemMutation.mutate(item.id)}
+                        >
+                          <Trash className="h-4 w-4 text-travel-red" />
+                        </Button>
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Item Dialog */}
+      <Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Item to {currentChecklist?.name}</DialogTitle>
+            <DialogDescription>
+              Add a new item to this checklist.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="item-text">Item Text</Label>
+              <Input
+                id="item-text"
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                placeholder="e.g., Pack passport"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddItemDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateItem}
+              disabled={createChecklistItemMutation.isPending}
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            >
+              {createChecklistItemMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Item"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Add Items Dialog */}
+      <BulkItemsDialog
+        open={isBulkAddDialogOpen}
+        onOpenChange={setIsBulkAddDialogOpen}
+        checklistName={currentChecklist?.name || ''}
+        onAddItems={handleCreateMultipleItems}
+        isLoading={createMultipleChecklistItemsMutation.isPending}
+      />
+    </PageContainer>
+  );
+};
+
+export default Checklists;
