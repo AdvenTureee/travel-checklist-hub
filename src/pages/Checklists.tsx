@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
-import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin, ListPlus, ChevronDown, Plus, X, Check } from 'lucide-react';
+import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin, ListPlus, ChevronDown, Plus } from 'lucide-react';
 import ChecklistViewToggle from '@/components/checklists/ChecklistViewToggle';
 import ChecklistListView from '@/components/checklists/ChecklistListView';
 import BulkItemsDialog from '@/components/checklists/BulkItemsDialog';
@@ -362,34 +363,6 @@ const Checklists = () => {
     },
   });
 
-  // Add new mutation for updating checklist item text
-  const updateChecklistItemTextMutation = useMutation({
-    mutationFn: async ({ id, text }: { id: string, text: string }) => {
-      const { data, error } = await supabase
-        .from('checklist_items')
-        .update({ text })
-        .eq('id', id)
-        .select();
-
-      if (error) throw error;
-      return data[0];
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
-      toast({
-        title: "Item updated",
-        description: "The item has been updated successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Failed to update item: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
   const handleCreateChecklist = () => {
     if (!newChecklist.name) {
       toast({
@@ -482,23 +455,6 @@ const Checklists = () => {
     createMultipleChecklistItemsMutation.mutate({
       checklistId: currentChecklist.id,
       items,
-    });
-  };
-
-  // Handler for updating a checklist item's text
-  const handleUpdateItemText = (id: string, text: string) => {
-    if (!text.trim()) {
-      toast({
-        title: "Missing information",
-        description: "Item text cannot be empty.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    updateChecklistItemTextMutation.mutate({
-      id,
-      text: text.trim(),
     });
   };
 
@@ -861,7 +817,6 @@ const Checklists = () => {
                 onDeleteItem={(id) => deleteChecklistItemMutation.mutate(id)}
                 onAddItem={handleAddItem}
                 onBulkAddItems={handleBulkAddItems}
-                onUpdateItemText={handleUpdateItemText}
               />
             </motion.div>
           )}
@@ -954,4 +909,118 @@ const Checklists = () => {
           <div className="py-4">
             {currentChecklist && (
               <>
-                {getAssociatedPoint(currentCheck
+                {getAssociatedPoint(currentChecklist.pointId || currentChecklist.point_id) && (
+                  <div className="flex items-center gap-2 mb-4 text-travel-dark/70">
+                    <MapPin className="h-4 w-4 text-travel-blue" />
+                    <span>
+                      Associated with: {getAssociatedPoint(currentChecklist.pointId || currentChecklist.point_id)?.name}
+                    </span>
+                  </div>
+                )}
+                
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs text-travel-dark/70">Completion</span>
+                    <span className="text-xs font-medium">{calculateCompletion(currentChecklist.id)}%</span>
+                  </div>
+                  <Progress value={calculateCompletion(currentChecklist.id)} className="h-2" />
+                </div>
+                
+                <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+                  {checklistItems
+                    .filter(item => item.checklist_id === currentChecklist.id)
+                    .map(item => (
+                      <div key={item.id} className="py-3 flex items-center justify-between group">
+                        <div className="flex items-center gap-3">
+                          <Checkbox 
+                            id={`view-item-${item.id}`}
+                            checked={item.completed}
+                            onCheckedChange={(checked) => 
+                              toggleChecklistItemMutation.mutate({
+                                id: item.id,
+                                completed: checked as boolean
+                              })
+                            }
+                          />
+                          <label
+                            htmlFor={`view-item-${item.id}`}
+                            className={`${
+                              item.completed ? 'line-through text-travel-dark/50' : 'text-travel-dark'
+                            }`}
+                          >
+                            {item.text}
+                          </label>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="opacity-0 group-hover:opacity-100 h-8 w-8 p-0"
+                          onClick={() => deleteChecklistItemMutation.mutate(item.id)}
+                        >
+                          <Trash className="h-4 w-4 text-travel-red" />
+                        </Button>
+                      </div>
+                    ))}
+                </div>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Item Dialog */}
+      <Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Item to {currentChecklist?.name}</DialogTitle>
+            <DialogDescription>
+              Add a new item to this checklist.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="item-text">Item Text</Label>
+              <Input
+                id="item-text"
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                placeholder="e.g., Pack passport"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddItemDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateItem}
+              disabled={createChecklistItemMutation.isPending}
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            >
+              {createChecklistItemMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Item"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Add Items Dialog */}
+      <BulkItemsDialog
+        checklistId={currentChecklist?.id || ''}
+        open={isBulkAddDialogOpen}
+        onOpenChange={setIsBulkAddDialogOpen}
+        checklistName={currentChecklist?.name || ''}
+        onAddItems={handleCreateMultipleItems}
+        isAdding={createMultipleChecklistItemsMutation.isPending}
+      />
+    </PageContainer>
+  );
+};
+
+export default Checklists;
