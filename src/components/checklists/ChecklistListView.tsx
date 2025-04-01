@@ -1,14 +1,15 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Checklist, ChecklistItem } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, Trash, Plus, ListChecks, ListPlus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Edit, Trash, Plus, ListChecks, ListPlus, ChevronDown, ChevronUp, Check, X } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion } from 'framer-motion';
+import { Input } from '@/components/ui/input';
 
 interface ChecklistListViewProps {
   checklists: Checklist[];
@@ -20,6 +21,7 @@ interface ChecklistListViewProps {
   onDeleteItem: (id: string) => void;
   onAddItem: (checklistId: string) => void;
   onBulkAddItems?: (checklistId: string) => void;
+  onUpdateItemText?: (id: string, text: string) => void;
 }
 
 const ChecklistListView: React.FC<ChecklistListViewProps> = ({
@@ -31,10 +33,17 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
   onToggleItem,
   onDeleteItem,
   onAddItem,
-  onBulkAddItems
+  onBulkAddItems,
+  onUpdateItemText
 }) => {
   // State to track which checklists are expanded
   const [expandedChecklists, setExpandedChecklists] = useState<Record<string, boolean>>({});
+  // State to track which item is being edited
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  // State to track the current editing text
+  const [editingText, setEditingText] = useState<string>('');
+  // Reference for the input field
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Toggle expansion for a checklist
   const toggleExpansion = (checklistId: string) => {
@@ -43,6 +52,42 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
       [checklistId]: !prev[checklistId]
     }));
   };
+
+  // Start editing an item
+  const handleStartEdit = (item: ChecklistItem) => {
+    setEditingItemId(item.id);
+    setEditingText(item.text);
+  };
+
+  // Save edited text
+  const handleSaveEdit = () => {
+    if (editingItemId && onUpdateItemText && editingText.trim()) {
+      onUpdateItemText(editingItemId, editingText);
+    }
+    setEditingItemId(null);
+  };
+
+  // Cancel editing
+  const handleCancelEdit = () => {
+    setEditingItemId(null);
+    setEditingText('');
+  };
+
+  // Handle key press events for the input field
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  };
+
+  // Focus the input field when editing starts
+  useEffect(() => {
+    if (editingItemId && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [editingItemId]);
 
   // Calculate completion percentage for a checklist
   const calculateCompletion = (checklistId: string) => {
@@ -155,14 +200,26 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                                 {item.text}
                               </label>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                              onClick={() => onDeleteItem(item.id)}
-                            >
-                              <Trash className="h-3 w-3 text-travel-red" />
-                            </Button>
+                            <div className="flex items-center opacity-0 group-hover:opacity-100">
+                              {onUpdateItemText && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 mr-1"
+                                  onClick={() => handleStartEdit(item)}
+                                >
+                                  <Edit className="h-3 w-3 text-travel-blue" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => onDeleteItem(item.id)}
+                              >
+                                <Trash className="h-3 w-3 text-travel-red" />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                         {items.length > 3 && (
@@ -190,31 +247,75 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <div className="flex items-center gap-2">
-                              <Checkbox
-                                id={`expanded-item-${item.id}`}
-                                checked={item.completed}
-                                onCheckedChange={(checked) => 
-                                  onToggleItem(item.id, checked as boolean)
-                                }
-                              />
-                              <label
-                                htmlFor={`expanded-item-${item.id}`}
-                                className={`text-sm ${
-                                  item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                                }`}
-                              >
-                                {item.text}
-                              </label>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                              onClick={() => onDeleteItem(item.id)}
-                            >
-                              <Trash className="h-3 w-3 text-travel-red" />
-                            </Button>
+                            {editingItemId === item.id ? (
+                              <div className="flex-1 flex items-center gap-2">
+                                <Input
+                                  ref={inputRef}
+                                  value={editingText}
+                                  onChange={(e) => setEditingText(e.target.value)}
+                                  onKeyDown={handleKeyDown}
+                                  className="h-7 py-1 text-sm"
+                                />
+                                <div className="flex items-center">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-green-600"
+                                    onClick={handleSaveEdit}
+                                  >
+                                    <Check className="h-4 w-4" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0 text-travel-red"
+                                    onClick={handleCancelEdit}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={`expanded-item-${item.id}`}
+                                    checked={item.completed}
+                                    onCheckedChange={(checked) => 
+                                      onToggleItem(item.id, checked as boolean)
+                                    }
+                                  />
+                                  <label
+                                    htmlFor={`expanded-item-${item.id}`}
+                                    className={`text-sm ${
+                                      item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                                    }`}
+                                  >
+                                    {item.text}
+                                  </label>
+                                </div>
+                                <div className="flex items-center opacity-0 group-hover:opacity-100">
+                                  {onUpdateItemText && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0 mr-1"
+                                      onClick={() => handleStartEdit(item)}
+                                    >
+                                      <Edit className="h-3 w-3 text-travel-blue" />
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => onDeleteItem(item.id)}
+                                  >
+                                    <Trash className="h-3 w-3 text-travel-red" />
+                                  </Button>
+                                </div>
+                              </>
+                            )}
                           </motion.div>
                         ))}
                         {items.length === 0 && (
