@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export function LoginForm() {
   const [username, setUsername] = useState('gabriel.mauro@fieldcorp.com.br');
@@ -14,6 +15,7 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,13 +53,13 @@ export function LoginForm() {
             <Plane className="h-6 w-6 text-travel-dark" />
           </div>
         </div>
-        <CardTitle className="text-2xl font-bold">Welcome To Travel Hub</CardTitle>
-        <CardDescription>
+        <CardTitle className="text-xl sm:text-2xl font-bold">Welcome To Travel Hub</CardTitle>
+        <CardDescription className="text-sm sm:text-base">
           Enter your credentials to access your travel plans
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 sm:px-6">
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
             <Input
@@ -73,7 +75,7 @@ export function LoginForm() {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">Password</Label>
-              <button type="button" className="text-sm text-travel-blue hover:underline">
+              <button type="button" className="text-xs sm:text-sm text-travel-blue hover:underline">
                 Forgot password?
               </button>
             </div>
@@ -88,10 +90,10 @@ export function LoginForm() {
             />
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="px-4 sm:px-6 pb-6">
           <Button 
             type="submit" 
-            className="w-full bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            className="w-full bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark py-2 h-auto sm:h-10 text-sm sm:text-base"
             disabled={isLoading}
           >
             {isLoading ? (

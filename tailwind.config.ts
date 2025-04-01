@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -13,7 +12,11 @@ export default {
 	theme: {
 		container: {
 			center: true,
-			padding: '2rem',
+			padding: {
+				DEFAULT: '1rem',
+				sm: '1.5rem',
+				md: '2rem',
+			},
 			screens: {
 				'2xl': '1400px'
 			}
@@ -91,27 +94,27 @@ export default {
 					from: { height: 'var(--radix-accordion-content-height)' },
 					to: { height: '0' },
 				},
-				fadeIn: {
+				'fadeIn': {
 					'0%': { opacity: '0' },
 					'100%': { opacity: '1' },
 				},
-				slideInLeft: {
+				'slideInLeft': {
 					'0%': { transform: 'translateX(-100%)' },
 					'100%': { transform: 'translateX(0)' },
 				},
-				slideInRight: {
+				'slideInRight': {
 					'0%': { transform: 'translateX(100%)' },
 					'100%': { transform: 'translateX(0)' },
 				},
-				slideInUp: {
+				'slideInUp': {
 					'0%': { transform: 'translateY(100%)' },
 					'100%': { transform: 'translateY(0)' },
 				},
-				pulse: {
+				'pulse': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.5' },
 				},
-				spin: {
+				'spin': {
 					to: { transform: 'rotate(360deg)' },
 				},
 			},
@@ -124,7 +127,10 @@ export default {
 				'slide-in-up': 'slideInUp 0.5s ease-out forwards',
 				'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 				'spin': 'spin 1s linear infinite',
-			}
+			},
+			screens: {
+				'xs': '475px',
+			},
 		}
 	},
 	plugins: [require("tailwindcss-animate")],

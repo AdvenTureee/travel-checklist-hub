@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface BulkItemsDialogProps {
   checklistId: string;
@@ -24,6 +25,7 @@ const BulkItemsDialog: React.FC<BulkItemsDialogProps> = ({
   isAdding
 }) => {
   const [bulkText, setBulkText] = useState('');
+  const isMobile = useIsMobile();
 
   const handleAddItems = () => {
     if (bulkText.trim()) {
@@ -42,14 +44,14 @@ const BulkItemsDialog: React.FC<BulkItemsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px]">
+      <DialogContent className="w-[90vw] max-w-[550px] sm:w-auto">
         <DialogHeader>
-          <DialogTitle>Add Multiple Items to {checklistName}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-base sm:text-lg">Add Multiple Items to {checklistName}</DialogTitle>
+          <DialogDescription className="text-xs sm:text-sm">
             Enter one item per line. All items will be added to your checklist.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
+        <div className="py-2 sm:py-4">
           <div className="grid gap-2">
             <Label htmlFor="bulk-items">Items (one per line)</Label>
             <Textarea
@@ -60,28 +62,29 @@ const BulkItemsDialog: React.FC<BulkItemsDialogProps> = ({
 Charge camera
 Print tickets
 Exchange currency"
-              className="min-h-[200px]"
+              className="min-h-[150px] sm:min-h-[200px]"
             />
           </div>
         </div>
-        <DialogFooter>
+        <DialogFooter className="sm:space-x-2 flex flex-col sm:flex-row sm:justify-end gap-2 sm:gap-0">
           <Button 
             variant="outline" 
             onClick={() => {
               onOpenChange(false);
               setBulkText('');
             }}
+            className="w-full sm:w-auto text-xs sm:text-sm"
           >
             Cancel
           </Button>
           <Button
             onClick={handleAddItems}
             disabled={isAdding || !bulkText.trim()}
-            className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            className="w-full sm:w-auto bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark text-xs sm:text-sm"
           >
             {isAdding ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                 Adding...
               </>
             ) : (
