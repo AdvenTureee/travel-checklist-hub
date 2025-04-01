@@ -954,4 +954,4 @@ const Checklists = () => {
           <div className="py-4">
             {currentChecklist && (
               <>
-                {getAssociatedPoint(currentChecklist.point
+                {getAssociatedPoint(currentCheck
