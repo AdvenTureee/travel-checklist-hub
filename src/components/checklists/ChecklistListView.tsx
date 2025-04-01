@@ -4,10 +4,11 @@ import { Checklist, ChecklistItem } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, Trash, Plus, ListChecks, ListPlus, ChevronDown, ChevronUp } from 'lucide-react';
+import { Edit, Trash, Plus, ListChecks, ListPlus, ChevronDown, ChevronUp, Check, X } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 
 interface ChecklistListViewProps {
@@ -20,6 +21,7 @@ interface ChecklistListViewProps {
   onDeleteItem: (id: string) => void;
   onAddItem: (checklistId: string) => void;
   onBulkAddItems?: (checklistId: string) => void;
+  onUpdateItemText?: (id: string, text: string) => void;
 }
 
 const ChecklistListView: React.FC<ChecklistListViewProps> = ({
@@ -31,10 +33,15 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
   onToggleItem,
   onDeleteItem,
   onAddItem,
-  onBulkAddItems
+  onBulkAddItems,
+  onUpdateItemText
 }) => {
   // State to track which checklists are expanded
   const [expandedChecklists, setExpandedChecklists] = useState<Record<string, boolean>>({});
+  
+  // State for editing items
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editedItemText, setEditedItemText] = useState<string>('');
 
   // Toggle expansion for a checklist
   const toggleExpansion = (checklistId: string) => {
@@ -50,6 +57,26 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
     if (items.length === 0) return 0;
     const completedItems = items.filter(item => item.completed).length;
     return Math.round((completedItems / items.length) * 100);
+  };
+
+  // Start editing an item
+  const startEditItem = (item: ChecklistItem) => {
+    setEditingItemId(item.id);
+    setEditedItemText(item.text);
+  };
+
+  // Save edited item
+  const saveEditedItem = () => {
+    if (editingItemId && onUpdateItemText) {
+      onUpdateItemText(editingItemId, editedItemText);
+      setEditingItemId(null);
+    }
+  };
+
+  // Cancel editing
+  const cancelEditItem = () => {
+    setEditingItemId(null);
+    setEditedItemText('');
   };
 
   return (
@@ -155,14 +182,26 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                                 {item.text}
                               </label>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                              onClick={() => onDeleteItem(item.id)}
-                            >
-                              <Trash className="h-3 w-3 text-travel-red" />
-                            </Button>
+                            <div className="flex opacity-0 group-hover:opacity-100">
+                              {onUpdateItemText && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 w-6 p-0 mr-1"
+                                  onClick={() => startEditItem(item)}
+                                >
+                                  <Edit className="h-3 w-3 text-travel-blue" />
+                                </Button>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => onDeleteItem(item.id)}
+                              >
+                                <Trash className="h-3 w-3 text-travel-red" />
+                              </Button>
+                            </div>
                           </div>
                         ))}
                         {items.length > 3 && (
@@ -190,31 +229,86 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <div className="flex items-center gap-2">
-                              <Checkbox
-                                id={`expanded-item-${item.id}`}
-                                checked={item.completed}
-                                onCheckedChange={(checked) => 
-                                  onToggleItem(item.id, checked as boolean)
-                                }
-                              />
-                              <label
-                                htmlFor={`expanded-item-${item.id}`}
-                                className={`text-sm ${
-                                  item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                                }`}
-                              >
-                                {item.text}
-                              </label>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                              onClick={() => onDeleteItem(item.id)}
-                            >
-                              <Trash className="h-3 w-3 text-travel-red" />
-                            </Button>
+                            {editingItemId === item.id ? (
+                              <div className="flex-1 flex items-center gap-2">
+                                <Checkbox
+                                  id={`expanded-item-edit-${item.id}`}
+                                  checked={item.completed}
+                                  onCheckedChange={(checked) => 
+                                    onToggleItem(item.id, checked as boolean)
+                                  }
+                                  disabled
+                                />
+                                <Input 
+                                  value={editedItemText}
+                                  onChange={(e) => setEditedItemText(e.target.value)}
+                                  className="flex-1 h-8 py-1"
+                                  autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') saveEditedItem();
+                                    if (e.key === 'Escape') cancelEditItem();
+                                  }}
+                                />
+                                <div className="flex">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0"
+                                    onClick={saveEditedItem}
+                                  >
+                                    <Check className="h-4 w-4 text-green-500" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0"
+                                    onClick={cancelEditItem}
+                                  >
+                                    <X className="h-4 w-4 text-travel-red" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={`expanded-item-${item.id}`}
+                                    checked={item.completed}
+                                    onCheckedChange={(checked) => 
+                                      onToggleItem(item.id, checked as boolean)
+                                    }
+                                  />
+                                  <label
+                                    htmlFor={`expanded-item-${item.id}`}
+                                    className={`text-sm ${
+                                      item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                                    }`}
+                                  >
+                                    {item.text}
+                                  </label>
+                                </div>
+                                <div className="flex opacity-0 group-hover:opacity-100">
+                                  {onUpdateItemText && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-6 w-6 p-0 mr-1"
+                                      onClick={() => startEditItem(item)}
+                                    >
+                                      <Edit className="h-3 w-3 text-travel-blue" />
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => onDeleteItem(item.id)}
+                                  >
+                                    <Trash className="h-3 w-3 text-travel-red" />
+                                  </Button>
+                                </div>
+                              </>
+                            )}
                           </motion.div>
                         ))}
                         {items.length === 0 && (
