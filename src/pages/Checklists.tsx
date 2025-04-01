@@ -757,6 +757,19 @@ const Checklists = () => {
                                 variant="ghost"
                                 size="sm"
                                 className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                                onClick={() => {
+                                  const newText = prompt("Edit item:", item.text);
+                                  if (newText !== null) {
+                                    handleUpdateItemText(item.id, newText);
+                                  }
+                                }}
+                              >
+                                <Edit className="h-3 w-3 text-travel-blue" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
                                 onClick={() => deleteChecklistItemMutation.mutate(item.id)}
                               >
                                 <Trash className="h-3 w-3 text-travel-red" />
@@ -954,4 +967,168 @@ const Checklists = () => {
           <div className="py-4">
             {currentChecklist && (
               <>
-                {getAssociatedPoint(currentChecklist.pointId
+                {getAssociatedPoint(currentChecklist.pointId || currentChecklist.point_id) && (
+                  <div className="flex items-start gap-2 mb-4">
+                    <MapPin className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-travel-dark/70">
+                      {getAssociatedPoint(currentChecklist.pointId || currentChecklist.point_id)?.name}
+                    </span>
+                  </div>
+                )}
+                <div className="space-y-3 mt-4">
+                  {checklistItems
+                    .filter(item => item.checklist_id === currentChecklist.id)
+                    .map(item => (
+                      <div key={item.id} className="flex items-center justify-between group">
+                        <div className="flex items-center gap-2">
+                          <Checkbox 
+                            id={`view-item-${item.id}`}
+                            checked={item.completed}
+                            onCheckedChange={(checked) => 
+                              toggleChecklistItemMutation.mutate({
+                                id: item.id,
+                                completed: checked as boolean
+                              })
+                            }
+                          />
+                          <label
+                            htmlFor={`view-item-${item.id}`}
+                            className={`text-sm ${
+                              item.completed ? 'line-through text-travel-dark/50' : 'text-travel-dark'
+                            }`}
+                          >
+                            {item.text}
+                          </label>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                            onClick={() => {
+                              const newText = prompt("Edit item:", item.text);
+                              if (newText !== null) {
+                                handleUpdateItemText(item.id, newText);
+                              }
+                            }}
+                          >
+                            <Edit className="h-3 w-3 text-travel-blue" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                            onClick={() => deleteChecklistItemMutation.mutate(item.id)}
+                          >
+                            <Trash className="h-3 w-3 text-travel-red" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  }
+                </div>
+                {checklistItems.filter(item => item.checklist_id === currentChecklist.id).length === 0 && (
+                  <div className="text-center py-8 text-travel-dark/60">
+                    <p>No items in this checklist yet.</p>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+          <DialogFooter className="flex justify-between">
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-travel-blue border-travel-blue/30 hover:bg-travel-light-blue/10 hover:text-travel-blue"
+                onClick={() => {
+                  if (currentChecklist) {
+                    setIsViewDialogOpen(false);
+                    setIsAddItemDialogOpen(true);
+                  }
+                }}
+              >
+                <Plus className="h-4 w-4 mr-1" />
+                Add Item
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-travel-blue border-travel-blue/30 hover:bg-travel-light-blue/10 hover:text-travel-blue"
+                onClick={() => {
+                  if (currentChecklist) {
+                    setIsViewDialogOpen(false);
+                    setIsBulkAddDialogOpen(true);
+                  }
+                }}
+              >
+                <ListPlus className="h-4 w-4 mr-1" />
+                Bulk Add
+              </Button>
+            </div>
+            <Button
+              variant="outline"
+              onClick={() => setIsViewDialogOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Item Dialog */}
+      <Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Item to {currentChecklist?.name}</DialogTitle>
+            <DialogDescription>
+              Add a new item to your checklist.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="item-text">Item Text</Label>
+              <Input
+                id="item-text"
+                value={newItemText}
+                onChange={(e) => setNewItemText(e.target.value)}
+                placeholder="e.g., Pack passport"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddItemDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateItem}
+              disabled={createChecklistItemMutation.isPending || !newItemText.trim()}
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            >
+              {createChecklistItemMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Item"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Add Items Dialog */}
+      <BulkItemsDialog
+        checklistId={currentChecklist?.id || ''}
+        checklistName={currentChecklist?.name || ''}
+        open={isBulkAddDialogOpen}
+        onOpenChange={setIsBulkAddDialogOpen}
+        onAddItems={handleCreateMultipleItems}
+        isAdding={createMultipleChecklistItemsMutation.isPending}
+      />
+    </PageContainer>
+  );
+};
+
+export default Checklists;
