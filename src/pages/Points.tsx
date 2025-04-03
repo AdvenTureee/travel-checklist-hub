@@ -1,20 +1,22 @@
-
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, MapPin, Edit, Trash, Loader2, ExternalLink, Globe } from 'lucide-react';
+import { PlusCircle, MapPin, Edit, Trash, Loader2, ExternalLink, Globe, Clock, Calendar } from 'lucide-react';
 import { Point } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PointDetailsModal from '@/components/points/PointDetailsModal';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { format } from 'date-fns';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
 const Points: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -22,12 +24,15 @@ const Points: React.FC = () => {
   const [editPointId, setEditPointId] = useState<string | null>(null);
   const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [date, setDate] = useState<Date | undefined>(undefined);
   const [newPoint, setNewPoint] = useState<Partial<Point>>({
     name: '',
     description: '',
     address: '',
     type: 'tourist',
     googleMapsUrl: '',
+    openingHours: '',
+    plannedVisitDate: null,
   });
   const { toast } = useToast();
   const { user } = useAuth();
@@ -64,6 +69,8 @@ const Points: React.FC = () => {
             type: point.type,
             image_url: point.imageUrl,
             google_maps_url: point.googleMapsUrl,
+            opening_hours: point.openingHours,
+            planned_visit_date: point.plannedVisitDate,
             user_id: user?.id
           }
         ])
@@ -101,7 +108,9 @@ const Points: React.FC = () => {
           address: point.address,
           type: point.type,
           image_url: point.imageUrl,
-          google_maps_url: point.googleMapsUrl
+          google_maps_url: point.googleMapsUrl,
+          opening_hours: point.openingHours,
+          planned_visit_date: point.plannedVisitDate
         })
         .eq('id', id)
         .select();
@@ -173,6 +182,8 @@ const Points: React.FC = () => {
       type: newPoint.type as Point['type'],
       imageUrl: newPoint.imageUrl,
       googleMapsUrl: newPoint.googleMapsUrl,
+      openingHours: newPoint.openingHours,
+      plannedVisitDate: date ? format(date, 'yyyy-MM-dd') : null,
       user_id: user!.id
     } as any);
   };
@@ -191,7 +202,10 @@ const Points: React.FC = () => {
         type: pointToEdit.type,
         imageUrl: pointToEdit.image_url,
         googleMapsUrl: pointToEdit.google_maps_url,
+        openingHours: pointToEdit.opening_hours,
+        plannedVisitDate: pointToEdit.planned_visit_date,
       });
+      setDate(pointToEdit.planned_visit_date ? new Date(pointToEdit.planned_visit_date) : undefined);
       setEditPointId(id);
       setIsEditDialogOpen(true);
     }
@@ -214,7 +228,10 @@ const Points: React.FC = () => {
 
     updatePointMutation.mutate({ 
       id: editPointId, 
-      point: newPoint 
+      point: {
+        ...newPoint,
+        plannedVisitDate: date ? format(date, 'yyyy-MM-dd') : null,
+      }
     });
   };
 
@@ -225,7 +242,10 @@ const Points: React.FC = () => {
       address: '',
       type: 'tourist',
       googleMapsUrl: '',
+      openingHours: '',
+      plannedVisitDate: null,
     });
+    setDate(undefined);
   };
 
   // Show error if fetch failed
@@ -265,7 +285,7 @@ const Points: React.FC = () => {
               Add Point
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[550px]">
+          <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Add New Point of Interest</DialogTitle>
             </DialogHeader>
@@ -277,6 +297,7 @@ const Points: React.FC = () => {
                   value={newPoint.name}
                   onChange={(e) => setNewPoint({ ...newPoint, name: e.target.value })}
                   placeholder="e.g., Eiffel Tower"
+                  className="w-full"
                 />
               </div>
               <div className="grid gap-2">
@@ -286,6 +307,7 @@ const Points: React.FC = () => {
                   value={newPoint.description}
                   onChange={(e) => setNewPoint({ ...newPoint, description: e.target.value })}
                   placeholder="Brief description of this place..."
+                  className="w-full"
                 />
               </div>
               <div className="grid gap-2">
@@ -295,6 +317,7 @@ const Points: React.FC = () => {
                   value={newPoint.address}
                   onChange={(e) => setNewPoint({ ...newPoint, address: e.target.value })}
                   placeholder="Full address"
+                  className="w-full"
                 />
               </div>
               <div className="grid gap-2">
@@ -304,7 +327,42 @@ const Points: React.FC = () => {
                   value={newPoint.googleMapsUrl || ''}
                   onChange={(e) => setNewPoint({ ...newPoint, googleMapsUrl: e.target.value })}
                   placeholder="https://maps.google.com/..."
+                  className="w-full"
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="openingHours">Opening Hours (optional)</Label>
+                <Input
+                  id="openingHours"
+                  value={newPoint.openingHours || ''}
+                  onChange={(e) => setNewPoint({ ...newPoint, openingHours: e.target.value })}
+                  placeholder="e.g., Mon-Fri: 9am-5pm, Sat-Sun: 10am-4pm"
+                  className="w-full"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="plannedVisitDate">Planned Visit Date (optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="plannedVisitDate"
+                      variant="outline"
+                      className="w-full flex justify-start text-left font-normal h-10"
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {date ? format(date, 'PPP') : <span className="text-muted-foreground">Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="type">Type</Label>
@@ -312,7 +370,7 @@ const Points: React.FC = () => {
                   value={newPoint.type} 
                   onValueChange={(value) => setNewPoint({ ...newPoint, type: value as Point['type'] })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -331,6 +389,7 @@ const Points: React.FC = () => {
                   value={newPoint.imageUrl || ''}
                   onChange={(e) => setNewPoint({ ...newPoint, imageUrl: e.target.value })}
                   placeholder="https://example.com/image.jpg"
+                  className="w-full"
                 />
               </div>
             </div>
@@ -341,11 +400,12 @@ const Points: React.FC = () => {
                   resetForm();
                   setIsAddDialogOpen(false);
                 }}
+                className="w-24 sm:w-28"
               >
                 Cancel
               </Button>
               <Button 
-                className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+                className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28"
                 onClick={handleAddPoint}
                 disabled={addPointMutation.isPending}
               >
@@ -364,7 +424,7 @@ const Points: React.FC = () => {
         
         {/* Edit Dialog */}
         <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[550px]">
+          <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Point of Interest</DialogTitle>
             </DialogHeader>
@@ -376,6 +436,7 @@ const Points: React.FC = () => {
                   value={newPoint.name}
                   onChange={(e) => setNewPoint({ ...newPoint, name: e.target.value })}
                   placeholder="e.g., Eiffel Tower"
+                  className="w-full"
                 />
               </div>
               <div className="grid gap-2">
@@ -385,6 +446,7 @@ const Points: React.FC = () => {
                   value={newPoint.description}
                   onChange={(e) => setNewPoint({ ...newPoint, description: e.target.value })}
                   placeholder="Brief description of this place..."
+                  className="w-full"
                 />
               </div>
               <div className="grid gap-2">
@@ -394,6 +456,7 @@ const Points: React.FC = () => {
                   value={newPoint.address}
                   onChange={(e) => setNewPoint({ ...newPoint, address: e.target.value })}
                   placeholder="Full address"
+                  className="w-full"
                 />
               </div>
               <div className="grid gap-2">
@@ -403,7 +466,42 @@ const Points: React.FC = () => {
                   value={newPoint.googleMapsUrl || ''}
                   onChange={(e) => setNewPoint({ ...newPoint, googleMapsUrl: e.target.value })}
                   placeholder="https://maps.google.com/..."
+                  className="w-full"
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-openingHours">Opening Hours (optional)</Label>
+                <Input
+                  id="edit-openingHours"
+                  value={newPoint.openingHours || ''}
+                  onChange={(e) => setNewPoint({ ...newPoint, openingHours: e.target.value })}
+                  placeholder="e.g., Mon-Fri: 9am-5pm, Sat-Sun: 10am-4pm"
+                  className="w-full"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-plannedVisitDate">Planned Visit Date (optional)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="edit-plannedVisitDate"
+                      variant="outline"
+                      className="w-full flex justify-start text-left font-normal h-10"
+                    >
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {date ? format(date, 'PPP') : <span className="text-muted-foreground">Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={date}
+                      onSelect={setDate}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="edit-type">Type</Label>
@@ -411,7 +509,7 @@ const Points: React.FC = () => {
                   value={newPoint.type} 
                   onValueChange={(value) => setNewPoint({ ...newPoint, type: value as Point['type'] })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -430,6 +528,7 @@ const Points: React.FC = () => {
                   value={newPoint.imageUrl || ''}
                   onChange={(e) => setNewPoint({ ...newPoint, imageUrl: e.target.value })}
                   placeholder="https://example.com/image.jpg"
+                  className="w-full"
                 />
               </div>
             </div>
@@ -441,11 +540,12 @@ const Points: React.FC = () => {
                   setEditPointId(null);
                   setIsEditDialogOpen(false);
                 }}
+                className="w-24 sm:w-28"
               >
                 Cancel
               </Button>
               <Button 
-                className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+                className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28"
                 onClick={handleUpdatePoint}
                 disabled={updatePointMutation.isPending}
               >

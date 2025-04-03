@@ -1,4 +1,3 @@
-
 export interface Point {
   id: string;
   name: string;
@@ -12,6 +11,10 @@ export interface Point {
   user_id: string;
   googleMapsUrl?: string;
   google_maps_url?: string;
+  openingHours?: string;
+  opening_hours?: string;
+  plannedVisitDate?: string | null;
+  planned_visit_date?: string | null;
 }
 
 export interface ChecklistItem {

@@ -2,8 +2,9 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Point } from '@/lib/types';
-import { MapPin, Calendar, Globe, ExternalLink } from 'lucide-react';
+import { MapPin, Calendar, Globe, ExternalLink, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { format } from 'date-fns';
 
 interface PointDetailsModalProps {
   point: Point | null;
@@ -50,6 +51,24 @@ const PointDetailsModal: React.FC<PointDetailsModalProps> = ({ point, isOpen, on
                 <span className="text-travel-dark/70">{point.address}</span>
               </div>
               
+              {(point.opening_hours || point.openingHours) && (
+                <div className="flex items-start gap-2">
+                  <Clock className="h-5 w-5 text-travel-blue mt-0.5 flex-shrink-0" />
+                  <span className="text-travel-dark/70">
+                    {point.opening_hours || point.openingHours}
+                  </span>
+                </div>
+              )}
+              
+              {(point.planned_visit_date || point.plannedVisitDate) && (
+                <div className="flex items-start gap-2">
+                  <Calendar className="h-5 w-5 text-travel-blue mt-0.5 flex-shrink-0" />
+                  <span className="text-travel-dark/70">
+                    Planned visit: {format(new Date(point.planned_visit_date || point.plannedVisitDate!), 'PPP')}
+                  </span>
+                </div>
+              )}
+              
               <div className="flex items-start gap-2">
                 <Calendar className="h-5 w-5 text-travel-blue mt-0.5 flex-shrink-0" />
                 <span className="text-travel-dark/70">
@@ -57,11 +76,11 @@ const PointDetailsModal: React.FC<PointDetailsModalProps> = ({ point, isOpen, on
                 </span>
               </div>
               
-              {point.googleMapsUrl && (
+              {(point.googleMapsUrl || point.google_maps_url) && (
                 <div className="flex items-start gap-2">
                   <Globe className="h-5 w-5 text-travel-blue mt-0.5 flex-shrink-0" />
                   <a 
-                    href={point.googleMapsUrl} 
+                    href={point.googleMapsUrl || point.google_maps_url} 
                     target="_blank" 
                     rel="noopener noreferrer"
                     className="text-travel-blue hover:underline flex items-center"
