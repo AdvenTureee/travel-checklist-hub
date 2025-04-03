@@ -332,7 +332,6 @@ const Points: React.FC = () => {
                 />
               </div>
               
-              {/* Substituir o input simples pelo componente OpeningHoursInput */}
               <OpeningHoursInput 
                 value={newPoint.openingHours || ''}
                 onChange={(value) => setNewPoint({ ...newPoint, openingHours: value })}
@@ -360,203 +359,201 @@ const Points: React.FC = () => {
                       className="p-3 pointer-events-auto"
                     />
                   </PopoverContent>
-                </Popover>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="type">Type</Label>
-                <Select 
-                  value={newPoint.type} 
-                  onValueChange={(value) => setNewPoint({ ...newPoint, type: value as Point['type'] })}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tourist">Tourist Attraction</SelectItem>
-                    <SelectItem value="shopping">Shopping</SelectItem>
-                    <SelectItem value="restaurant">Restaurant</SelectItem>
-                    <SelectItem value="accommodation">Accommodation</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="imageUrl">Image URL (optional)</Label>
-                <Input
-                  id="imageUrl"
-                  value={newPoint.imageUrl || ''}
-                  onChange={(e) => setNewPoint({ ...newPoint, imageUrl: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full"
-                />
-              </div>
+              </Popover>
             </div>
-            <div className="flex justify-end gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  resetForm();
-                  setIsAddDialogOpen(false);
-                }}
-                className="w-24 sm:w-28"
+            <div className="grid gap-2">
+              <Label htmlFor="type">Type</Label>
+              <Select 
+                value={newPoint.type} 
+                onValueChange={(value) => setNewPoint({ ...newPoint, type: value as Point['type'] })}
               >
-                Cancel
-              </Button>
-              <Button 
-                className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28"
-                onClick={handleAddPoint}
-                disabled={addPointMutation.isPending}
-              >
-                {addPointMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adding...
-                  </>
-                ) : (
-                  "Add Point"
-                )}
-              </Button>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tourist">Tourist Attraction</SelectItem>
+                  <SelectItem value="shopping">Shopping</SelectItem>
+                  <SelectItem value="restaurant">Restaurant</SelectItem>
+                  <SelectItem value="accommodation">Accommodation</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </DialogContent>
-        </Dialog>
-        
-        {/* Edit Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Point of Interest</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-name">Name</Label>
-                <Input
-                  id="edit-name"
-                  value={newPoint.name}
-                  onChange={(e) => setNewPoint({ ...newPoint, name: e.target.value })}
-                  placeholder="e.g., Eiffel Tower"
-                  className="w-full"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  value={newPoint.description}
-                  onChange={(e) => setNewPoint({ ...newPoint, description: e.target.value })}
-                  placeholder="Brief description of this place..."
-                  className="w-full"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-address">Address</Label>
-                <Input
-                  id="edit-address"
-                  value={newPoint.address}
-                  onChange={(e) => setNewPoint({ ...newPoint, address: e.target.value })}
-                  placeholder="Full address"
-                  className="w-full"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-googleMapsUrl">Google Maps URL (optional)</Label>
-                <Input
-                  id="edit-googleMapsUrl"
-                  value={newPoint.googleMapsUrl || ''}
-                  onChange={(e) => setNewPoint({ ...newPoint, googleMapsUrl: e.target.value })}
-                  placeholder="https://maps.google.com/..."
-                  className="w-full"
-                />
-              </div>
-              
-              {/* Substituir o input simples pelo componente OpeningHoursInput */}
-              <OpeningHoursInput 
-                value={newPoint.openingHours || ''}
-                onChange={(value) => setNewPoint({ ...newPoint, openingHours: value })}
+            <div className="grid gap-2">
+              <Label htmlFor="imageUrl">Image URL (optional)</Label>
+              <Input
+                id="imageUrl"
+                value={newPoint.imageUrl || ''}
+                onChange={(e) => setNewPoint({ ...newPoint, imageUrl: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                className="w-full"
               />
-              
-              <div className="grid gap-2">
-                <Label htmlFor="edit-plannedVisitDate">Planned Visit Date (optional)</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      id="edit-plannedVisitDate"
-                      variant="outline"
-                      className="w-full flex justify-start text-left font-normal h-10"
-                    >
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {date ? format(date, 'PPP') : <span className="text-muted-foreground">Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={date}
-                      onSelect={setDate}
-                      initialFocus
-                      className="p-3 pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-type">Type</Label>
-                <Select 
-                  value={newPoint.type} 
-                  onValueChange={(value) => setNewPoint({ ...newPoint, type: value as Point['type'] })}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tourist">Tourist Attraction</SelectItem>
-                    <SelectItem value="shopping">Shopping</SelectItem>
-                    <SelectItem value="restaurant">Restaurant</SelectItem>
-                    <SelectItem value="accommodation">Accommodation</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-imageUrl">Image URL (optional)</Label>
-                <Input
-                  id="edit-imageUrl"
-                  value={newPoint.imageUrl || ''}
-                  onChange={(e) => setNewPoint({ ...newPoint, imageUrl: e.target.value })}
-                  placeholder="https://example.com/image.jpg"
-                  className="w-full"
-                />
-              </div>
             </div>
-            <div className="flex justify-end gap-2">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  resetForm();
-                  setEditPointId(null);
-                  setIsEditDialogOpen(false);
-                }}
-                className="w-24 sm:w-28"
-              >
-                Cancel
-              </Button>
-              <Button 
-                className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28"
-                onClick={handleUpdatePoint}
-                disabled={updatePointMutation.isPending}
-              >
-                {updatePointMutation.isPending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Updating...
-                  </>
-                ) : (
-                  "Update Point"
-                )}
-              </Button>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                resetForm();
+                setIsAddDialogOpen(false);
+              }}
+              className="w-24 sm:w-28"
+            >
+              Cancel
+            </Button>
+            <Button 
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28"
+              onClick={handleAddPoint}
+              disabled={addPointMutation.isPending}
+            >
+              {addPointMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Add Point"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Point of Interest</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                value={newPoint.name}
+                onChange={(e) => setNewPoint({ ...newPoint, name: e.target.value })}
+                placeholder="e.g., Eiffel Tower"
+                className="w-full"
+              />
             </div>
-          </DialogContent>
-        </Dialog>
-      </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-description">Description</Label>
+              <Textarea
+                id="edit-description"
+                value={newPoint.description}
+                onChange={(e) => setNewPoint({ ...newPoint, description: e.target.value })}
+                placeholder="Brief description of this place..."
+                className="w-full"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-address">Address</Label>
+              <Input
+                id="edit-address"
+                value={newPoint.address}
+                onChange={(e) => setNewPoint({ ...newPoint, address: e.target.value })}
+                placeholder="Full address"
+                className="w-full"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-googleMapsUrl">Google Maps URL (optional)</Label>
+              <Input
+                id="edit-googleMapsUrl"
+                value={newPoint.googleMapsUrl || ''}
+                onChange={(e) => setNewPoint({ ...newPoint, googleMapsUrl: e.target.value })}
+                placeholder="https://maps.google.com/..."
+                className="w-full"
+              />
+            </div>
+            
+            <OpeningHoursInput 
+              value={newPoint.openingHours || ''}
+              onChange={(value) => setNewPoint({ ...newPoint, openingHours: value })}
+            />
+            
+            <div className="grid gap-2">
+              <Label htmlFor="edit-plannedVisitDate">Planned Visit Date (optional)</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    id="edit-plannedVisitDate"
+                    variant="outline"
+                    className="w-full flex justify-start text-left font-normal h-10"
+                  >
+                    <Calendar className="mr-2 h-4 w-4" />
+                    {date ? format(date, 'PPP') : <span className="text-muted-foreground">Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <CalendarComponent
+                    mode="single"
+                    selected={date}
+                    onSelect={setDate}
+                    initialFocus
+                    className="p-3 pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-type">Type</Label>
+              <Select 
+                value={newPoint.type} 
+                onValueChange={(value) => setNewPoint({ ...newPoint, type: value as Point['type'] })}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tourist">Tourist Attraction</SelectItem>
+                  <SelectItem value="shopping">Shopping</SelectItem>
+                  <SelectItem value="restaurant">Restaurant</SelectItem>
+                  <SelectItem value="accommodation">Accommodation</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-imageUrl">Image URL (optional)</Label>
+              <Input
+                id="edit-imageUrl"
+                value={newPoint.imageUrl || ''}
+                onChange={(e) => setNewPoint({ ...newPoint, imageUrl: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                className="w-full"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                resetForm();
+                setEditPointId(null);
+                setIsEditDialogOpen(false);
+              }}
+              className="w-24 sm:w-28"
+            >
+              Cancel
+            </Button>
+            <Button 
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28"
+              onClick={handleUpdatePoint}
+              disabled={updatePointMutation.isPending}
+            >
+              {updatePointMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Point"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {points.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-[400px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">

@@ -88,6 +88,7 @@ export type Database = {
           id: string
           image_url: string | null
           name: string
+          opening_hours: string | null
           type: string
           user_id: string
         }
@@ -99,6 +100,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name: string
+          opening_hours?: string | null
           type: string
           user_id: string
         }
@@ -110,6 +112,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           name?: string
+          opening_hours?: string | null
           type?: string
           user_id?: string
         }
