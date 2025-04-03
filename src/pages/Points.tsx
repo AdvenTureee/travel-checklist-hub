@@ -17,6 +17,7 @@ import PointDetailsModal from '@/components/points/PointDetailsModal';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import OpeningHoursInput from '@/components/points/OpeningHoursInput';
 
 const Points: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -330,16 +331,13 @@ const Points: React.FC = () => {
                   className="w-full"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="openingHours">Opening Hours (optional)</Label>
-                <Input
-                  id="openingHours"
-                  value={newPoint.openingHours || ''}
-                  onChange={(e) => setNewPoint({ ...newPoint, openingHours: e.target.value })}
-                  placeholder="e.g., Mon-Fri: 9am-5pm, Sat-Sun: 10am-4pm"
-                  className="w-full"
-                />
-              </div>
+              
+              {/* Substituir o input simples pelo componente OpeningHoursInput */}
+              <OpeningHoursInput 
+                value={newPoint.openingHours || ''}
+                onChange={(value) => setNewPoint({ ...newPoint, openingHours: value })}
+              />
+              
               <div className="grid gap-2">
                 <Label htmlFor="plannedVisitDate">Planned Visit Date (optional)</Label>
                 <Popover>
@@ -469,16 +467,13 @@ const Points: React.FC = () => {
                   className="w-full"
                 />
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-openingHours">Opening Hours (optional)</Label>
-                <Input
-                  id="edit-openingHours"
-                  value={newPoint.openingHours || ''}
-                  onChange={(e) => setNewPoint({ ...newPoint, openingHours: e.target.value })}
-                  placeholder="e.g., Mon-Fri: 9am-5pm, Sat-Sun: 10am-4pm"
-                  className="w-full"
-                />
-              </div>
+              
+              {/* Substituir o input simples pelo componente OpeningHoursInput */}
+              <OpeningHoursInput 
+                value={newPoint.openingHours || ''}
+                onChange={(value) => setNewPoint({ ...newPoint, openingHours: value })}
+              />
+              
               <div className="grid gap-2">
                 <Label htmlFor="edit-plannedVisitDate">Planned Visit Date (optional)</Label>
                 <Popover>
