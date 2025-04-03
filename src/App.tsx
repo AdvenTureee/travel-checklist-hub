@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Points from "./pages/Points";
 import Checklists from "./pages/Checklists";
+import Shopping from "./pages/Shopping";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
@@ -33,6 +34,7 @@ const App = () => {
               <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
               <Route path="/points" element={<RequireAuth><Points /></RequireAuth>} />
               <Route path="/checklists" element={<RequireAuth><Checklists /></RequireAuth>} />
+              <Route path="/shopping" element={<RequireAuth><Shopping /></RequireAuth>} />
               <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
               <Route path="*" element={<NotFound />} />
             </Routes>

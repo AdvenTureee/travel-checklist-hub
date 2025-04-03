@@ -89,6 +89,7 @@ export type Database = {
           image_url: string | null
           name: string
           opening_hours: string | null
+          planned_visit_date: string | null
           type: string
           user_id: string
         }
@@ -101,6 +102,7 @@ export type Database = {
           image_url?: string | null
           name: string
           opening_hours?: string | null
+          planned_visit_date?: string | null
           type: string
           user_id: string
         }
@@ -113,7 +115,89 @@ export type Database = {
           image_url?: string | null
           name?: string
           opening_hours?: string | null
+          planned_visit_date?: string | null
           type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      shopping_list_items: {
+        Row: {
+          checklist_id: string | null
+          created_at: string
+          currency: string
+          id: string
+          image_url: string | null
+          name: string
+          point_id: string | null
+          price: number
+          purchased: boolean
+          user_id: string
+        }
+        Insert: {
+          checklist_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          image_url?: string | null
+          name: string
+          point_id?: string | null
+          price?: number
+          purchased?: boolean
+          user_id: string
+        }
+        Update: {
+          checklist_id?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          image_url?: string | null
+          name?: string
+          point_id?: string | null
+          price?: number
+          purchased?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shopping_list_items_checklist_id_fkey"
+            columns: ["checklist_id"]
+            isOneToOne: false
+            referencedRelation: "checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shopping_list_items_point_id_fkey"
+            columns: ["point_id"]
+            isOneToOne: false
+            referencedRelation: "points"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_budgets: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

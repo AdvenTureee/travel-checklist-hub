@@ -44,3 +44,25 @@ export interface User {
   token: string;
   isAuthenticated: boolean;
 }
+
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  price: number;
+  image_url?: string | null;
+  point_id?: string | null;
+  checklist_id?: string | null;
+  currency: string;
+  purchased: boolean;
+  created_at: string;
+  user_id: string;
+}
+
+export interface UserBudget {
+  id: string;
+  amount: number;
+  currency: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
+}
