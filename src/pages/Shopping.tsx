@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/button';
@@ -397,147 +396,14 @@ const Shopping: React.FC = () => {
             </DialogContent>
           </Dialog>
 
-          {/* Fix for the Add Item Dialog - The problem is here */}
-          <Dialog 
-            open={isAddDialogOpen} 
-            onOpenChange={(open) => {
-              setIsAddDialogOpen(open);
-              if (!open) resetForm();
-            }}
+          {/* Add Item Button */}
+          <Button 
+            className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            onClick={() => setIsAddDialogOpen(true)}
           >
-            <DialogTrigger asChild>
-              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Adicionar Item
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[550px]">
-              <DialogHeader>
-                <DialogTitle>Adicionar Item de Compra</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Nome do Item</Label>
-                  <Input
-                    id="name"
-                    value={newItem.name}
-                    onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                    placeholder="ex., Souvenir"
-                    className="w-full"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="price">Preço</Label>
-                    <Input
-                      id="price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={newItem.price}
-                      onChange={(e) => setNewItem({ ...newItem, price: parseFloat(e.target.value) })}
-                      placeholder="0.00"
-                      className="w-full"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="item-currency">Moeda</Label>
-                    <Select 
-                      value={newItem.currency} 
-                      onValueChange={(value) => setNewItem({ ...newItem, currency: value })}
-                    >
-                      <SelectTrigger id="item-currency" className="w-full">
-                        <SelectValue placeholder="Selecione a moeda" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="BRL">Real Brasileiro (R$)</SelectItem>
-                        <SelectItem value="USD">Dólar Americano ($)</SelectItem>
-                        <SelectItem value="EUR">Euro (€)</SelectItem>
-                        <SelectItem value="GBP">Libra Esterlina (£)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="image_url">URL da Imagem (opcional)</Label>
-                  <Input
-                    id="image_url"
-                    value={newItem.image_url || ''}
-                    onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
-                    placeholder="https://exemplo.com/imagem.jpg"
-                    className="w-full"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="point">Ponto Associado (opcional)</Label>
-                  <Select 
-                    value={newItem.point_id || ''} 
-                    onValueChange={(value) => setNewItem({ ...newItem, point_id: value || null })}
-                  >
-                    <SelectTrigger id="point" className="w-full">
-                      <SelectValue placeholder="Selecione um ponto" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
-                      {points.map((point) => (
-                        <SelectItem key={point.id} value={point.id}>{point.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="checklist">Checklist Associado (opcional)</Label>
-                  <Select 
-                    value={newItem.checklist_id || ''} 
-                    onValueChange={(value) => setNewItem({ ...newItem, checklist_id: value || null })}
-                  >
-                    <SelectTrigger id="checklist" className="w-full">
-                      <SelectValue placeholder="Selecione um checklist" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
-                      {checklists.map((checklist) => (
-                        <SelectItem key={checklist.id} value={checklist.id}>{checklist.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox 
-                    id="purchased" 
-                    checked={newItem.purchased} 
-                    onCheckedChange={(checked) => setNewItem({ ...newItem, purchased: checked as boolean })}
-                  />
-                  <Label htmlFor="purchased" className="cursor-pointer">Já comprado</Label>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    resetForm();
-                    setIsAddDialogOpen(false);
-                  }}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
-                  onClick={handleAddItem}
-                  disabled={addItemMutation.isPending}
-                >
-                  {addItemMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Adicionando...
-                    </>
-                  ) : (
-                    "Adicionar Item"
-                  )}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Adicionar Item
+          </Button>
         </div>
       </div>
 
@@ -582,6 +448,142 @@ const Shopping: React.FC = () => {
           </CardContent>
         </Card>
       )}
+
+      {/* Add Item Dialog - Separate from the button */}
+      <Dialog 
+        open={isAddDialogOpen} 
+        onOpenChange={(open) => {
+          setIsAddDialogOpen(open);
+          if (!open) resetForm();
+        }}
+      >
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>Adicionar Item de Compra</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Nome do Item</Label>
+              <Input
+                id="name"
+                value={newItem.name}
+                onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                placeholder="ex., Souvenir"
+                className="w-full"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="price">Preço</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={newItem.price}
+                  onChange={(e) => setNewItem({ ...newItem, price: parseFloat(e.target.value) })}
+                  placeholder="0.00"
+                  className="w-full"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="item-currency">Moeda</Label>
+                <Select 
+                  value={newItem.currency} 
+                  onValueChange={(value) => setNewItem({ ...newItem, currency: value })}
+                >
+                  <SelectTrigger id="item-currency" className="w-full">
+                    <SelectValue placeholder="Selecione a moeda" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="BRL">Real Brasileiro (R$)</SelectItem>
+                    <SelectItem value="USD">Dólar Americano ($)</SelectItem>
+                    <SelectItem value="EUR">Euro (€)</SelectItem>
+                    <SelectItem value="GBP">Libra Esterlina (£)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="image_url">URL da Imagem (opcional)</Label>
+              <Input
+                id="image_url"
+                value={newItem.image_url || ''}
+                onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
+                placeholder="https://exemplo.com/imagem.jpg"
+                className="w-full"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="point">Ponto Associado (opcional)</Label>
+              <Select 
+                value={newItem.point_id || ''} 
+                onValueChange={(value) => setNewItem({ ...newItem, point_id: value || null })}
+              >
+                <SelectTrigger id="point" className="w-full">
+                  <SelectValue placeholder="Selecione um ponto" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhum</SelectItem>
+                  {points.map((point) => (
+                    <SelectItem key={point.id} value={point.id}>{point.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="checklist">Checklist Associado (opcional)</Label>
+              <Select 
+                value={newItem.checklist_id || ''} 
+                onValueChange={(value) => setNewItem({ ...newItem, checklist_id: value || null })}
+              >
+                <SelectTrigger id="checklist" className="w-full">
+                  <SelectValue placeholder="Selecione um checklist" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhum</SelectItem>
+                  {checklists.map((checklist) => (
+                    <SelectItem key={checklist.id} value={checklist.id}>{checklist.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox 
+                id="purchased" 
+                checked={newItem.purchased} 
+                onCheckedChange={(checked) => setNewItem({ ...newItem, purchased: checked as boolean })}
+              />
+              <Label htmlFor="purchased" className="cursor-pointer">Já comprado</Label>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                resetForm();
+                setIsAddDialogOpen(false);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+              onClick={handleAddItem}
+              disabled={addItemMutation.isPending}
+            >
+              {addItemMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Adicionando...
+                </>
+              ) : (
+                "Adicionar Item"
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="w-full sm:w-auto mb-4">
