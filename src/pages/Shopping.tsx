@@ -524,7 +524,7 @@ const Shopping: React.FC = () => {
                   <SelectValue placeholder="Selecione um ponto" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {points.map((point) => (
                     <SelectItem key={point.id} value={point.id}>{point.name}</SelectItem>
                   ))}
@@ -541,7 +541,7 @@ const Shopping: React.FC = () => {
                   <SelectValue placeholder="Selecione um checklist" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhum</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {checklists.map((checklist) => (
                     <SelectItem key={checklist.id} value={checklist.id}>{checklist.name}</SelectItem>
                   ))}
