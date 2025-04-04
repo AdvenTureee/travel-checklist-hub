@@ -23,8 +23,8 @@ export function LoginForm() {
     // Basic validation
     if (!username || !password) {
       toast({
-        title: "Invalid credentials",
-        description: "Please enter both username and password",
+        title: "Credenciais inválidas",
+        description: "Por favor, informe usuário e senha",
         variant: "destructive",
       });
       return;
@@ -37,8 +37,8 @@ export function LoginForm() {
       // For now, just accept any login
       localStorage.setItem('token', 'dummy-token');
       toast({
-        title: "Login successful",
-        description: "Welcome to Travel Hub!",
+        title: "Login realizado com sucesso",
+        description: "Bem-vindo ao Travel Hub!",
       });
       setIsLoading(false);
       navigate('/points');
@@ -53,19 +53,19 @@ export function LoginForm() {
             <Plane className="h-6 w-6 text-travel-dark" />
           </div>
         </div>
-        <CardTitle className="text-xl sm:text-2xl font-bold">Welcome To Travel Hub</CardTitle>
+        <CardTitle className="text-xl sm:text-2xl font-bold">Bem-vindo ao Travel Hub</CardTitle>
         <CardDescription className="text-sm sm:text-base">
-          Enter your credentials to access your travel plans
+          Informe suas credenciais para acessar seus planos de viagem
         </CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4 px-4 sm:px-6">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">Usuário</Label>
             <Input
               id="username"
               type="text"
-              placeholder="Enter your username"
+              placeholder="Digite seu usuário"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className="transition-all duration-200 focus:ring-travel-mustard"
@@ -74,15 +74,15 @@ export function LoginForm() {
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Senha</Label>
               <button type="button" className="text-xs sm:text-sm text-travel-blue hover:underline">
-                Forgot password?
+                Esqueceu a senha?
               </button>
             </div>
             <Input
               id="password"
               type="password"
-              placeholder="Enter your password"
+              placeholder="Digite sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="transition-all duration-200 focus:ring-travel-mustard"
@@ -102,10 +102,10 @@ export function LoginForm() {
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Signing in...
+                Entrando...
               </span>
             ) : (
-              'Sign In'
+              'Entrar'
             )}
           </Button>
         </CardFooter>

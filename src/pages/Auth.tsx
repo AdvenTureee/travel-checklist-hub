@@ -19,7 +19,7 @@ const Auth: React.FC = () => {
     return (
       <PageContainer>
         <div className="flex justify-center items-center h-[400px]">
-          <p>Loading...</p>
+          <p>Carregando...</p>
         </div>
       </PageContainer>
     );
@@ -37,13 +37,13 @@ const Auth: React.FC = () => {
             <div className="mx-auto bg-travel-mustard w-16 h-16 rounded-full flex items-center justify-center mb-4">
               <Plane className="h-8 w-8 text-travel-dark" />
             </div>
-            <CardTitle className="text-2xl font-bold text-center text-travel-dark">Welcome To Travel Hub</CardTitle>
-            <CardDescription className="text-center">Sign in or create an account to manage your points of interest</CardDescription>
+            <CardTitle className="text-2xl font-bold text-center text-travel-dark">Bem-vindo ao Travel Hub</CardTitle>
+            <CardDescription className="text-center">Entre ou crie uma conta para gerenciar seus pontos de interesse</CardDescription>
           </CardHeader>
           <Tabs defaultValue="signin" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin">Entrar</TabsTrigger>
+              <TabsTrigger value="signup">Cadastrar</TabsTrigger>
             </TabsList>
             <TabsContent value="signin">
               <CardContent className="space-y-4 pt-4">
@@ -52,13 +52,13 @@ const Auth: React.FC = () => {
                   <Input
                     id="signin-email"
                     type="email"
-                    placeholder="youremail@example.com"
+                    placeholder="seuemail@exemplo.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
+                  <Label htmlFor="signin-password">Senha</Label>
                   <Input
                     id="signin-password"
                     type="password"
@@ -72,7 +72,7 @@ const Auth: React.FC = () => {
                   className="w-full bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark" 
                   onClick={() => signIn(email, password)}
                 >
-                  Sign In
+                  Entrar
                 </Button>
               </CardFooter>
             </TabsContent>
@@ -83,13 +83,13 @@ const Auth: React.FC = () => {
                   <Input
                     id="signup-email"
                     type="email"
-                    placeholder="youremail@example.com"
+                    placeholder="seuemail@exemplo.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
+                  <Label htmlFor="signup-password">Senha</Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -103,7 +103,7 @@ const Auth: React.FC = () => {
                   className="w-full bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark" 
                   onClick={() => signUp(email, password)}
                 >
-                  Sign Up
+                  Cadastrar
                 </Button>
               </CardFooter>
             </TabsContent>

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { MapPin, ListChecks, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, ListChecks, Settings, LogOut, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -50,15 +50,15 @@ export function Sidebar({ className }: SidebarProps) {
     try {
       await supabase.auth.signOut();
       toast({
-        title: "Logout successful",
-        description: "You have been logged out successfully.",
+        title: "Logout realizado com sucesso",
+        description: "Você foi desconectado com sucesso.",
       });
       navigate('/auth');
     } catch (error) {
-      console.error('Error during logout:', error);
+      console.error('Erro durante logout:', error);
       toast({
-        title: "Logout failed",
-        description: "There was an error logging out.",
+        title: "Falha no logout",
+        description: "Ocorreu um erro ao tentar sair.",
         variant: "destructive",
       });
     }
@@ -89,7 +89,7 @@ export function Sidebar({ className }: SidebarProps) {
       <div className="flex flex-col flex-1 px-2 py-4 space-y-1 overflow-y-auto">
         <SidebarItem 
           icon={MapPin} 
-          label="Points" 
+          label="Pontos" 
           to="/points" 
           isActive={location.pathname === '/points'} 
           isCollapsed={isCollapsed} 
@@ -102,8 +102,15 @@ export function Sidebar({ className }: SidebarProps) {
           isCollapsed={isCollapsed} 
         />
         <SidebarItem 
+          icon={ShoppingCart} 
+          label="Compras" 
+          to="/shopping" 
+          isActive={location.pathname === '/shopping'} 
+          isCollapsed={isCollapsed} 
+        />
+        <SidebarItem 
           icon={Settings} 
-          label="Settings" 
+          label="Configurações" 
           to="/settings" 
           isActive={location.pathname === '/settings'} 
           isCollapsed={isCollapsed} 
@@ -119,7 +126,7 @@ export function Sidebar({ className }: SidebarProps) {
           )}
         >
           <LogOut className="h-5 w-5" />
-          {!isCollapsed && <span className="animate-fade-in">Logout</span>}
+          {!isCollapsed && <span className="animate-fade-in">Sair</span>}
         </button>
       </div>
     </div>

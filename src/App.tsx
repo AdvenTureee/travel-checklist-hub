@@ -4,9 +4,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Index from "./pages/Index";
-import Dashboard from "./pages/Dashboard";
 import Points from "./pages/Points";
 import Checklists from "./pages/Checklists";
 import Shopping from "./pages/Shopping";
@@ -31,7 +30,6 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
               <Route path="/points" element={<RequireAuth><Points /></RequireAuth>} />
               <Route path="/checklists" element={<RequireAuth><Checklists /></RequireAuth>} />
               <Route path="/shopping" element={<RequireAuth><Shopping /></RequireAuth>} />
