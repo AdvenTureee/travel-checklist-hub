@@ -1,10 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { MapPin, ListChecks, Settings, LogOut, ChevronLeft, ChevronRight, ShoppingCart } from 'lucide-react';
+import { MapPin, ListChecks, Settings, LogOut, ChevronLeft, ChevronRight, ShoppingCart, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SidebarItemProps {
   icon: React.ElementType;
@@ -19,15 +20,30 @@ const SidebarItem = ({ icon: Icon, label, to, isActive, isCollapsed }: SidebarIt
     <Link
       to={to}
       className={cn(
-        "flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-300 my-1",
+        "relative flex items-center gap-3 px-3 py-3 rounded-lg transition-all duration-300 my-1 overflow-hidden",
         isActive 
           ? "bg-travel-mustard text-travel-dark font-medium" 
           : "hover:bg-travel-light-mustard text-travel-dark/70",
-        isCollapsed && "justify-center"
+        isCollapsed ? "justify-center" : ""
       )}
     >
-      <Icon className={cn("h-5 w-5", isActive ? "text-travel-dark" : "text-travel-dark/70")} />
-      {!isCollapsed && <span className="animate-fade-in">{label}</span>}
+      <div className={cn("min-w-6 flex justify-center", isCollapsed ? "mx-auto" : "")}>
+        <Icon className={cn("h-5 w-5", isActive ? "text-travel-dark" : "text-travel-dark/70")} />
+      </div>
+      
+      <AnimatePresence>
+        {!isCollapsed && (
+          <motion.span 
+            initial={{ opacity: 0, width: 0 }}
+            animate={{ opacity: 1, width: "auto" }}
+            exit={{ opacity: 0, width: 0 }}
+            transition={{ duration: 0.2 }}
+            className="truncate"
+          >
+            {label}
+          </motion.span>
+        )}
+      </AnimatePresence>
     </Link>
   );
 };
@@ -40,8 +56,13 @@ export function Sidebar({ className }: SidebarProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true); // Default to collapsed
   
+  // Set collapsed state to true whenever the page changes
+  useEffect(() => {
+    setIsCollapsed(true);
+  }, [location.pathname]);
+
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
   };
@@ -65,28 +86,49 @@ export function Sidebar({ className }: SidebarProps) {
   };
 
   return (
-    <div 
+    <motion.div 
       className={cn(
-        "h-screen flex flex-col border-r border-border bg-white transition-all duration-300 ease-in-out",
-        isCollapsed ? "w-[70px]" : "w-[250px]",
+        "h-screen flex flex-col border-r border-border bg-white shadow-sm",
         className
       )}
+      animate={{ width: isCollapsed ? '70px' : '250px' }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
     >
-      <div className="flex items-center justify-between p-4 border-b border-border">
-        {!isCollapsed && (
-          <h1 className="text-lg font-semibold text-travel-dark animate-fade-in">
-            Travel Hub
-          </h1>
-        )}
-        <button 
+      <div className="flex items-center justify-between p-4 border-b border-border h-16">
+        <AnimatePresence>
+          {!isCollapsed && (
+            <motion.h1 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.2 }}
+              className="text-lg font-semibold text-travel-dark truncate"
+            >
+              Travel Hub
+            </motion.h1>
+          )}
+        </AnimatePresence>
+        
+        <motion.button 
           onClick={toggleSidebar}
-          className="p-1.5 rounded-full bg-travel-light-mustard text-travel-dark hover:bg-travel-mustard transition-colors"
+          className={cn(
+            "p-1.5 rounded-full bg-travel-light-mustard text-travel-dark hover:bg-travel-mustard transition-colors",
+            isCollapsed ? "mx-auto" : ""
+          )}
+          whileTap={{ scale: 0.9 }}
         >
           {isCollapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
-        </button>
+        </motion.button>
       </div>
       
       <div className="flex flex-col flex-1 px-2 py-4 space-y-1 overflow-y-auto">
+        <SidebarItem 
+          icon={Home} 
+          label="Início" 
+          to="/" 
+          isActive={location.pathname === '/'} 
+          isCollapsed={isCollapsed} 
+        />
         <SidebarItem 
           icon={MapPin} 
           label="Pontos" 
@@ -125,10 +167,25 @@ export function Sidebar({ className }: SidebarProps) {
             isCollapsed && "justify-center"
           )}
         >
-          <LogOut className="h-5 w-5" />
-          {!isCollapsed && <span className="animate-fade-in">Sair</span>}
+          <div className={cn("min-w-6 flex justify-center", isCollapsed ? "mx-auto" : "")}>
+            <LogOut className="h-5 w-5" />
+          </div>
+          
+          <AnimatePresence>
+            {!isCollapsed && (
+              <motion.span 
+                initial={{ opacity: 0, width: 0 }}
+                animate={{ opacity: 1, width: "auto" }}
+                exit={{ opacity: 0, width: 0 }}
+                transition={{ duration: 0.2 }}
+                className="truncate"
+              >
+                Sair
+              </motion.span>
+            )}
+          </AnimatePresence>
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 }
