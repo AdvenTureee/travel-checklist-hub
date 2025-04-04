@@ -14,7 +14,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { ShoppingItem, UserBudget, Point, Checklist } from '@/lib/types';
-import { PlusCircle, ShoppingBag, Package, DollarSign, Edit, Trash, Loader2, Check } from 'lucide-react';
+import { PlusCircle, ShoppingBag, Package, DollarSign, Loader2, Check, Trash } from 'lucide-react';
 
 const Shopping: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -22,12 +22,12 @@ const Shopping: React.FC = () => {
   const [newItem, setNewItem] = useState<Partial<ShoppingItem>>({
     name: '',
     price: 0,
-    currency: 'EUR',
+    currency: 'BRL',
     purchased: false,
   });
   const [budget, setBudget] = useState<Partial<UserBudget>>({
     amount: 0,
-    currency: 'EUR',
+    currency: 'BRL',
   });
   const { toast } = useToast();
   const { user } = useAuth();
@@ -129,14 +129,14 @@ const Shopping: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items'] });
       setIsAddDialogOpen(false);
       toast({
-        title: "Item added",
-        description: `${newItem.name} has been added to your shopping list.`,
+        title: "Item adicionado",
+        description: `${newItem.name} foi adicionado à sua lista de compras.`,
       });
       resetForm();
     },
     onError: (error: any) => {
       toast({
-        title: "Error adding item",
+        title: "Erro ao adicionar item",
         description: error.message,
         variant: "destructive",
       });
@@ -181,13 +181,13 @@ const Shopping: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['user-budget'] });
       setIsBudgetDialogOpen(false);
       toast({
-        title: "Budget updated",
-        description: "Your budget has been updated successfully.",
+        title: "Orçamento atualizado",
+        description: "Seu orçamento foi atualizado com sucesso.",
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error updating budget",
+        title: "Erro ao atualizar orçamento",
         description: error.message,
         variant: "destructive",
       });
@@ -211,7 +211,7 @@ const Shopping: React.FC = () => {
     },
     onError: (error: any) => {
       toast({
-        title: "Error updating item",
+        title: "Erro ao atualizar item",
         description: error.message,
         variant: "destructive",
       });
@@ -233,13 +233,13 @@ const Shopping: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items'] });
       const itemToDelete = shoppingItems.find(item => item.id === id);
       toast({
-        title: "Item deleted",
-        description: `${itemToDelete?.name} has been removed from your shopping list.`,
+        title: "Item excluído",
+        description: `${itemToDelete?.name} foi removido da sua lista de compras.`,
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error deleting item",
+        title: "Erro ao excluir item",
         description: error.message,
         variant: "destructive",
       });
@@ -250,8 +250,8 @@ const Shopping: React.FC = () => {
   const handleAddItem = () => {
     if (!newItem.name || newItem.price === undefined) {
       toast({
-        title: "Missing information",
-        description: "Please fill in at least the name and price.",
+        title: "Informações faltando",
+        description: "Por favor, preencha pelo menos o nome e o preço.",
         variant: "destructive",
       });
       return;
@@ -264,8 +264,8 @@ const Shopping: React.FC = () => {
   const handleUpdateBudget = () => {
     if (budget.amount === undefined) {
       toast({
-        title: "Missing information",
-        description: "Please enter a budget amount.",
+        title: "Informações faltando",
+        description: "Por favor, insira um valor para o orçamento.",
         variant: "destructive",
       });
       return;
@@ -289,7 +289,7 @@ const Shopping: React.FC = () => {
     setNewItem({
       name: '',
       price: 0,
-      currency: 'EUR',
+      currency: 'BRL',
       purchased: false,
     });
   };
@@ -321,7 +321,7 @@ const Shopping: React.FC = () => {
       <PageContainer>
         <div className="flex justify-center items-center h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-travel-blue" />
-          <span className="ml-2">Loading shopping list...</span>
+          <span className="ml-2">Carregando lista de compras...</span>
         </div>
       </PageContainer>
     );
@@ -331,8 +331,8 @@ const Shopping: React.FC = () => {
     <PageContainer>
       <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-travel-dark">Shopping List</h1>
-          <p className="text-travel-dark/70">Manage your travel shopping items</p>
+          <h1 className="text-3xl font-bold text-travel-dark">Lista de Compras</h1>
+          <p className="text-travel-dark/70">Gerencie os itens de compra da sua viagem</p>
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2">
@@ -340,16 +340,16 @@ const Shopping: React.FC = () => {
             <DialogTrigger asChild>
               <Button variant="outline" className="flex items-center">
                 <DollarSign className="mr-2 h-4 w-4" />
-                {userBudget ? "Update Budget" : "Set Budget"}
+                {userBudget ? "Atualizar Orçamento" : "Definir Orçamento"}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
               <DialogHeader>
-                <DialogTitle>{userBudget ? "Update Budget" : "Set Budget"}</DialogTitle>
+                <DialogTitle>{userBudget ? "Atualizar Orçamento" : "Definir Orçamento"}</DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="budget">Budget Amount</Label>
+                  <Label htmlFor="budget">Valor do Orçamento</Label>
                   <Input
                     id="budget"
                     type="number"
@@ -361,19 +361,19 @@ const Shopping: React.FC = () => {
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="currency">Currency</Label>
+                  <Label htmlFor="currency">Moeda</Label>
                   <Select 
                     value={budget.currency} 
                     onValueChange={(value) => setBudget({ ...budget, currency: value })}
                   >
                     <SelectTrigger id="currency" className="w-full">
-                      <SelectValue placeholder="Select currency" />
+                      <SelectValue placeholder="Selecione a moeda" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="BRL">Real Brasileiro (R$)</SelectItem>
+                      <SelectItem value="USD">Dólar Americano ($)</SelectItem>
                       <SelectItem value="EUR">Euro (€)</SelectItem>
-                      <SelectItem value="USD">US Dollar ($)</SelectItem>
-                      <SelectItem value="BRL">Brazilian Real (R$)</SelectItem>
-                      <SelectItem value="GBP">British Pound (£)</SelectItem>
+                      <SelectItem value="GBP">Libra Esterlina (£)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -383,15 +383,15 @@ const Shopping: React.FC = () => {
                   variant="outline"
                   onClick={() => setIsBudgetDialogOpen(false)}
                 >
-                  Cancel
+                  Cancelar
                 </Button>
                 <Button onClick={handleUpdateBudget}>
                   {updateBudgetMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
+                      Salvando...
                     </>
-                  ) : userBudget ? "Update Budget" : "Save Budget"}
+                  ) : userBudget ? "Atualizar Orçamento" : "Salvar Orçamento"}
                 </Button>
               </div>
             </DialogContent>
@@ -401,27 +401,27 @@ const Shopping: React.FC = () => {
             <DialogTrigger asChild>
               <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add Item
+                Adicionar Item
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[550px]">
               <DialogHeader>
-                <DialogTitle>Add Shopping Item</DialogTitle>
+                <DialogTitle>Adicionar Item de Compra</DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Item Name</Label>
+                  <Label htmlFor="name">Nome do Item</Label>
                   <Input
                     id="name"
                     value={newItem.name}
                     onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                    placeholder="e.g., Souvenir"
+                    placeholder="ex., Souvenir"
                     className="w-full"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="price">Price</Label>
+                    <Label htmlFor="price">Preço</Label>
                     <Input
                       id="price"
                       type="number"
@@ -434,44 +434,44 @@ const Shopping: React.FC = () => {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="item-currency">Currency</Label>
+                    <Label htmlFor="item-currency">Moeda</Label>
                     <Select 
                       value={newItem.currency} 
                       onValueChange={(value) => setNewItem({ ...newItem, currency: value })}
                     >
                       <SelectTrigger id="item-currency" className="w-full">
-                        <SelectValue placeholder="Select currency" />
+                        <SelectValue placeholder="Selecione a moeda" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="BRL">Real Brasileiro (R$)</SelectItem>
+                        <SelectItem value="USD">Dólar Americano ($)</SelectItem>
                         <SelectItem value="EUR">Euro (€)</SelectItem>
-                        <SelectItem value="USD">US Dollar ($)</SelectItem>
-                        <SelectItem value="BRL">Brazilian Real (R$)</SelectItem>
-                        <SelectItem value="GBP">British Pound (£)</SelectItem>
+                        <SelectItem value="GBP">Libra Esterlina (£)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="image_url">Image URL (optional)</Label>
+                  <Label htmlFor="image_url">URL da Imagem (opcional)</Label>
                   <Input
                     id="image_url"
                     value={newItem.image_url || ''}
                     onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
-                    placeholder="https://example.com/image.jpg"
+                    placeholder="https://exemplo.com/imagem.jpg"
                     className="w-full"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="point">Associated Point (optional)</Label>
+                  <Label htmlFor="point">Ponto Associado (opcional)</Label>
                   <Select 
                     value={newItem.point_id || ''} 
                     onValueChange={(value) => setNewItem({ ...newItem, point_id: value || null })}
                   >
                     <SelectTrigger id="point" className="w-full">
-                      <SelectValue placeholder="Select a point" />
+                      <SelectValue placeholder="Selecione um ponto" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="">Nenhum</SelectItem>
                       {points.map((point) => (
                         <SelectItem key={point.id} value={point.id}>{point.name}</SelectItem>
                       ))}
@@ -479,16 +479,16 @@ const Shopping: React.FC = () => {
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="checklist">Associated Checklist (optional)</Label>
+                  <Label htmlFor="checklist">Checklist Associado (opcional)</Label>
                   <Select 
                     value={newItem.checklist_id || ''} 
                     onValueChange={(value) => setNewItem({ ...newItem, checklist_id: value || null })}
                   >
                     <SelectTrigger id="checklist" className="w-full">
-                      <SelectValue placeholder="Select a checklist" />
+                      <SelectValue placeholder="Selecione um checklist" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="">Nenhum</SelectItem>
                       {checklists.map((checklist) => (
                         <SelectItem key={checklist.id} value={checklist.id}>{checklist.name}</SelectItem>
                       ))}
@@ -501,7 +501,7 @@ const Shopping: React.FC = () => {
                     checked={newItem.purchased} 
                     onCheckedChange={(checked) => setNewItem({ ...newItem, purchased: checked as boolean })}
                   />
-                  <Label htmlFor="purchased" className="cursor-pointer">Already purchased</Label>
+                  <Label htmlFor="purchased" className="cursor-pointer">Já comprado</Label>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
@@ -512,7 +512,7 @@ const Shopping: React.FC = () => {
                     setIsAddDialogOpen(false);
                   }}
                 >
-                  Cancel
+                  Cancelar
                 </Button>
                 <Button 
                   className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
@@ -522,10 +522,10 @@ const Shopping: React.FC = () => {
                   {addItemMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Adding...
+                      Adicionando...
                     </>
                   ) : (
-                    "Add Item"
+                    "Adicionar Item"
                   )}
                 </Button>
               </div>
@@ -537,12 +537,12 @@ const Shopping: React.FC = () => {
       {userBudget && (
         <Card className="mb-6">
           <CardHeader className="pb-2">
-            <CardTitle>Budget Overview</CardTitle>
+            <CardTitle>Visão Geral do Orçamento</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="bg-travel-light-blue p-4 rounded-md">
-                <div className="text-sm text-travel-dark/70 mb-1">Total Budget</div>
+                <div className="text-sm text-travel-dark/70 mb-1">Orçamento Total</div>
                 <div className="text-xl font-semibold text-travel-dark">
                   {userBudget.currency === 'EUR' && '€'}
                   {userBudget.currency === 'USD' && '$'}
@@ -552,7 +552,7 @@ const Shopping: React.FC = () => {
                 </div>
               </div>
               <div className="bg-travel-light-mustard p-4 rounded-md">
-                <div className="text-sm text-travel-dark/70 mb-1">Total Spent</div>
+                <div className="text-sm text-travel-dark/70 mb-1">Total Gasto</div>
                 <div className="text-xl font-semibold text-travel-dark">
                   {userBudget.currency === 'EUR' && '€'}
                   {userBudget.currency === 'USD' && '$'}
@@ -562,7 +562,7 @@ const Shopping: React.FC = () => {
                 </div>
               </div>
               <div className={`p-4 rounded-md ${remainingBudget >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
-                <div className="text-sm text-travel-dark/70 mb-1">Remaining</div>
+                <div className="text-sm text-travel-dark/70 mb-1">Restante</div>
                 <div className={`text-xl font-semibold ${remainingBudget >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                   {userBudget.currency === 'EUR' && '€'}
                   {userBudget.currency === 'USD' && '$'}
@@ -579,13 +579,13 @@ const Shopping: React.FC = () => {
       <Tabs defaultValue="all" className="w-full">
         <TabsList className="w-full sm:w-auto mb-4">
           <TabsTrigger value="all" className="flex-1 sm:flex-none">
-            All Items ({allItems.length})
+            Todos os Itens ({allItems.length})
           </TabsTrigger>
           <TabsTrigger value="pending" className="flex-1 sm:flex-none">
-            Pending ({unpurchasedItems.length})
+            Pendentes ({unpurchasedItems.length})
           </TabsTrigger>
           <TabsTrigger value="purchased" className="flex-1 sm:flex-none">
-            Purchased ({purchasedItems.length})
+            Comprados ({purchasedItems.length})
           </TabsTrigger>
         </TabsList>
         
@@ -593,14 +593,14 @@ const Shopping: React.FC = () => {
           {allItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-[300px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">
               <ShoppingBag className="h-16 w-16 text-travel-mustard/50 mb-4" />
-              <h3 className="text-xl font-medium text-travel-dark">Your shopping list is empty</h3>
-              <p className="text-travel-dark/70 mb-4">Start adding items to your shopping list</p>
+              <h3 className="text-xl font-medium text-travel-dark">Sua lista de compras está vazia</h3>
+              <p className="text-travel-dark/70 mb-4">Comece adicionando itens à sua lista de compras</p>
               <Button 
                 className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
                 onClick={() => setIsAddDialogOpen(true)}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add Your First Item
+                Adicionar Seu Primeiro Item
               </Button>
             </div>
           ) : (
@@ -611,7 +611,7 @@ const Shopping: React.FC = () => {
                   item={item}
                   onTogglePurchased={handleTogglePurchased}
                   onDelete={handleDeleteItem}
-                  currency={userBudget?.currency || 'EUR'}
+                  currency={userBudget?.currency || 'BRL'}
                   points={points}
                   checklists={checklists}
                 />
@@ -624,14 +624,14 @@ const Shopping: React.FC = () => {
           {unpurchasedItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-[300px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">
               <Package className="h-16 w-16 text-travel-mustard/50 mb-4" />
-              <h3 className="text-xl font-medium text-travel-dark">No pending items</h3>
-              <p className="text-travel-dark/70 mb-4">All your items have been purchased</p>
+              <h3 className="text-xl font-medium text-travel-dark">Sem itens pendentes</h3>
+              <p className="text-travel-dark/70 mb-4">Todos os seus itens foram comprados</p>
               <Button 
                 className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
                 onClick={() => setIsAddDialogOpen(true)}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add New Item
+                Adicionar Novo Item
               </Button>
             </div>
           ) : (
@@ -642,7 +642,7 @@ const Shopping: React.FC = () => {
                   item={item}
                   onTogglePurchased={handleTogglePurchased}
                   onDelete={handleDeleteItem}
-                  currency={userBudget?.currency || 'EUR'}
+                  currency={userBudget?.currency || 'BRL'}
                   points={points}
                   checklists={checklists}
                 />
@@ -655,14 +655,14 @@ const Shopping: React.FC = () => {
           {purchasedItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-[300px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">
               <Check className="h-16 w-16 text-travel-mustard/50 mb-4" />
-              <h3 className="text-xl font-medium text-travel-dark">No purchased items</h3>
-              <p className="text-travel-dark/70 mb-4">You haven't purchased any items yet</p>
+              <h3 className="text-xl font-medium text-travel-dark">Sem itens comprados</h3>
+              <p className="text-travel-dark/70 mb-4">Você ainda não comprou nenhum item</p>
               <Button 
                 className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
                 onClick={() => setIsAddDialogOpen(true)}
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add New Item
+                Adicionar Novo Item
               </Button>
             </div>
           ) : (
@@ -673,7 +673,7 @@ const Shopping: React.FC = () => {
                   item={item}
                   onTogglePurchased={handleTogglePurchased}
                   onDelete={handleDeleteItem}
-                  currency={userBudget?.currency || 'EUR'}
+                  currency={userBudget?.currency || 'BRL'}
                   points={points}
                   checklists={checklists}
                 />
@@ -737,7 +737,7 @@ const ShoppingItemCard: React.FC<ShoppingItemCardProps> = ({
       <CardContent className="p-4 pt-2">
         <div className="flex flex-wrap gap-4">
           <div>
-            <div className="text-sm text-muted-foreground mb-1">Price</div>
+            <div className="text-sm text-muted-foreground mb-1">Preço</div>
             <div className="font-medium">
               {item.currency === 'EUR' && '€'}
               {item.currency === 'USD' && '$'}
@@ -749,7 +749,7 @@ const ShoppingItemCard: React.FC<ShoppingItemCardProps> = ({
 
           {pointName && (
             <div>
-              <div className="text-sm text-muted-foreground mb-1">Location</div>
+              <div className="text-sm text-muted-foreground mb-1">Localização</div>
               <div className="font-medium">{pointName}</div>
             </div>
           )}
