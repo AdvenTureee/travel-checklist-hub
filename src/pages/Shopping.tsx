@@ -397,7 +397,14 @@ const Shopping: React.FC = () => {
             </DialogContent>
           </Dialog>
 
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          {/* Fix for the Add Item Dialog - The problem is here */}
+          <Dialog 
+            open={isAddDialogOpen} 
+            onOpenChange={(open) => {
+              setIsAddDialogOpen(open);
+              if (!open) resetForm();
+            }}
+          >
             <DialogTrigger asChild>
               <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
                 <PlusCircle className="mr-2 h-4 w-4" />
