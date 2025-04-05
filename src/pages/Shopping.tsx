@@ -1,32 +1,58 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { ShoppingItem, Point } from '@/lib/types';
+import { useAuth } from '@/components/auth/AuthProvider';
+import { useToast } from '@/hooks/use-toast';
+import { 
+  PlusCircle, 
+  ShoppingCart, 
+  Edit, 
+  Trash, 
+  Check, 
+  X, 
+  Loader2, 
+  ChevronUp, 
+  ChevronDown,
+  Image as ImageIcon
+} from 'lucide-react';
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardFooter, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { ShoppingItem, UserBudget, Point, Checklist } from '@/lib/types';
-import { PlusCircle, ShoppingBag, Package, DollarSign, Loader2, Check, Trash } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 const Shopping: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editItemId, setEditItemId] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(true);
   const [newItem, setNewItem] = useState<Partial<ShoppingItem>>({
     name: '',
     price: 0,
-    currency: 'BRL',
+    currency: 'USD',
     purchased: false,
-  });
-  const [budget, setBudget] = useState<Partial<UserBudget>>({
-    amount: 0,
-    currency: 'BRL',
+    image_url: '',
+    point_id: null,
   });
   const { toast } = useToast();
   const { user } = useAuth();
@@ -34,41 +60,22 @@ const Shopping: React.FC = () => {
 
   // Fetch shopping items
   const {
-    data: shoppingItems = [],
+    data: items = [],
     isLoading: isLoadingItems,
   } = useQuery({
     queryKey: ['shopping-items'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('shopping_list_items')
+        .from('shopping_items')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data as ShoppingItem[];
     },
   });
 
-  // Fetch user budget
-  const {
-    data: userBudget,
-    isLoading: isLoadingBudget,
-  } = useQuery({
-    queryKey: ['user-budget'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_budgets')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false })
-        .limit(1);
-      
-      if (error) throw error;
-      return data[0] as UserBudget;
-    },
-  });
-
-  // Fetch points for dropdown
+  // Fetch points for reference
   const {
     data: points = [],
     isLoading: isLoadingPoints,
@@ -77,46 +84,32 @@ const Shopping: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('points')
-        .select('id, name')
-        .order('name', { ascending: true });
-      
+        .select('id, name');
+
       if (error) throw error;
       return data as Pick<Point, 'id' | 'name'>[];
     },
   });
 
-  // Fetch checklists for dropdown
-  const {
-    data: checklists = [],
-    isLoading: isLoadingChecklists,
-  } = useQuery({
-    queryKey: ['checklists'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('checklists')
-        .select('id, name')
-        .order('name', { ascending: true });
-      
-      if (error) throw error;
-      return data as Pick<Checklist, 'id' | 'name'>[];
-    },
-  });
+  // Calculate total shopping cost
+  const calculateTotal = () => {
+    return items.reduce((acc, item) => acc + item.price, 0);
+  };
 
-  // Add shopping item mutation
+  // Add item mutation
   const addItemMutation = useMutation({
-    mutationFn: async (item: Omit<ShoppingItem, 'id' | 'created_at' | 'user_id'>) => {
+    mutationFn: async (item: Omit<ShoppingItem, 'id' | 'created_at'>) => {
       const { data, error } = await supabase
-        .from('shopping_list_items')
+        .from('shopping_items')
         .insert([
           {
             name: item.name,
             price: item.price,
             currency: item.currency,
-            image_url: item.image_url,
-            point_id: item.point_id || null,
-            checklist_id: item.checklist_id || null,
             purchased: item.purchased,
-            user_id: user?.id,
+            image_url: item.image_url,
+            point_id: item.point_id === 'none' ? null : item.point_id,
+            user_id: user?.id
           }
         ])
         .select();
@@ -128,65 +121,79 @@ const Shopping: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items'] });
       setIsAddDialogOpen(false);
       toast({
-        title: "Item adicionado",
-        description: `${newItem.name} foi adicionado à sua lista de compras.`,
+        title: "Item added",
+        description: `${newItem.name} has been added to your shopping list.`,
       });
       resetForm();
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao adicionar item",
+        title: "Error adding item",
         description: error.message,
         variant: "destructive",
       });
     }
   });
 
-  // Update budget mutation
-  const updateBudgetMutation = useMutation({
-    mutationFn: async (budgetData: Partial<UserBudget>) => {
-      if (userBudget) {
-        // Update existing budget
-        const { data, error } = await supabase
-          .from('user_budgets')
-          .update({
-            amount: budgetData.amount,
-            currency: budgetData.currency,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', userBudget.id)
-          .select();
+  // Update item mutation
+  const updateItemMutation = useMutation({
+    mutationFn: async ({ id, item }: { id: string, item: Partial<ShoppingItem> }) => {
+      const { data, error } = await supabase
+        .from('shopping_items')
+        .update({
+          name: item.name,
+          price: item.price,
+          currency: item.currency,
+          image_url: item.image_url,
+          point_id: item.point_id === 'none' ? null : item.point_id,
+        })
+        .eq('id', id)
+        .select();
 
-        if (error) throw error;
-        return data[0];
-      } else {
-        // Create new budget
-        const { data, error } = await supabase
-          .from('user_budgets')
-          .insert([
-            {
-              amount: budgetData.amount,
-              currency: budgetData.currency,
-              user_id: user?.id,
-            }
-          ])
-          .select();
-
-        if (error) throw error;
-        return data[0];
-      }
+      if (error) throw error;
+      return data[0];
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-budget'] });
-      setIsBudgetDialogOpen(false);
+      queryClient.invalidateQueries({ queryKey: ['shopping-items'] });
+      setIsEditDialogOpen(false);
+      setEditItemId(null);
       toast({
-        title: "Orçamento atualizado",
-        description: "Seu orçamento foi atualizado com sucesso.",
+        title: "Item updated",
+        description: `${newItem.name} has been updated.`,
+      });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error updating item",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Delete item mutation
+  const deleteItemMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('shopping_items')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: ['shopping-items'] });
+      const itemToDelete = items.find(i => i.id === id);
+      toast({
+        title: "Item deleted",
+        description: `${itemToDelete?.name} has been removed.`,
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar orçamento",
+        title: "Error deleting item",
         description: error.message,
         variant: "destructive",
       });
@@ -197,7 +204,7 @@ const Shopping: React.FC = () => {
   const togglePurchasedMutation = useMutation({
     mutationFn: async ({ id, purchased }: { id: string, purchased: boolean }) => {
       const { data, error } = await supabase
-        .from('shopping_list_items')
+        .from('shopping_items')
         .update({ purchased })
         .eq('id', id)
         .select();
@@ -210,117 +217,98 @@ const Shopping: React.FC = () => {
     },
     onError: (error: any) => {
       toast({
-        title: "Erro ao atualizar item",
+        title: "Error updating status",
         description: error.message,
         variant: "destructive",
       });
     }
   });
 
-  // Delete item mutation
-  const deleteItemMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('shopping_list_items')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      return id;
-    },
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: ['shopping-items'] });
-      const itemToDelete = shoppingItems.find(item => item.id === id);
-      toast({
-        title: "Item excluído",
-        description: `${itemToDelete?.name} foi removido da sua lista de compras.`,
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao excluir item",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Handle add item
   const handleAddItem = () => {
     if (!newItem.name || newItem.price === undefined) {
       toast({
-        title: "Informações faltando",
-        description: "Por favor, preencha pelo menos o nome e o preço.",
+        title: "Missing information",
+        description: "Please fill in at least the name and price.",
         variant: "destructive",
       });
       return;
     }
 
-    addItemMutation.mutate(newItem as Omit<ShoppingItem, 'id' | 'created_at' | 'user_id'>);
+    addItemMutation.mutate({
+      name: newItem.name,
+      price: Number(newItem.price),
+      currency: newItem.currency || 'USD',
+      purchased: false,
+      image_url: newItem.image_url || null,
+      point_id: newItem.point_id,
+      user_id: user!.id
+    } as any);
   };
 
-  // Handle update budget
-  const handleUpdateBudget = () => {
-    if (budget.amount === undefined) {
-      toast({
-        title: "Informações faltando",
-        description: "Por favor, insira um valor para o orçamento.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    updateBudgetMutation.mutate(budget);
-  };
-
-  // Handle toggle purchased
   const handleTogglePurchased = (id: string, purchased: boolean) => {
     togglePurchasedMutation.mutate({ id, purchased: !purchased });
   };
 
-  // Handle delete item
+  const handleEditItem = (id: string) => {
+    const itemToEdit = items.find(i => i.id === id);
+    if (itemToEdit) {
+      setNewItem({
+        name: itemToEdit.name,
+        price: itemToEdit.price,
+        currency: itemToEdit.currency,
+        purchased: itemToEdit.purchased,
+        image_url: itemToEdit.image_url || '',
+        point_id: itemToEdit.point_id || 'none',
+      });
+      setEditItemId(id);
+      setIsEditDialogOpen(true);
+    }
+  };
+
+  const handleUpdateItem = () => {
+    if (!newItem.name || newItem.price === undefined || !editItemId) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in at least the name and price.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    updateItemMutation.mutate({ 
+      id: editItemId, 
+      item: newItem
+    });
+  };
+
   const handleDeleteItem = (id: string) => {
     deleteItemMutation.mutate(id);
   };
 
-  // Reset form
   const resetForm = () => {
     setNewItem({
       name: '',
       price: 0,
-      currency: 'BRL',
+      currency: 'USD',
       purchased: false,
+      image_url: '',
+      point_id: null,
     });
   };
 
-  // Init budget from fetched budget
-  useEffect(() => {
-    if (userBudget) {
-      setBudget({
-        amount: userBudget.amount,
-        currency: userBudget.currency,
-      });
-    }
-  }, [userBudget]);
+  const getPointName = (pointId: string | null) => {
+    if (!pointId) return "N/A";
+    const point = points.find(p => p.id === pointId);
+    return point ? point.name : "N/A";
+  };
 
-  // Calculate total spent and remaining budget
-  const totalSpent = shoppingItems.reduce((sum, item) => 
-    item.purchased ? sum + item.price : sum, 0);
-  
-  const remainingBudget = userBudget ? userBudget.amount - totalSpent : 0;
-
-  // Filter items for tabs
-  const allItems = shoppingItems;
-  const purchasedItems = shoppingItems.filter(item => item.purchased);
-  const unpurchasedItems = shoppingItems.filter(item => !item.purchased);
-
-  // Loading state
-  if (isLoadingItems || isLoadingBudget) {
+  // Show loading state
+  if (isLoadingItems || isLoadingPoints) {
     return (
       <PageContainer>
         <div className="flex justify-center items-center h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-travel-blue" />
-          <span className="ml-2">Carregando lista de compras...</span>
+          <span className="ml-2">Loading shopping items...</span>
         </div>
       </PageContainer>
     );
@@ -328,153 +316,176 @@ const Shopping: React.FC = () => {
 
   return (
     <PageContainer>
-      <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-travel-dark">Lista de Compras</h1>
-          <p className="text-travel-dark/70">Gerencie os itens de compra da sua viagem</p>
+          <h1 className="text-3xl font-bold text-travel-dark">Shopping List</h1>
+          <p className="text-travel-dark/70">Track items you want to buy during your trip</p>
         </div>
-        
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Dialog open={isBudgetDialogOpen} onOpenChange={setIsBudgetDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="flex items-center">
-                <DollarSign className="mr-2 h-4 w-4" />
-                {userBudget ? "Atualizar Orçamento" : "Definir Orçamento"}
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>{userBudget ? "Atualizar Orçamento" : "Definir Orçamento"}</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="budget">Valor do Orçamento</Label>
-                  <Input
-                    id="budget"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={budget.amount}
-                    onChange={(e) => setBudget({ ...budget, amount: parseFloat(e.target.value) })}
-                    className="w-full"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="currency">Moeda</Label>
-                  <Select 
-                    value={budget.currency} 
-                    onValueChange={(value) => setBudget({ ...budget, currency: value })}
-                  >
-                    <SelectTrigger id="currency" className="w-full">
-                      <SelectValue placeholder="Selecione a moeda" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="BRL">Real Brasileiro (R$)</SelectItem>
-                      <SelectItem value="USD">Dólar Americano ($)</SelectItem>
-                      <SelectItem value="EUR">Euro (€)</SelectItem>
-                      <SelectItem value="GBP">Libra Esterlina (£)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsBudgetDialogOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button onClick={handleUpdateBudget}>
-                  {updateBudgetMutation.isPending ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Salvando...
-                    </>
-                  ) : userBudget ? "Atualizar Orçamento" : "Salvar Orçamento"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+        <Button 
+          className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+          onClick={() => setIsAddDialogOpen(true)}
+        >
+          <PlusCircle className="mr-2 h-4 w-4" />
+          Add Item
+        </Button>
+      </div>
 
-          {/* Add Item Button */}
+      {/* Summary Card */}
+      <Card className="mb-6 overflow-hidden">
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+            <CardTitle className="text-xl">Shopping Summary</CardTitle>
+            <CollapsibleTrigger
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="rounded-full p-1 hover:bg-travel-beige/50"
+            >
+              {isExpanded ? (
+                <ChevronUp className="h-5 w-5 text-travel-dark/70" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-travel-dark/70" />
+              )}
+            </CollapsibleTrigger>
+          </div>
+          <CardDescription>Track your shopping expenses</CardDescription>
+        </CardHeader>
+        <Collapsible open={isExpanded}>
+          <CollapsibleContent>
+            <CardContent className="pt-2">
+              <div className="flex justify-between text-travel-dark">
+                <div>
+                  <span className="font-medium">Total Items:</span>
+                  <span className="ml-2">{items.length}</span>
+                </div>
+                <div>
+                  <span className="font-medium">Purchased:</span>
+                  <span className="ml-2">{items.filter(item => item.purchased).length}</span>
+                </div>
+                <div>
+                  <span className="font-medium">Remaining:</span>
+                  <span className="ml-2">{items.filter(item => !item.purchased).length}</span>
+                </div>
+                <div>
+                  <span className="font-medium">Total Cost:</span>
+                  <span className="ml-2">${calculateTotal().toFixed(2)}</span>
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+
+      {items.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-[400px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">
+          <ShoppingCart className="h-16 w-16 text-travel-mustard/50 mb-4" />
+          <h3 className="text-xl font-medium text-travel-dark">No items in your shopping list</h3>
+          <p className="text-travel-dark/70 mb-4">Start adding items you want to buy during your trip</p>
           <Button 
             className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
             onClick={() => setIsAddDialogOpen(true)}
           >
             <PlusCircle className="mr-2 h-4 w-4" />
-            Adicionar Item
+            Add Your First Item
           </Button>
         </div>
-      </div>
-
-      {userBudget && (
-        <Card className="mb-6">
-          <CardHeader className="pb-2">
-            <CardTitle>Visão Geral do Orçamento</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="bg-travel-light-blue p-4 rounded-md">
-                <div className="text-sm text-travel-dark/70 mb-1">Orçamento Total</div>
-                <div className="text-xl font-semibold text-travel-dark">
-                  {userBudget.currency === 'EUR' && '€'}
-                  {userBudget.currency === 'USD' && '$'}
-                  {userBudget.currency === 'BRL' && 'R$'}
-                  {userBudget.currency === 'GBP' && '£'}
-                  {userBudget.amount.toFixed(2)}
-                </div>
-              </div>
-              <div className="bg-travel-light-mustard p-4 rounded-md">
-                <div className="text-sm text-travel-dark/70 mb-1">Total Gasto</div>
-                <div className="text-xl font-semibold text-travel-dark">
-                  {userBudget.currency === 'EUR' && '€'}
-                  {userBudget.currency === 'USD' && '$'}
-                  {userBudget.currency === 'BRL' && 'R$'}
-                  {userBudget.currency === 'GBP' && '£'}
-                  {totalSpent.toFixed(2)}
-                </div>
-              </div>
-              <div className={`p-4 rounded-md ${remainingBudget >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
-                <div className="text-sm text-travel-dark/70 mb-1">Restante</div>
-                <div className={`text-xl font-semibold ${remainingBudget >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                  {userBudget.currency === 'EUR' && '€'}
-                  {userBudget.currency === 'USD' && '$'}
-                  {userBudget.currency === 'BRL' && 'R$'}
-                  {userBudget.currency === 'GBP' && '£'}
-                  {remainingBudget.toFixed(2)}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      ) : (
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-10"></TableHead>
+                <TableHead className="w-12">Image</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.map((item) => (
+                <TableRow 
+                  key={item.id}
+                  className={item.purchased ? "bg-travel-beige/20 opacity-75" : ""}
+                >
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={`h-8 w-8 ${item.purchased ? 'bg-travel-mustard/10' : 'bg-travel-light-blue/20'}`}
+                      onClick={() => handleTogglePurchased(item.id, item.purchased)}
+                      aria-label={item.purchased ? "Mark as not purchased" : "Mark as purchased"}
+                    >
+                      {item.purchased ? (
+                        <Check className="h-4 w-4 text-travel-mustard" />
+                      ) : (
+                        <ShoppingCart className="h-4 w-4 text-travel-blue" />
+                      )}
+                    </Button>
+                  </TableCell>
+                  <TableCell>
+                    {item.image_url ? (
+                      <img 
+                        src={item.image_url} 
+                        alt={item.name} 
+                        className="w-10 h-10 object-cover rounded-md"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-travel-beige/50 rounded-md flex items-center justify-center">
+                        <ImageIcon className="h-5 w-5 text-travel-dark/40" />
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className={item.purchased ? "line-through text-travel-dark/60" : ""}>
+                    {item.name}
+                  </TableCell>
+                  <TableCell>${item.price.toFixed(2)}</TableCell>
+                  <TableCell>{getPointName(item.point_id)}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleEditItem(item.id)}
+                      >
+                        <Edit className="h-4 w-4 text-travel-blue" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => handleDeleteItem(item.id)}
+                      >
+                        <Trash className="h-4 w-4 text-travel-red" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
-      {/* Add Item Dialog - Separate from the button */}
-      <Dialog 
-        open={isAddDialogOpen} 
-        onOpenChange={(open) => {
-          setIsAddDialogOpen(open);
-          if (!open) resetForm();
-        }}
-      >
+      {/* Add Item Dialog */}
+      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
-            <DialogTitle>Adicionar Item de Compra</DialogTitle>
+            <DialogTitle>Add Shopping Item</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Nome do Item</Label>
+              <Label htmlFor="name">Item Name</Label>
               <Input
                 id="name"
                 value={newItem.name}
                 onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
-                placeholder="ex., Souvenir"
+                placeholder="e.g., Souvenir Magnet"
                 className="w-full"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="price">Preço</Label>
+                <Label htmlFor="price">Price</Label>
                 <Input
                   id="price"
                   type="number"
@@ -487,74 +498,55 @@ const Shopping: React.FC = () => {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="item-currency">Moeda</Label>
+                <Label htmlFor="currency">Currency</Label>
                 <Select 
                   value={newItem.currency} 
                   onValueChange={(value) => setNewItem({ ...newItem, currency: value })}
                 >
-                  <SelectTrigger id="item-currency" className="w-full">
-                    <SelectValue placeholder="Selecione a moeda" />
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select currency" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="BRL">Real Brasileiro (R$)</SelectItem>
-                    <SelectItem value="USD">Dólar Americano ($)</SelectItem>
-                    <SelectItem value="EUR">Euro (€)</SelectItem>
-                    <SelectItem value="GBP">Libra Esterlina (£)</SelectItem>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                    <SelectItem value="JPY">JPY (¥)</SelectItem>
+                    <SelectItem value="CAD">CAD ($)</SelectItem>
+                    <SelectItem value="AUD">AUD ($)</SelectItem>
+                    <SelectItem value="CNY">CNY (¥)</SelectItem>
+                    <SelectItem value="BRL">BRL (R$)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="image_url">URL da Imagem (opcional)</Label>
+              <Label htmlFor="image_url">Image URL (optional)</Label>
               <Input
                 id="image_url"
                 value={newItem.image_url || ''}
                 onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
-                placeholder="https://exemplo.com/imagem.jpg"
+                placeholder="https://example.com/image.jpg"
                 className="w-full"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="point">Ponto Associado (opcional)</Label>
+              <Label htmlFor="point_id">Location (optional)</Label>
               <Select 
-                value={newItem.point_id || ''} 
-                onValueChange={(value) => setNewItem({ ...newItem, point_id: value || null })}
+                value={newItem.point_id || 'none'} 
+                onValueChange={(value) => setNewItem({ ...newItem, point_id: value })}
               >
-                <SelectTrigger id="point" className="w-full">
-                  <SelectValue placeholder="Selecione um ponto" />
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select location" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {points.map((point) => (
-                    <SelectItem key={point.id} value={point.id}>{point.name}</SelectItem>
+                    <SelectItem key={point.id} value={point.id}>
+                      {point.name}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="checklist">Checklist Associado (opcional)</Label>
-              <Select 
-                value={newItem.checklist_id || ''} 
-                onValueChange={(value) => setNewItem({ ...newItem, checklist_id: value || null })}
-              >
-                <SelectTrigger id="checklist" className="w-full">
-                  <SelectValue placeholder="Selecione um checklist" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
-                  {checklists.map((checklist) => (
-                    <SelectItem key={checklist.id} value={checklist.id}>{checklist.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
-              <Checkbox 
-                id="purchased" 
-                checked={newItem.purchased} 
-                onCheckedChange={(checked) => setNewItem({ ...newItem, purchased: checked as boolean })}
-              />
-              <Label htmlFor="purchased" className="cursor-pointer">Já comprado</Label>
             </div>
           </div>
           <div className="flex justify-end gap-2">
@@ -565,7 +557,7 @@ const Shopping: React.FC = () => {
                 setIsAddDialogOpen(false);
               }}
             >
-              Cancelar
+              Cancel
             </Button>
             <Button 
               className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
@@ -575,203 +567,128 @@ const Shopping: React.FC = () => {
               {addItemMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Adicionando...
+                  Adding...
                 </>
               ) : (
-                "Adicionar Item"
+                "Add Item"
               )}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
 
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="w-full sm:w-auto mb-4">
-          <TabsTrigger value="all" className="flex-1 sm:flex-none">
-            Todos os Itens ({allItems.length})
-          </TabsTrigger>
-          <TabsTrigger value="pending" className="flex-1 sm:flex-none">
-            Pendentes ({unpurchasedItems.length})
-          </TabsTrigger>
-          <TabsTrigger value="purchased" className="flex-1 sm:flex-none">
-            Comprados ({purchasedItems.length})
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="all" className="mt-0">
-          {allItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-[300px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">
-              <ShoppingBag className="h-16 w-16 text-travel-mustard/50 mb-4" />
-              <h3 className="text-xl font-medium text-travel-dark">Sua lista de compras está vazia</h3>
-              <p className="text-travel-dark/70 mb-4">Comece adicionando itens à sua lista de compras</p>
-              <Button 
-                className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
-                onClick={() => setIsAddDialogOpen(true)}
-              >
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Adicionar Seu Primeiro Item
-              </Button>
+      {/* Edit Item Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>Edit Shopping Item</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="edit-name">Item Name</Label>
+              <Input
+                id="edit-name"
+                value={newItem.name}
+                onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
+                placeholder="e.g., Souvenir Magnet"
+                className="w-full"
+              />
             </div>
-          ) : (
-            <div className="grid gap-4">
-              {allItems.map((item) => (
-                <ShoppingItemCard 
-                  key={item.id}
-                  item={item}
-                  onTogglePurchased={handleTogglePurchased}
-                  onDelete={handleDeleteItem}
-                  currency={userBudget?.currency || 'BRL'}
-                  points={points}
-                  checklists={checklists}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-price">Price</Label>
+                <Input
+                  id="edit-price"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={newItem.price}
+                  onChange={(e) => setNewItem({ ...newItem, price: parseFloat(e.target.value) })}
+                  placeholder="0.00"
+                  className="w-full"
                 />
-              ))}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-currency">Currency</Label>
+                <Select 
+                  value={newItem.currency} 
+                  onValueChange={(value) => setNewItem({ ...newItem, currency: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select currency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD ($)</SelectItem>
+                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                    <SelectItem value="GBP">GBP (£)</SelectItem>
+                    <SelectItem value="JPY">JPY (¥)</SelectItem>
+                    <SelectItem value="CAD">CAD ($)</SelectItem>
+                    <SelectItem value="AUD">AUD ($)</SelectItem>
+                    <SelectItem value="CNY">CNY (¥)</SelectItem>
+                    <SelectItem value="BRL">BRL (R$)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="pending" className="mt-0">
-          {unpurchasedItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-[300px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">
-              <Package className="h-16 w-16 text-travel-mustard/50 mb-4" />
-              <h3 className="text-xl font-medium text-travel-dark">Sem itens pendentes</h3>
-              <p className="text-travel-dark/70 mb-4">Todos os seus itens foram comprados</p>
-              <Button 
-                className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
-                onClick={() => setIsAddDialogOpen(true)}
+            <div className="grid gap-2">
+              <Label htmlFor="edit-image_url">Image URL (optional)</Label>
+              <Input
+                id="edit-image_url"
+                value={newItem.image_url || ''}
+                onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
+                placeholder="https://example.com/image.jpg"
+                className="w-full"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="edit-point_id">Location (optional)</Label>
+              <Select 
+                value={newItem.point_id || 'none'} 
+                onValueChange={(value) => setNewItem({ ...newItem, point_id: value })}
               >
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Adicionar Novo Item
-              </Button>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select location" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">None</SelectItem>
+                  {points.map((point) => (
+                    <SelectItem key={point.id} value={point.id}>
+                      {point.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          ) : (
-            <div className="grid gap-4">
-              {unpurchasedItems.map((item) => (
-                <ShoppingItemCard 
-                  key={item.id}
-                  item={item}
-                  onTogglePurchased={handleTogglePurchased}
-                  onDelete={handleDeleteItem}
-                  currency={userBudget?.currency || 'BRL'}
-                  points={points}
-                  checklists={checklists}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="purchased" className="mt-0">
-          {purchasedItems.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-[300px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">
-              <Check className="h-16 w-16 text-travel-mustard/50 mb-4" />
-              <h3 className="text-xl font-medium text-travel-dark">Sem itens comprados</h3>
-              <p className="text-travel-dark/70 mb-4">Você ainda não comprou nenhum item</p>
-              <Button 
-                className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
-                onClick={() => setIsAddDialogOpen(true)}
-              >
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Adicionar Novo Item
-              </Button>
-            </div>
-          ) : (
-            <div className="grid gap-4">
-              {purchasedItems.map((item) => (
-                <ShoppingItemCard 
-                  key={item.id}
-                  item={item}
-                  onTogglePurchased={handleTogglePurchased}
-                  onDelete={handleDeleteItem}
-                  currency={userBudget?.currency || 'BRL'}
-                  points={points}
-                  checklists={checklists}
-                />
-              ))}
-            </div>
-          )}
-        </TabsContent>
-      </Tabs>
-    </PageContainer>
-  );
-};
-
-// Shopping Item Card component
-interface ShoppingItemCardProps {
-  item: ShoppingItem;
-  onTogglePurchased: (id: string, purchased: boolean) => void;
-  onDelete: (id: string) => void;
-  currency: string;
-  points: Pick<Point, 'id' | 'name'>[];
-  checklists: Pick<Checklist, 'id' | 'name'>[];
-}
-
-const ShoppingItemCard: React.FC<ShoppingItemCardProps> = ({ 
-  item, 
-  onTogglePurchased, 
-  onDelete, 
-  currency,
-  points,
-  checklists
-}) => {
-  const pointName = points.find(p => p.id === item.point_id)?.name;
-  const checklistName = checklists.find(c => c.id === item.checklist_id)?.name;
-
-  return (
-    <Card className={`overflow-hidden border ${item.purchased ? 'border-green-300 bg-green-50' : 'border-gray-200'}`}>
-      <CardHeader className="p-4 pb-2">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Checkbox 
-              id={`purchased-${item.id}`}
-              checked={item.purchased}
-              onCheckedChange={() => onTogglePurchased(item.id, item.purchased)}
-              className="h-5 w-5"
-            />
-            <CardTitle className={`text-lg ${item.purchased ? 'line-through text-gray-500' : ''}`}>
-              {item.name}
-            </CardTitle>
           </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0"
-              onClick={() => onDelete(item.id)}
+          <div className="flex justify-end gap-2">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                resetForm();
+                setEditItemId(null);
+                setIsEditDialogOpen(false);
+              }}
             >
-              <Trash className="h-4 w-4 text-travel-red" />
+              Cancel
+            </Button>
+            <Button 
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+              onClick={handleUpdateItem}
+              disabled={updateItemMutation.isPending}
+            >
+              {updateItemMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Update Item"
+              )}
             </Button>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-4 pt-2">
-        <div className="flex flex-wrap gap-4">
-          <div>
-            <div className="text-sm text-muted-foreground mb-1">Preço</div>
-            <div className="font-medium">
-              {item.currency === 'EUR' && '€'}
-              {item.currency === 'USD' && '$'}
-              {item.currency === 'BRL' && 'R$'}
-              {item.currency === 'GBP' && '£'}
-              {item.price.toFixed(2)}
-            </div>
-          </div>
-
-          {pointName && (
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">Localização</div>
-              <div className="font-medium">{pointName}</div>
-            </div>
-          )}
-
-          {checklistName && (
-            <div>
-              <div className="text-sm text-muted-foreground mb-1">Checklist</div>
-              <div className="font-medium">{checklistName}</div>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+        </DialogContent>
+      </Dialog>
+    </PageContainer>
   );
 };
 

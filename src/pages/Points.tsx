@@ -574,7 +574,18 @@ const Points: React.FC = () => {
           {points.map((point) => (
             <Card key={point.id} className="overflow-hidden card-hover">
               {point.image_url && (
-                <div className="h-48 overflow-hidden">
+                <div 
+                  className="h-48 overflow-hidden cursor-pointer" 
+                  onClick={() => handleOpenDetails(point)}
+                  aria-label={`View details for ${point.name}`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleOpenDetails(point);
+                    }
+                  }}
+                >
                   <img 
                     src={point.image_url} 
                     alt={point.name} 
@@ -616,6 +627,17 @@ const Points: React.FC = () => {
                   <MapPin className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
                   <span className="text-sm text-travel-dark/70">{point.address}</span>
                 </div>
+                
+                {/* Opening Hours */}
+                {(point.opening_hours || point.openingHours) && (
+                  <div className="flex items-start gap-2 mt-2">
+                    <Clock className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-travel-dark/70">
+                      {point.opening_hours || point.openingHours}
+                    </span>
+                  </div>
+                )}
+                
                 {point.google_maps_url && (
                   <div className="flex items-start gap-2 mt-2">
                     <Globe className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
@@ -628,6 +650,16 @@ const Points: React.FC = () => {
                       Google Maps
                       <ExternalLink className="h-3 w-3 ml-1" />
                     </a>
+                  </div>
+                )}
+                
+                {/* Planned Visit Date */}
+                {(point.planned_visit_date || point.plannedVisitDate) && (
+                  <div className="flex items-start gap-2 mt-2">
+                    <Calendar className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
+                    <span className="text-sm text-travel-dark/70">
+                      Planned visit: {format(new Date(point.planned_visit_date || point.plannedVisitDate!), 'PPP')}
+                    </span>
                   </div>
                 )}
               </CardContent>
