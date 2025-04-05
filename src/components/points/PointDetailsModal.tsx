@@ -94,7 +94,7 @@ const PointDetailsModal: React.FC<PointDetailsModalProps> = ({ point, isOpen, on
             
             <div className="pt-2">
               <span className="inline-block text-sm px-3 py-1 rounded-full bg-travel-light-blue text-travel-blue">
-                {point.type.charAt(0).toUpperCase() + point.type.slice(1)}
+                {point.type ? point.type.charAt(0).toUpperCase() + point.type.slice(1) : 'Other'}
               </span>
             </div>
           </div>

@@ -249,6 +249,12 @@ const Points: React.FC = () => {
     setDate(undefined);
   };
 
+  // Fix for the type 'charAt' error in the Card component
+  const getPointTypeName = (type: string | undefined): string => {
+    if (!type) return 'Other';
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+
   // Show error if fetch failed
   useEffect(() => {
     if (fetchError) {
@@ -666,7 +672,7 @@ const Points: React.FC = () => {
               <CardFooter>
                 <div className="w-full flex justify-between items-center">
                   <span className="inline-block text-xs px-2 py-1 rounded-full bg-travel-light-blue text-travel-blue">
-                    {point.type.charAt(0).toUpperCase() + point.type.slice(1)}
+                    {getPointTypeName(point.type)}
                   </span>
                   <Button 
                     variant="outline" 
