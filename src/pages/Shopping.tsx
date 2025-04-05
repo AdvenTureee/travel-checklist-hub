@@ -66,7 +66,7 @@ const Shopping: React.FC = () => {
     queryKey: ['shopping-items'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('shopping_items')
+        .from('shopping_list_items')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -100,7 +100,7 @@ const Shopping: React.FC = () => {
   const addItemMutation = useMutation({
     mutationFn: async (item: Omit<ShoppingItem, 'id' | 'created_at'>) => {
       const { data, error } = await supabase
-        .from('shopping_items')
+        .from('shopping_list_items')
         .insert([
           {
             name: item.name,
@@ -139,7 +139,7 @@ const Shopping: React.FC = () => {
   const updateItemMutation = useMutation({
     mutationFn: async ({ id, item }: { id: string, item: Partial<ShoppingItem> }) => {
       const { data, error } = await supabase
-        .from('shopping_items')
+        .from('shopping_list_items')
         .update({
           name: item.name,
           price: item.price,
@@ -176,7 +176,7 @@ const Shopping: React.FC = () => {
   const deleteItemMutation = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('shopping_items')
+        .from('shopping_list_items')
         .delete()
         .eq('id', id);
 
@@ -204,7 +204,7 @@ const Shopping: React.FC = () => {
   const togglePurchasedMutation = useMutation({
     mutationFn: async ({ id, purchased }: { id: string, purchased: boolean }) => {
       const { data, error } = await supabase
-        .from('shopping_items')
+        .from('shopping_list_items')
         .update({ purchased })
         .eq('id', id)
         .select();
@@ -335,43 +335,42 @@ const Shopping: React.FC = () => {
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
             <CardTitle className="text-xl">Shopping Summary</CardTitle>
-            <CollapsibleTrigger
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="rounded-full p-1 hover:bg-travel-beige/50"
-            >
-              {isExpanded ? (
-                <ChevronUp className="h-5 w-5 text-travel-dark/70" />
-              ) : (
-                <ChevronDown className="h-5 w-5 text-travel-dark/70" />
-              )}
-            </CollapsibleTrigger>
+            <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+              <CollapsibleTrigger
+                className="rounded-full p-1 hover:bg-travel-beige/50"
+              >
+                {isExpanded ? (
+                  <ChevronUp className="h-5 w-5 text-travel-dark/70" />
+                ) : (
+                  <ChevronDown className="h-5 w-5 text-travel-dark/70" />
+                )}
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <CardContent className="pt-2">
+                  <div className="flex justify-between text-travel-dark">
+                    <div>
+                      <span className="font-medium">Total Items:</span>
+                      <span className="ml-2">{items.length}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Purchased:</span>
+                      <span className="ml-2">{items.filter(item => item.purchased).length}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Remaining:</span>
+                      <span className="ml-2">{items.filter(item => !item.purchased).length}</span>
+                    </div>
+                    <div>
+                      <span className="font-medium">Total Cost:</span>
+                      <span className="ml-2">${calculateTotal().toFixed(2)}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </CollapsibleContent>
+            </Collapsible>
           </div>
           <CardDescription>Track your shopping expenses</CardDescription>
         </CardHeader>
-        <Collapsible open={isExpanded}>
-          <CollapsibleContent>
-            <CardContent className="pt-2">
-              <div className="flex justify-between text-travel-dark">
-                <div>
-                  <span className="font-medium">Total Items:</span>
-                  <span className="ml-2">{items.length}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Purchased:</span>
-                  <span className="ml-2">{items.filter(item => item.purchased).length}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Remaining:</span>
-                  <span className="ml-2">{items.filter(item => !item.purchased).length}</span>
-                </div>
-                <div>
-                  <span className="font-medium">Total Cost:</span>
-                  <span className="ml-2">${calculateTotal().toFixed(2)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </CollapsibleContent>
-        </Collapsible>
       </Card>
 
       {items.length === 0 ? (
