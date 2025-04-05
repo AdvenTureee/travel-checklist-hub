@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Settings as SettingsIcon, Save, Bell, Globe, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Bell, Shield } from 'lucide-react';
 
 const Settings = () => {
   const { toast } = useToast();
@@ -16,7 +16,6 @@ const Settings = () => {
   const [settings, setSettings] = useState({
     notifyNewPoint: true,
     notifyChecklistComplete: true,
-    language: 'pt',
     password: '',
     confirmPassword: '',
   });
@@ -109,31 +108,6 @@ const Settings = () => {
                   setSettings({ ...settings, notifyChecklistComplete: checked })
                 }
               />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-travel-blue" />
-              <CardTitle>Idioma e Região</CardTitle>
-            </div>
-            <CardDescription>Configure suas preferências de idioma</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2">
-              <Label htmlFor="language">Idioma do Aplicativo</Label>
-              <select
-                id="language"
-                value={settings.language}
-                onChange={(e) => setSettings({ ...settings, language: e.target.value })}
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <option value="pt">Português (Brasil)</option>
-                <option value="en">English</option>
-                <option value="es">Español</option>
-              </select>
             </div>
           </CardContent>
         </Card>

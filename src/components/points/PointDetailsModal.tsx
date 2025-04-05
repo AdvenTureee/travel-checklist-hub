@@ -5,6 +5,7 @@ import { Point } from '@/lib/types';
 import { MapPin, Calendar, Globe, ExternalLink, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface PointDetailsModalProps {
   point: Point | null;
@@ -33,7 +34,7 @@ const PointDetailsModal: React.FC<PointDetailsModalProps> = ({ point, isOpen, on
               />
             ) : (
               <div className="w-full h-[300px] bg-travel-beige/50 flex items-center justify-center">
-                <span className="text-travel-dark/50">No image available</span>
+                <span className="text-travel-dark/50">Nenhuma imagem disponível</span>
               </div>
             )}
           </div>
@@ -41,8 +42,8 @@ const PointDetailsModal: React.FC<PointDetailsModalProps> = ({ point, isOpen, on
           {/* Details Section */}
           <div className="space-y-4">
             <div>
-              <h3 className="text-lg font-medium text-travel-dark">Description</h3>
-              <p className="text-travel-dark/80 mt-1">{point.description || "No description available"}</p>
+              <h3 className="text-lg font-medium text-travel-dark">Descrição</h3>
+              <p className="text-travel-dark/80 mt-1">{point.description || "Nenhuma descrição disponível"}</p>
             </div>
             
             <div className="space-y-3">
@@ -64,7 +65,7 @@ const PointDetailsModal: React.FC<PointDetailsModalProps> = ({ point, isOpen, on
                 <div className="flex items-start gap-2">
                   <Calendar className="h-5 w-5 text-travel-blue mt-0.5 flex-shrink-0" />
                   <span className="text-travel-dark/70">
-                    Planned visit: {format(new Date(point.planned_visit_date || point.plannedVisitDate!), 'PPP')}
+                    Visita planejada: {format(new Date(point.planned_visit_date || point.plannedVisitDate!), 'PPP', { locale: ptBR })}
                   </span>
                 </div>
               )}
@@ -72,7 +73,7 @@ const PointDetailsModal: React.FC<PointDetailsModalProps> = ({ point, isOpen, on
               <div className="flex items-start gap-2">
                 <Calendar className="h-5 w-5 text-travel-blue mt-0.5 flex-shrink-0" />
                 <span className="text-travel-dark/70">
-                  Added on {new Date(point.created_at).toLocaleDateString()}
+                  Adicionado em {new Date(point.created_at).toLocaleDateString('pt-BR')}
                 </span>
               </div>
               
@@ -85,7 +86,7 @@ const PointDetailsModal: React.FC<PointDetailsModalProps> = ({ point, isOpen, on
                     rel="noopener noreferrer"
                     className="text-travel-blue hover:underline flex items-center"
                   >
-                    View on Google Maps
+                    Ver no Google Maps
                     <ExternalLink className="h-4 w-4 ml-1" />
                   </a>
                 </div>
@@ -94,7 +95,12 @@ const PointDetailsModal: React.FC<PointDetailsModalProps> = ({ point, isOpen, on
             
             <div className="pt-2">
               <span className="inline-block text-sm px-3 py-1 rounded-full bg-travel-light-blue text-travel-blue">
-                {point.type ? point.type.charAt(0).toUpperCase() + point.type.slice(1) : 'Other'}
+                {point.type ? 
+                  (point.type === 'tourist' ? 'Atração Turística' : 
+                   point.type === 'shopping' ? 'Compras' : 
+                   point.type === 'restaurant' ? 'Restaurante' : 
+                   point.type === 'accommodation' ? 'Hospedagem' : 'Outro')
+                  : 'Outro'}
               </span>
             </div>
           </div>
@@ -106,7 +112,7 @@ const PointDetailsModal: React.FC<PointDetailsModalProps> = ({ point, isOpen, on
             onClick={onClose}
             className="text-travel-dark"
           >
-            Close
+            Fechar
           </Button>
         </div>
       </DialogContent>
