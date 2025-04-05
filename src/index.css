@@ -54,10 +54,42 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+    overflow-x: hidden;
   }
 
   html {
     @apply scroll-smooth;
+  }
+  
+  /* Hide focus outlines for non-keyboard users */
+  body:not(.user-is-tabbing) :focus {
+    outline: none;
+  }
+  
+  /* Show focus outlines for keyboard users */
+  body.user-is-tabbing :focus {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  /* Make interactive elements have appropriate sized tap targets on mobile */
+  @media (max-width: 640px) {
+    button, a, input[type="button"], input[type="submit"], [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+  
+  /* Improve form control spacing on mobile */
+  @media (max-width: 640px) {
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      margin-bottom: 0.5rem;
+      display: block;
+    }
   }
 }
 
@@ -68,6 +100,14 @@
 
   .card-hover {
     @apply transition-all duration-300 hover:shadow-md hover:-translate-y-1;
+  }
+  
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-travel-mustard focus-visible:ring-offset-2;
+  }
+  
+  .mobile-safe-area {
+    @apply px-4 py-2 sm:px-6 sm:py-4;
   }
 }
 
@@ -100,5 +140,55 @@
   
   .animate-collapsible-up {
     animation: collapsible-up 0.3s ease-out;
+  }
+  
+  /* Skip to content link */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+  
+  .sr-only.focus:not-sr-only {
+    position: fixed;
+    width: auto;
+    height: auto;
+    padding: 0.5rem 1rem;
+    clip: auto;
+    z-index: 9999;
+    background-color: white;
+    color: hsl(var(--foreground));
+    border-radius: var(--radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+    font-weight: 600;
+    display: block;
+  }
+  
+  /* App container for proper mobile layout */
+  .app-container {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
+  }
+  
+  /* Mobile menu button styles */
+  .mobile-menu-button {
+    @apply fixed bottom-4 right-4 z-50 bg-travel-mustard text-travel-dark rounded-full shadow-lg p-3;
+    display: none;
+  }
+  
+  @media (max-width: 768px) {
+    .mobile-menu-button {
+      display: flex;
+    }
   }
 }
