@@ -18,6 +18,7 @@ const ChecklistViewToggle: React.FC<ChecklistViewToggleProps> = ({ currentView, 
         variant="default"
         size={isMobile ? "sm" : "default"}
         className="relative z-10 bg-travel-blue text-white hover:bg-travel-blue/90 transition-all"
+        onClick={() => onViewChange('list')}
       >
         <List className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-1`} />
         Lista

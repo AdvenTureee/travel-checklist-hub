@@ -128,6 +128,180 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
     onReorderItems(checklistId, newOrder);
   };
 
+  // Render item rows inside the expanded checklist section
+  const renderItems = (items: ChecklistItem[], checklistId: string) => {
+    if (onReorderItems) {
+      return (
+        <DraggableList
+          droppableId={`checklist-items-${checklistId}`}
+          onDragEnd={(result) => handleItemsDragEnd(checklistId, result)}
+          className="space-y-2"
+        >
+          {items.map((item, itemIndex) => (
+            <DraggableItem
+              key={item.id}
+              id={item.id}
+              index={itemIndex}
+            >
+              <div className="flex items-center justify-between group bg-background p-2 rounded-md">
+                {editingItemId === item.id ? (
+                  <div className="flex-1 flex items-center gap-2">
+                    <Input
+                      ref={inputRef}
+                      value={editingText}
+                      onChange={(e) => setEditingText(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      className="h-7 py-1 text-sm"
+                    />
+                    <div className="flex items-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-green-600"
+                        onClick={handleSaveEdit}
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-travel-red"
+                        onClick={handleCancelEdit}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-3 flex-grow">
+                      <div className="flex items-center gap-2">
+                        <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
+                        <Checkbox
+                          id={`expanded-item-${item.id}`}
+                          checked={item.completed}
+                          onCheckedChange={(checked) => 
+                            onToggleItem(item.id, checked as boolean)
+                          }
+                        />
+                      </div>
+                      <label
+                        htmlFor={`expanded-item-${item.id}`}
+                        className={`text-sm ${
+                          item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                        }`}
+                      >
+                        {item.text}
+                      </label>
+                    </div>
+                    <div className="flex items-center opacity-0 group-hover:opacity-100">
+                      {onUpdateItemText && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 mr-1"
+                          onClick={() => handleStartEdit(item)}
+                        >
+                          <Edit className="h-3 w-3 text-travel-blue" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0"
+                        onClick={() => onDeleteItem(item.id)}
+                      >
+                        <Trash className="h-3 w-3 text-travel-red" />
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </DraggableItem>
+          ))}
+        </DraggableList>
+      );
+    } else {
+      return (
+        <div className="space-y-2">
+          {items.map(item => (
+            <div key={item.id} className="flex items-center justify-between group bg-background p-2 rounded-md">
+              {editingItemId === item.id ? (
+                <div className="flex-1 flex items-center gap-2">
+                  <Input
+                    ref={inputRef}
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className="h-7 py-1 text-sm"
+                  />
+                  <div className="flex items-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-green-600"
+                      onClick={handleSaveEdit}
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-travel-red"
+                      onClick={handleCancelEdit}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id={`expanded-item-${item.id}`}
+                      checked={item.completed}
+                      onCheckedChange={(checked) => 
+                        onToggleItem(item.id, checked as boolean)
+                      }
+                    />
+                    <label
+                      htmlFor={`expanded-item-${item.id}`}
+                      className={`text-sm ${
+                        item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                      }`}
+                    >
+                      {item.text}
+                    </label>
+                  </div>
+                  <div className="flex items-center opacity-0 group-hover:opacity-100">
+                    {onUpdateItemText && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 mr-1"
+                        onClick={() => handleStartEdit(item)}
+                      >
+                        <Edit className="h-3 w-3 text-travel-blue" />
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0"
+                      onClick={() => onDeleteItem(item.id)}
+                    >
+                      <Trash className="h-3 w-3 text-travel-red" />
+                    </Button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+  };
+
   return (
     <TooltipProvider>
       <div className="space-y-6">
@@ -143,40 +317,38 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              <DraggableList 
-                droppableId="checklists" 
-                onDragEnd={handleChecklistDragEnd}
-                className=""
-              >
-                {checklists.map((checklist, index) => {
-                  const items = checklistItems.filter(item => item.checklist_id === checklist.id);
-                  const completionPercentage = calculateCompletion(checklist.id);
-                  const isExpanded = expandedChecklists[checklist.id] || false;
-                  
-                  return (
-                    <React.Fragment key={checklist.id}>
-                      <DraggableItem 
-                        id={checklist.id} 
-                        index={index}
-                        className=""
-                      >
-                        <TableRow className="group">
-                          <TableCell className="p-2">
-                            <div className="flex items-center justify-center">
-                              <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">{checklist.name}</TableCell>
-                          <TableCell>{checklist.description || 'Sem descrição'}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Progress value={completionPercentage} className="h-2 flex-grow" />
-                              <span className="text-xs font-medium">{completionPercentage}%</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <TooltipProvider>
+              {onReorderChecklists ? (
+                <DraggableList 
+                  droppableId="checklists" 
+                  onDragEnd={handleChecklistDragEnd}
+                >
+                  {checklists.map((checklist, index) => {
+                    const items = checklistItems.filter(item => item.checklist_id === checklist.id);
+                    const completionPercentage = calculateCompletion(checklist.id);
+                    const isExpanded = expandedChecklists[checklist.id] || false;
+                    
+                    return (
+                      <React.Fragment key={checklist.id}>
+                        <DraggableItem 
+                          id={checklist.id} 
+                          index={index}
+                        >
+                          <TableRow className="group">
+                            <TableCell className="p-2">
+                              <div className="flex items-center justify-center">
+                                <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">{checklist.name}</TableCell>
+                            <TableCell>{checklist.description || 'Sem descrição'}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Progress value={completionPercentage} className="h-2 flex-grow" />
+                                <span className="text-xs font-medium">{completionPercentage}%</span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
@@ -195,9 +367,7 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                                     <p>{isExpanded ? 'Recolher' : 'Expandir'} Itens</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
-                              
-                              <TooltipProvider>
+                                
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button 
@@ -213,9 +383,7 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                                     <p>Adicionar Item</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
-                              
-                              <TooltipProvider>
+                                
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
@@ -231,9 +399,7 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                                     <p>Editar Checklist</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
-                              
-                              <TooltipProvider>
+                                
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <Button
@@ -249,110 +415,158 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                                     <p>Excluir Checklist</p>
                                   </TooltipContent>
                                 </Tooltip>
-                              </TooltipProvider>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        </DraggableItem>
+                        
+                        {/* Items section that expands/collapses */}
+                        {isExpanded && (
+                          <TableRow>
+                            <TableCell colSpan={5} className="p-0 border-0">
+                              <div className="bg-muted/30 px-4 py-3">
+                                {items.length > 0 ? (
+                                  <div className="space-y-2">
+                                    <h4 className="text-sm font-medium mb-2">Itens ({items.length})</h4>
+                                    {renderItems(items, checklist.id)}
+                                  </div>
+                                ) : (
+                                  <div className="text-center py-4 text-muted-foreground text-sm">
+                                    Nenhum item nesta checklist ainda. 
+                                    <Button 
+                                      variant="link" 
+                                      className="text-travel-blue p-0 h-auto"
+                                      onClick={() => onAddItem(checklist.id)}
+                                    >
+                                      Adicionar item
+                                    </Button>
+                                  </div>
+                                )}
+                                
+                                <div className="flex justify-end mt-3">
+                                  {onBulkAddItems && (
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="text-travel-blue"
+                                      onClick={() => onBulkAddItems(checklist.id)}
+                                    >
+                                      <ListPlus className="h-4 w-4 mr-1" />
+                                      Adicionar Vários Itens
+                                    </Button>
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </DraggableList>
+              ) : (
+                <>
+                  {checklists.map((checklist) => {
+                    const items = checklistItems.filter(item => item.checklist_id === checklist.id);
+                    const completionPercentage = calculateCompletion(checklist.id);
+                    const isExpanded = expandedChecklists[checklist.id] || false;
+                    
+                    return (
+                      <React.Fragment key={checklist.id}>
+                        <TableRow className="group">
+                          <TableCell className="p-2">
+                            <div className="flex items-center justify-center">
+                              <GripVertical className="h-5 w-5 text-muted-foreground" />
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">{checklist.name}</TableCell>
+                          <TableCell>{checklist.description || 'Sem descrição'}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Progress value={completionPercentage} className="h-2 flex-grow" />
+                              <span className="text-xs font-medium">{completionPercentage}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => toggleExpansion(checklist.id)}
+                                  >
+                                    {isExpanded ? 
+                                      <ChevronUp className="h-4 w-4" /> : 
+                                      <ChevronDown className="h-4 w-4" />
+                                    }
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{isExpanded ? 'Recolher' : 'Expandir'} Itens</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8 text-travel-blue"
+                                    onClick={() => onAddItem(checklist.id)}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Adicionar Item</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => onEdit(checklist.id)}
+                                  >
+                                    <Edit className="h-4 w-4 text-travel-blue" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Editar Checklist</p>
+                                </TooltipContent>
+                              </Tooltip>
+                              
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={() => onDelete(checklist.id)}
+                                  >
+                                    <Trash className="h-4 w-4 text-travel-red" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Excluir Checklist</p>
+                                </TooltipContent>
+                              </Tooltip>
                             </div>
                           </TableCell>
                         </TableRow>
-                      </DraggableItem>
-                      
-                      {/* Items section that expands/collapses */}
-                      {isExpanded && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="p-0 border-0">
-                            <div className="bg-muted/30 px-4 py-3">
-                              {items.length > 0 ? (
-                                <div className="space-y-2">
-                                  <h4 className="text-sm font-medium mb-2">Itens ({items.length})</h4>
-                                  {onReorderItems ? (
-                                    <DraggableList
-                                      droppableId={`checklist-items-${checklist.id}`}
-                                      onDragEnd={(result) => handleItemsDragEnd(checklist.id, result)}
-                                      className="space-y-2"
-                                    >
-                                      {items.map((item, itemIndex) => (
-                                        <DraggableItem
-                                          key={item.id}
-                                          id={item.id}
-                                          index={itemIndex}
-                                        >
-                                          <div className="flex items-center justify-between group bg-background p-2 rounded-md">
-                                            {editingItemId === item.id ? (
-                                              <div className="flex-1 flex items-center gap-2">
-                                                <Input
-                                                  ref={inputRef}
-                                                  value={editingText}
-                                                  onChange={(e) => setEditingText(e.target.value)}
-                                                  onKeyDown={handleKeyDown}
-                                                  className="h-7 py-1 text-sm"
-                                                />
-                                                <div className="flex items-center">
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-6 w-6 p-0 text-green-600"
-                                                    onClick={handleSaveEdit}
-                                                  >
-                                                    <Check className="h-4 w-4" />
-                                                  </Button>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-6 w-6 p-0 text-travel-red"
-                                                    onClick={handleCancelEdit}
-                                                  >
-                                                    <X className="h-4 w-4" />
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            ) : (
-                                              <>
-                                                <div className="flex items-center gap-3 flex-grow">
-                                                  <div className="flex items-center gap-2">
-                                                    <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
-                                                    <Checkbox
-                                                      id={`expanded-item-${item.id}`}
-                                                      checked={item.completed}
-                                                      onCheckedChange={(checked) => 
-                                                        onToggleItem(item.id, checked as boolean)
-                                                      }
-                                                    />
-                                                  </div>
-                                                  <label
-                                                    htmlFor={`expanded-item-${item.id}`}
-                                                    className={`text-sm ${
-                                                      item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                                                    }`}
-                                                  >
-                                                    {item.text}
-                                                  </label>
-                                                </div>
-                                                <div className="flex items-center opacity-0 group-hover:opacity-100">
-                                                  {onUpdateItemText && (
-                                                    <Button
-                                                      variant="ghost"
-                                                      size="sm"
-                                                      className="h-6 w-6 p-0 mr-1"
-                                                      onClick={() => handleStartEdit(item)}
-                                                    >
-                                                      <Edit className="h-3 w-3 text-travel-blue" />
-                                                    </Button>
-                                                  )}
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    className="h-6 w-6 p-0"
-                                                    onClick={() => onDeleteItem(item.id)}
-                                                  >
-                                                    <Trash className="h-3 w-3 text-travel-red" />
-                                                  </Button>
-                                                </div>
-                                              </>
-                                            )}
-                                          </div>
-                                        </DraggableItem>
-                                      ))}
-                                    </DraggableList>
-                                  ) : (
+                        
+                        {/* Items section that expands/collapses */}
+                        {isExpanded && (
+                          <TableRow>
+                            <TableCell colSpan={5} className="p-0 border-0">
+                              <div className="bg-muted/30 px-4 py-3">
+                                {items.length > 0 ? (
+                                  <div className="space-y-2">
+                                    <h4 className="text-sm font-medium mb-2">Itens ({items.length})</h4>
                                     <div className="space-y-2">
                                       {items.map(item => (
                                         <div key={item.id} className="flex items-center justify-between group bg-background p-2 rounded-md">
@@ -428,42 +642,42 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                                         </div>
                                       ))}
                                     </div>
+                                  </div>
+                                ) : (
+                                  <div className="text-center py-4 text-muted-foreground text-sm">
+                                    Nenhum item nesta checklist ainda. 
+                                    <Button 
+                                      variant="link" 
+                                      className="text-travel-blue p-0 h-auto"
+                                      onClick={() => onAddItem(checklist.id)}
+                                    >
+                                      Adicionar item
+                                    </Button>
+                                  </div>
+                                )}
+                                
+                                <div className="flex justify-end mt-3">
+                                  {onBulkAddItems && (
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className="text-travel-blue"
+                                      onClick={() => onBulkAddItems(checklist.id)}
+                                    >
+                                      <ListPlus className="h-4 w-4 mr-1" />
+                                      Adicionar Vários Itens
+                                    </Button>
                                   )}
                                 </div>
-                              ) : (
-                                <div className="text-center py-4 text-muted-foreground text-sm">
-                                  Nenhum item nesta checklist ainda. 
-                                  <Button 
-                                    variant="link" 
-                                    className="text-travel-blue p-0 h-auto"
-                                    onClick={() => onAddItem(checklist.id)}
-                                  >
-                                    Adicionar item
-                                  </Button>
-                                </div>
-                              )}
-                              
-                              <div className="flex justify-end mt-3">
-                                {onBulkAddItems && (
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    className="text-travel-blue"
-                                    onClick={() => onBulkAddItems(checklist.id)}
-                                  >
-                                    <ListPlus className="h-4 w-4 mr-1" />
-                                    Adicionar Vários Itens
-                                  </Button>
-                                )}
                               </div>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </DraggableList>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </>
+              )}
               {checklists.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={5} className="h-24 text-center">

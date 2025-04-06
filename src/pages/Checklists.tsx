@@ -179,29 +179,53 @@ const Checklists = () => {
     },
   });
 
-  // Delete checklist mutation
+  // Update the delete checklist mutation to handle the foreign key constraint
   const deleteChecklistMutation = useMutation({
     mutationFn: async (id: string) => {
-      // First delete all items in the checklist
-      const { error: itemsError } = await supabase
-        .from('checklist_items')
-        .delete()
-        .eq('checklist_id', id);
+      try {
+        // First check if there are any shopping list items referencing this checklist
+        const { data: shoppingItems, error: checkError } = await supabase
+          .from('shopping_list_items')
+          .select('id')
+          .eq('checklist_id', id);
 
-      if (itemsError) throw itemsError;
+        if (checkError) throw checkError;
 
-      // Then delete the checklist
-      const { error } = await supabase
-        .from('checklists')
-        .delete()
-        .eq('id', id);
+        // If there are shopping items that reference this checklist, update them to remove the reference
+        if (shoppingItems && shoppingItems.length > 0) {
+          const { error: updateError } = await supabase
+            .from('shopping_list_items')
+            .update({ checklist_id: null })
+            .eq('checklist_id', id);
 
-      if (error) throw error;
-      return id;
+          if (updateError) throw updateError;
+        }
+
+        // Now delete all checklist items
+        const { error: itemsError } = await supabase
+          .from('checklist_items')
+          .delete()
+          .eq('checklist_id', id);
+
+        if (itemsError) throw itemsError;
+
+        // Finally delete the checklist
+        const { error } = await supabase
+          .from('checklists')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+        return id;
+      } catch (error) {
+        console.error("Error deleting checklist:", error);
+        throw error;
+      }
     },
     onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ['checklists'] });
       queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
+      queryClient.invalidateQueries({ queryKey: ['shopping-list-items'] });
       toast({
         title: "Checklist excluída",
         description: "A checklist foi excluída com sucesso.",
@@ -936,15 +960,4 @@ const Checklists = () => {
 
       {/* Bulk Add Items Dialog */}
       <BulkItemsDialog
-        checklistId={currentChecklist?.id || ''}
-        checklistName={currentChecklist?.name || ''}
-        open={isBulkAddDialogOpen}
-        onOpenChange={setIsBulkAddDialogOpen}
-        onAddItems={handleCreateMultipleItems}
-        isAdding={createMultipleChecklistItemsMutation.isPending}
-      />
-    </PageContainer>
-  );
-};
-
-export default Checklists;
+        checklistId={
