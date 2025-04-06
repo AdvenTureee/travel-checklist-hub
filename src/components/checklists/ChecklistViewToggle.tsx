@@ -19,7 +19,7 @@ const ChecklistViewToggle: React.FC<ChecklistViewToggleProps> = ({ currentView, 
         className={`relative z-10 ${currentView === 'grid' ? 'bg-travel-blue text-white' : 'text-travel-dark'}`}
       >
         <Grid2X2 className="h-4 w-4 mr-1" />
-        Grid
+        Grade
       </Button>
       <Button
         variant={currentView === 'list' ? 'default' : 'outline'}
@@ -28,7 +28,7 @@ const ChecklistViewToggle: React.FC<ChecklistViewToggleProps> = ({ currentView, 
         className={`relative z-10 ${currentView === 'list' ? 'bg-travel-blue text-white' : 'text-travel-dark'}`}
       >
         <List className="h-4 w-4 mr-1" />
-        List
+        Lista
       </Button>
       <motion.div 
         className="absolute top-0 bottom-0 rounded-md bg-travel-blue"
