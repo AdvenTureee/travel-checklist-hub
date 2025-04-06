@@ -2,7 +2,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { List } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 interface ChecklistViewToggleProps {
   currentView: 'list';
@@ -10,7 +9,7 @@ interface ChecklistViewToggleProps {
 }
 
 const ChecklistViewToggle: React.FC<ChecklistViewToggleProps> = ({ currentView, onViewChange }) => {
-  // Agora só temos um modo de visualização, então este componente é mais simples
+  // Componente simplificado já que só temos o modo lista
   return (
     <div className="flex items-center space-x-2 relative">
       <Button

@@ -1,9 +1,10 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Checklist, ChecklistItem } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, Trash, Plus, ListChecks, ListPlus, ChevronDown, ChevronUp, Check, X } from 'lucide-react';
+import { Edit, Trash, Plus, ListChecks, ListPlus, ChevronDown, ChevronUp, Check, X, GripVertical } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -12,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { DropResult } from 'react-beautiful-dnd';
 import DraggableList from '../shared/DraggableList';
 import DraggableItem from '../shared/DraggableItem';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface ChecklistListViewProps {
   checklists: Checklist[];
@@ -128,394 +130,351 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
 
   return (
     <TooltipProvider>
-      <DraggableList 
-        droppableId="checklists" 
-        onDragEnd={handleChecklistDragEnd}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-      >
-        {checklists.map((checklist, index) => {
-          const items = checklistItems.filter(item => item.checklist_id === checklist.id);
-          const completionPercentage = calculateCompletion(checklist.id);
-          const isExpanded = expandedChecklists[checklist.id] || false;
-          
-          return (
-            <DraggableItem 
-              key={checklist.id} 
-              id={checklist.id} 
-              index={index}
-              className="rounded-lg"
-            >
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                layout
+      <div className="space-y-6">
+        <div className="border rounded-md overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40px]"></TableHead>
+                <TableHead className="w-[250px]">Nome da Checklist</TableHead>
+                <TableHead>Descrição</TableHead>
+                <TableHead className="w-[150px]">Progresso</TableHead>
+                <TableHead className="w-[150px]">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <DraggableList 
+                droppableId="checklists" 
+                onDragEnd={handleChecklistDragEnd}
+                className=""
               >
-                <Card className="border-l-4 border-l-travel-blue h-full">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-xl">{checklist.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {checklist.description || 'Sem descrição'}
-                        </p>
-                      </div>
-                      <div className="flex space-x-1">
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => onEdit(checklist.id)}
-                            >
-                              <Edit className="h-4 w-4 text-travel-blue" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Editar Checklist</p>
-                          </TooltipContent>
-                        </Tooltip>
-                        
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              onClick={() => onDelete(checklist.id)}
-                            >
-                              <Trash className="h-4 w-4 text-travel-red" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Excluir Checklist</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="mb-4">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs text-muted-foreground">Conclusão</span>
-                        <span className="text-xs font-medium">{completionPercentage}%</span>
-                      </div>
-                      <Progress value={completionPercentage} className="h-2" />
-                    </div>
-                    
-                    <Collapsible open={isExpanded} onOpenChange={() => toggleExpansion(checklist.id)}>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="text-sm font-medium">Itens ({items.length})</div>
-                        <CollapsibleTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                            {isExpanded ? 
-                              <ChevronUp className="h-4 w-4" /> : 
-                              <ChevronDown className="h-4 w-4" />
-                            }
-                          </Button>
-                        </CollapsibleTrigger>
-                      </div>
+                {checklists.map((checklist, index) => {
+                  const items = checklistItems.filter(item => item.checklist_id === checklist.id);
+                  const completionPercentage = calculateCompletion(checklist.id);
+                  const isExpanded = expandedChecklists[checklist.id] || false;
+                  
+                  return (
+                    <React.Fragment key={checklist.id}>
+                      <DraggableItem 
+                        id={checklist.id} 
+                        index={index}
+                        className=""
+                      >
+                        <TableRow className="group">
+                          <TableCell className="p-2">
+                            <div className="flex items-center justify-center">
+                              <GripVertical className="h-5 w-5 text-muted-foreground cursor-move" />
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">{checklist.name}</TableCell>
+                          <TableCell>{checklist.description || 'Sem descrição'}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Progress value={completionPercentage} className="h-2 flex-grow" />
+                              <span className="text-xs font-medium">{completionPercentage}%</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => toggleExpansion(checklist.id)}
+                                    >
+                                      {isExpanded ? 
+                                        <ChevronUp className="h-4 w-4" /> : 
+                                        <ChevronDown className="h-4 w-4" />
+                                      }
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>{isExpanded ? 'Recolher' : 'Expandir'} Itens</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="icon" 
+                                      className="h-8 w-8 text-travel-blue"
+                                      onClick={() => onAddItem(checklist.id)}
+                                    >
+                                      <Plus className="h-4 w-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Adicionar Item</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => onEdit(checklist.id)}
+                                    >
+                                      <Edit className="h-4 w-4 text-travel-blue" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Editar Checklist</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-8 w-8"
+                                      onClick={() => onDelete(checklist.id)}
+                                    >
+                                      <Trash className="h-4 w-4 text-travel-red" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Excluir Checklist</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      </DraggableItem>
                       
-                      {!isExpanded && items.length > 0 && (
-                        <div className="space-y-2 mt-4">
-                          {items.slice(0, 3).map(item => (
-                            <div key={item.id} className="flex items-center justify-between group">
-                              <div className="flex items-center gap-2">
-                                <Checkbox
-                                  id={`list-item-${item.id}`}
-                                  checked={item.completed}
-                                  onCheckedChange={(checked) => 
-                                    onToggleItem(item.id, checked as boolean)
-                                  }
-                                />
-                                <label
-                                  htmlFor={`list-item-${item.id}`}
-                                  className={`text-sm ${
-                                    item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                                  }`}
-                                >
-                                  {item.text}
-                                </label>
-                              </div>
-                              <div className="flex items-center opacity-0 group-hover:opacity-100">
-                                {onUpdateItemText && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0 mr-1"
-                                    onClick={() => handleStartEdit(item)}
+                      {/* Items section that expands/collapses */}
+                      {isExpanded && (
+                        <TableRow>
+                          <TableCell colSpan={5} className="p-0 border-0">
+                            <div className="bg-muted/30 px-4 py-3">
+                              {items.length > 0 ? (
+                                <div className="space-y-2">
+                                  <h4 className="text-sm font-medium mb-2">Itens ({items.length})</h4>
+                                  {onReorderItems ? (
+                                    <DraggableList
+                                      droppableId={`checklist-items-${checklist.id}`}
+                                      onDragEnd={(result) => handleItemsDragEnd(checklist.id, result)}
+                                      className="space-y-2"
+                                    >
+                                      {items.map((item, itemIndex) => (
+                                        <DraggableItem
+                                          key={item.id}
+                                          id={item.id}
+                                          index={itemIndex}
+                                        >
+                                          <div className="flex items-center justify-between group bg-background p-2 rounded-md">
+                                            {editingItemId === item.id ? (
+                                              <div className="flex-1 flex items-center gap-2">
+                                                <Input
+                                                  ref={inputRef}
+                                                  value={editingText}
+                                                  onChange={(e) => setEditingText(e.target.value)}
+                                                  onKeyDown={handleKeyDown}
+                                                  className="h-7 py-1 text-sm"
+                                                />
+                                                <div className="flex items-center">
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 w-6 p-0 text-green-600"
+                                                    onClick={handleSaveEdit}
+                                                  >
+                                                    <Check className="h-4 w-4" />
+                                                  </Button>
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 w-6 p-0 text-travel-red"
+                                                    onClick={handleCancelEdit}
+                                                  >
+                                                    <X className="h-4 w-4" />
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            ) : (
+                                              <>
+                                                <div className="flex items-center gap-3 flex-grow">
+                                                  <div className="flex items-center gap-2">
+                                                    <GripVertical className="h-4 w-4 text-muted-foreground cursor-move" />
+                                                    <Checkbox
+                                                      id={`expanded-item-${item.id}`}
+                                                      checked={item.completed}
+                                                      onCheckedChange={(checked) => 
+                                                        onToggleItem(item.id, checked as boolean)
+                                                      }
+                                                    />
+                                                  </div>
+                                                  <label
+                                                    htmlFor={`expanded-item-${item.id}`}
+                                                    className={`text-sm ${
+                                                      item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                                                    }`}
+                                                  >
+                                                    {item.text}
+                                                  </label>
+                                                </div>
+                                                <div className="flex items-center opacity-0 group-hover:opacity-100">
+                                                  {onUpdateItemText && (
+                                                    <Button
+                                                      variant="ghost"
+                                                      size="sm"
+                                                      className="h-6 w-6 p-0 mr-1"
+                                                      onClick={() => handleStartEdit(item)}
+                                                    >
+                                                      <Edit className="h-3 w-3 text-travel-blue" />
+                                                    </Button>
+                                                  )}
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 w-6 p-0"
+                                                    onClick={() => onDeleteItem(item.id)}
+                                                  >
+                                                    <Trash className="h-3 w-3 text-travel-red" />
+                                                  </Button>
+                                                </div>
+                                              </>
+                                            )}
+                                          </div>
+                                        </DraggableItem>
+                                      ))}
+                                    </DraggableList>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      {items.map(item => (
+                                        <div key={item.id} className="flex items-center justify-between group bg-background p-2 rounded-md">
+                                          {editingItemId === item.id ? (
+                                            <div className="flex-1 flex items-center gap-2">
+                                              <Input
+                                                ref={inputRef}
+                                                value={editingText}
+                                                onChange={(e) => setEditingText(e.target.value)}
+                                                onKeyDown={handleKeyDown}
+                                                className="h-7 py-1 text-sm"
+                                              />
+                                              <div className="flex items-center">
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-6 w-6 p-0 text-green-600"
+                                                  onClick={handleSaveEdit}
+                                                >
+                                                  <Check className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-6 w-6 p-0 text-travel-red"
+                                                  onClick={handleCancelEdit}
+                                                >
+                                                  <X className="h-4 w-4" />
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <>
+                                              <div className="flex items-center gap-2">
+                                                <Checkbox
+                                                  id={`expanded-item-${item.id}`}
+                                                  checked={item.completed}
+                                                  onCheckedChange={(checked) => 
+                                                    onToggleItem(item.id, checked as boolean)
+                                                  }
+                                                />
+                                                <label
+                                                  htmlFor={`expanded-item-${item.id}`}
+                                                  className={`text-sm ${
+                                                    item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
+                                                  }`}
+                                                >
+                                                  {item.text}
+                                                </label>
+                                              </div>
+                                              <div className="flex items-center opacity-0 group-hover:opacity-100">
+                                                {onUpdateItemText && (
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 w-6 p-0 mr-1"
+                                                    onClick={() => handleStartEdit(item)}
+                                                  >
+                                                    <Edit className="h-3 w-3 text-travel-blue" />
+                                                  </Button>
+                                                )}
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-6 w-6 p-0"
+                                                  onClick={() => onDeleteItem(item.id)}
+                                                >
+                                                  <Trash className="h-3 w-3 text-travel-red" />
+                                                </Button>
+                                              </div>
+                                            </>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-center py-4 text-muted-foreground text-sm">
+                                  Nenhum item nesta checklist ainda. 
+                                  <Button 
+                                    variant="link" 
+                                    className="text-travel-blue p-0 h-auto"
+                                    onClick={() => onAddItem(checklist.id)}
                                   >
-                                    <Edit className="h-3 w-3 text-travel-blue" />
+                                    Adicionar item
+                                  </Button>
+                                </div>
+                              )}
+                              
+                              <div className="flex justify-end mt-3">
+                                {onBulkAddItems && (
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="text-travel-blue"
+                                    onClick={() => onBulkAddItems(checklist.id)}
+                                  >
+                                    <ListPlus className="h-4 w-4 mr-1" />
+                                    Adicionar Vários Itens
                                   </Button>
                                 )}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0"
-                                  onClick={() => onDeleteItem(item.id)}
-                                >
-                                  <Trash className="h-3 w-3 text-travel-red" />
-                                </Button>
                               </div>
                             </div>
-                          ))}
-                          {items.length > 3 && (
-                            <div className="text-sm text-muted-foreground mt-1">
-                              + {items.length - 3} mais itens
-                            </div>
-                          )}
-                        </div>
+                          </TableCell>
+                        </TableRow>
                       )}
-                      
-                      <CollapsibleContent 
-                        className="transition-all data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up"
-                      >
-                        {onReorderItems ? (
-                          <DraggableList
-                            droppableId={`checklist-items-${checklist.id}`}
-                            onDragEnd={(result) => handleItemsDragEnd(checklist.id, result)}
-                            className="space-y-2 mt-2 max-h-[300px] overflow-y-auto pr-1"
-                          >
-                            {items.map((item, itemIndex) => (
-                              <DraggableItem
-                                key={item.id}
-                                id={item.id}
-                                index={itemIndex}
-                              >
-                                <motion.div 
-                                  className="flex items-center justify-between group"
-                                  initial={{ opacity: 0, y: 10 }}
-                                  animate={{ opacity: 1, y: 0 }}
-                                  transition={{ duration: 0.2 }}
-                                >
-                                  {editingItemId === item.id ? (
-                                    <div className="flex-1 flex items-center gap-2">
-                                      <Input
-                                        ref={inputRef}
-                                        value={editingText}
-                                        onChange={(e) => setEditingText(e.target.value)}
-                                        onKeyDown={handleKeyDown}
-                                        className="h-7 py-1 text-sm"
-                                      />
-                                      <div className="flex items-center">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-6 w-6 p-0 text-green-600"
-                                          onClick={handleSaveEdit}
-                                        >
-                                          <Check className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-6 w-6 p-0 text-travel-red"
-                                          onClick={handleCancelEdit}
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  ) : (
-                                    <>
-                                      <div className="flex items-center gap-2">
-                                        <Checkbox
-                                          id={`expanded-item-${item.id}`}
-                                          checked={item.completed}
-                                          onCheckedChange={(checked) => 
-                                            onToggleItem(item.id, checked as boolean)
-                                          }
-                                        />
-                                        <label
-                                          htmlFor={`expanded-item-${item.id}`}
-                                          className={`text-sm ${
-                                            item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                                          }`}
-                                        >
-                                          {item.text}
-                                        </label>
-                                      </div>
-                                      <div className="flex items-center opacity-0 group-hover:opacity-100">
-                                        {onUpdateItemText && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-6 w-6 p-0 mr-1"
-                                            onClick={() => handleStartEdit(item)}
-                                          >
-                                            <Edit className="h-3 w-3 text-travel-blue" />
-                                          </Button>
-                                        )}
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-6 w-6 p-0"
-                                          onClick={() => onDeleteItem(item.id)}
-                                        >
-                                          <Trash className="h-3 w-3 text-travel-red" />
-                                        </Button>
-                                      </div>
-                                    </>
-                                  )}
-                                </motion.div>
-                              </DraggableItem>
-                            ))}
-                          </DraggableList>
-                        ) : (
-                          <motion.div 
-                            className="space-y-2 mt-2 max-h-[300px] overflow-y-auto pr-1"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ duration: 0.3, delay: 0.1 }}
-                          >
-                            {items.map(item => (
-                              <motion.div 
-                                key={item.id} 
-                                className="flex items-center justify-between group"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.2 }}
-                              >
-                                {editingItemId === item.id ? (
-                                  <div className="flex-1 flex items-center gap-2">
-                                    <Input
-                                      ref={inputRef}
-                                      value={editingText}
-                                      onChange={(e) => setEditingText(e.target.value)}
-                                      onKeyDown={handleKeyDown}
-                                      className="h-7 py-1 text-sm"
-                                    />
-                                    <div className="flex items-center">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0 text-green-600"
-                                        onClick={handleSaveEdit}
-                                      >
-                                        <Check className="h-4 w-4" />
-                                      </Button>
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0 text-travel-red"
-                                        onClick={handleCancelEdit}
-                                      >
-                                        <X className="h-4 w-4" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <>
-                                    <div className="flex items-center gap-2">
-                                      <Checkbox
-                                        id={`expanded-item-${item.id}`}
-                                        checked={item.completed}
-                                        onCheckedChange={(checked) => 
-                                          onToggleItem(item.id, checked as boolean)
-                                        }
-                                      />
-                                      <label
-                                        htmlFor={`expanded-item-${item.id}`}
-                                        className={`text-sm ${
-                                          item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                                        }`}
-                                      >
-                                        {item.text}
-                                      </label>
-                                    </div>
-                                    <div className="flex items-center opacity-0 group-hover:opacity-100">
-                                      {onUpdateItemText && (
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          className="h-6 w-6 p-0 mr-1"
-                                          onClick={() => handleStartEdit(item)}
-                                        >
-                                          <Edit className="h-3 w-3 text-travel-blue" />
-                                        </Button>
-                                      )}
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-6 w-6 p-0"
-                                        onClick={() => onDeleteItem(item.id)}
-                                      >
-                                        <Trash className="h-3 w-3 text-travel-red" />
-                                      </Button>
-                                    </div>
-                                  </>
-                                )}
-                              </motion.div>
-                            ))}
-                          </motion.div>
-                        )}
-                        {items.length === 0 && (
-                          <div className="text-center py-4 text-muted-foreground text-sm">
-                            Nenhum item nesta checklist ainda
-                          </div>
-                        )}
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </CardContent>
-                  <CardFooter className="flex justify-between pt-1">
-                    <div className="flex space-x-3">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-travel-blue"
-                            onClick={() => onAddItem(checklist.id)}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Adicionar Item</p>
-                        </TooltipContent>
-                      </Tooltip>
-                      
-                      {onBulkAddItems && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 text-travel-blue"
-                              onClick={() => onBulkAddItems(checklist.id)}
-                            >
-                              <ListPlus className="h-4 w-4" />
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Adicionar Vários Itens</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      )}
-                    </div>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          onClick={() => onChecklistView(checklist.id)}
-                          className="h-8 w-8 text-travel-dark"
-                        >
-                          <ListChecks className="h-4 w-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Ver Todos os Itens</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            </DraggableItem>
-          );
-        })}
-      </DraggableList>
+                    </React.Fragment>
+                  );
+                })}
+              </DraggableList>
+              {checklists.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    Nenhuma checklist encontrada. Crie uma nova para começar.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </TooltipProvider>
   );
 };
