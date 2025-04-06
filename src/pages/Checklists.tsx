@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useNavigate } from 'react-router-dom';
@@ -15,9 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin, Plus } from 'lucide-react';
-import ChecklistViewToggle from '@/components/checklists/ChecklistViewToggle';
 import ChecklistListView from '@/components/checklists/ChecklistListView';
-import ChecklistCardView from '@/components/checklists/ChecklistCardView';
 import BulkItemsDialog from '@/components/checklists/BulkItemsDialog';
 import { motion } from 'framer-motion';
 
@@ -35,7 +32,7 @@ const Checklists = () => {
     pointId: null,
     isComplete: false,
   });
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'list'>('list');
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -588,7 +585,6 @@ const Checklists = () => {
           <p className="text-travel-dark/70">Gerencie suas checklists e tarefas de viagem</p>
         </div>
         <div className="flex gap-4 items-center">
-          <ChecklistViewToggle currentView={viewMode} onViewChange={setViewMode} />
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
@@ -685,40 +681,20 @@ const Checklists = () => {
           </Button>
         </motion.div>
       ) : (
-        <>
-          {viewMode === 'grid' ? (
-            <ChecklistCardView
-              checklists={checklists}
-              checklistItems={checklistItems}
-              points={points}
-              onEdit={handleEditChecklist}
-              onDelete={(id) => deleteChecklistMutation.mutate(id)}
-              onChecklistView={handleViewChecklist}
-              onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({ id, completed })}
-              onDeleteItem={(id) => deleteChecklistItemMutation.mutate(id)}
-              onAddItem={handleAddItem}
-              onBulkAddItems={handleBulkAddItems}
-              onUpdateItemText={handleUpdateItemText}
-              onReorderItems={handleReorderItems}
-              onReorderChecklists={handleReorderChecklists}
-            />
-          ) : (
-            <ChecklistListView 
-              checklists={checklists}
-              checklistItems={checklistItems}
-              onEdit={handleEditChecklist}
-              onDelete={(id) => deleteChecklistMutation.mutate(id)}
-              onChecklistView={handleViewChecklist}
-              onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({ id, completed })}
-              onDeleteItem={(id) => deleteChecklistItemMutation.mutate(id)}
-              onAddItem={handleAddItem}
-              onBulkAddItems={handleBulkAddItems}
-              onUpdateItemText={handleUpdateItemText}
-              onReorderItems={handleReorderItems}
-              onReorderChecklists={handleReorderChecklists}
-            />
-          )}
-        </>
+        <ChecklistListView 
+          checklists={checklists}
+          checklistItems={checklistItems}
+          onEdit={handleEditChecklist}
+          onDelete={(id) => deleteChecklistMutation.mutate(id)}
+          onChecklistView={handleViewChecklist}
+          onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({ id, completed })}
+          onDeleteItem={(id) => deleteChecklistItemMutation.mutate(id)}
+          onAddItem={handleAddItem}
+          onBulkAddItems={handleBulkAddItems}
+          onUpdateItemText={handleUpdateItemText}
+          onReorderItems={handleReorderItems}
+          onReorderChecklists={handleReorderChecklists}
+        />
       )}
 
       {/* Edit Checklist Dialog */}

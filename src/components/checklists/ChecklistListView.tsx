@@ -131,7 +131,7 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
       <DraggableList 
         droppableId="checklists" 
         onDragEnd={handleChecklistDragEnd}
-        className="space-y-4"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
       >
         {checklists.map((checklist, index) => {
           const items = checklistItems.filter(item => item.checklist_id === checklist.id);
@@ -151,7 +151,7 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                 transition={{ duration: 0.3 }}
                 layout
               >
-                <Card className="border-l-4 border-l-travel-blue">
+                <Card className="border-l-4 border-l-travel-blue h-full">
                   <CardHeader className="pb-2">
                     <div className="flex justify-between items-start">
                       <div>
