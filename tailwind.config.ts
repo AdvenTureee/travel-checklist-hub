@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -118,14 +117,6 @@ export default {
 				'spin': {
 					to: { transform: 'rotate(360deg)' },
 				},
-				'fadeIn': {
-					'0%': { opacity: '0' },
-					'100%': { opacity: '1' },
-				},
-				'scaleIn': {
-					'0%': { transform: 'scale(0.9)', opacity: '0' },
-					'100%': { transform: 'scale(1)', opacity: '1' },
-				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -136,16 +127,9 @@ export default {
 				'slide-in-up': 'slideInUp 0.5s ease-out forwards',
 				'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 				'spin': 'spin 1s linear infinite',
-				'scale-in': 'scaleIn 0.3s ease-out forwards',
 			},
 			screens: {
 				'xs': '475px',
-			},
-			spacing: {
-				'safe-top': 'env(safe-area-inset-top)',
-				'safe-bottom': 'env(safe-area-inset-bottom)',
-				'safe-left': 'env(safe-area-inset-left)',
-				'safe-right': 'env(safe-area-inset-right)',
 			},
 		}
 	},

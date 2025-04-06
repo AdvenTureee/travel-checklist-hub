@@ -7,16 +7,20 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Checklist, ChecklistItem, Point } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin, Plus } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { PlusCircle, Edit, Trash, ListChecks, ClipboardList, Loader2, MapPin, ListPlus, ChevronDown, Plus } from 'lucide-react';
+import ChecklistViewToggle from '@/components/checklists/ChecklistViewToggle';
 import ChecklistListView from '@/components/checklists/ChecklistListView';
 import BulkItemsDialog from '@/components/checklists/BulkItemsDialog';
-import { motion } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const Checklists = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -32,7 +36,7 @@ const Checklists = () => {
     pointId: null,
     isComplete: false,
   });
-  const [viewMode, setViewMode] = useState<'list'>('list');
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -45,7 +49,7 @@ const Checklists = () => {
     queryFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
-        throw new Error("Usuário não autenticado");
+        throw new Error("User not authenticated");
       }
       
       const { data, error } = await supabase
@@ -64,7 +68,7 @@ const Checklists = () => {
     queryFn: async () => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
-        throw new Error("Usuário não autenticado");
+        throw new Error("User not authenticated");
       }
       
       const { data, error } = await supabase
@@ -104,7 +108,7 @@ const Checklists = () => {
       const { data: userData } = await supabase.auth.getUser();
       
       if (!userData.user) {
-        throw new Error("Usuário não autenticado");
+        throw new Error("User not authenticated");
       }
       
       const { data, error } = await supabase
@@ -121,7 +125,7 @@ const Checklists = () => {
         .select();
       
       if (error) {
-        console.error("Erro ao criar checklist:", error);
+        console.error("Error creating checklist:", error);
         throw error;
       }
       return data[0];
@@ -130,15 +134,15 @@ const Checklists = () => {
       queryClient.invalidateQueries({ queryKey: ['checklists'] });
       setIsAddDialogOpen(false);
       toast({
-        title: "Checklist criada",
-        description: "Sua nova checklist foi criada com sucesso.",
+        title: "Checklist created",
+        description: "Your new checklist has been created successfully.",
       });
       resetChecklistForm();
     },
     onError: (error) => {
       toast({
-        title: "Erro",
-        description: `Falha ao criar checklist: ${error.message}`,
+        title: "Error",
+        description: `Failed to create checklist: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -164,77 +168,53 @@ const Checklists = () => {
       queryClient.invalidateQueries({ queryKey: ['checklists'] });
       setIsEditDialogOpen(false);
       toast({
-        title: "Checklist atualizada",
-        description: "Sua checklist foi atualizada com sucesso.",
+        title: "Checklist updated",
+        description: "Your checklist has been updated successfully.",
       });
       setCurrentChecklist(null);
       resetChecklistForm();
     },
     onError: (error) => {
       toast({
-        title: "Erro",
-        description: `Falha ao atualizar checklist: ${error.message}`,
+        title: "Error",
+        description: `Failed to update checklist: ${error.message}`,
         variant: "destructive",
       });
     },
   });
 
-  // Update the delete checklist mutation to handle the foreign key constraint
+  // Delete checklist mutation
   const deleteChecklistMutation = useMutation({
     mutationFn: async (id: string) => {
-      try {
-        // First check if there are any shopping list items referencing this checklist
-        const { data: shoppingItems, error: checkError } = await supabase
-          .from('shopping_list_items')
-          .select('id')
-          .eq('checklist_id', id);
+      // First delete all items in the checklist
+      const { error: itemsError } = await supabase
+        .from('checklist_items')
+        .delete()
+        .eq('checklist_id', id);
 
-        if (checkError) throw checkError;
+      if (itemsError) throw itemsError;
 
-        // If there are shopping items that reference this checklist, update them to remove the reference
-        if (shoppingItems && shoppingItems.length > 0) {
-          const { error: updateError } = await supabase
-            .from('shopping_list_items')
-            .update({ checklist_id: null })
-            .eq('checklist_id', id);
+      // Then delete the checklist
+      const { error } = await supabase
+        .from('checklists')
+        .delete()
+        .eq('id', id);
 
-          if (updateError) throw updateError;
-        }
-
-        // Now delete all checklist items
-        const { error: itemsError } = await supabase
-          .from('checklist_items')
-          .delete()
-          .eq('checklist_id', id);
-
-        if (itemsError) throw itemsError;
-
-        // Finally delete the checklist
-        const { error } = await supabase
-          .from('checklists')
-          .delete()
-          .eq('id', id);
-
-        if (error) throw error;
-        return id;
-      } catch (error) {
-        console.error("Error deleting checklist:", error);
-        throw error;
-      }
+      if (error) throw error;
+      return id;
     },
     onSuccess: (id) => {
       queryClient.invalidateQueries({ queryKey: ['checklists'] });
       queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
-      queryClient.invalidateQueries({ queryKey: ['shopping-list-items'] });
       toast({
-        title: "Checklist excluída",
-        description: "A checklist foi excluída com sucesso.",
+        title: "Checklist deleted",
+        description: "The checklist has been deleted successfully.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro",
-        description: `Falha ao excluir checklist: ${error.message}`,
+        title: "Error",
+        description: `Failed to delete checklist: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -262,14 +242,14 @@ const Checklists = () => {
       setIsAddItemDialogOpen(false);
       setNewItemText('');
       toast({
-        title: "Item adicionado",
-        description: "O item foi adicionado à sua checklist.",
+        title: "Item added",
+        description: "The item has been added to your checklist.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro",
-        description: `Falha ao adicionar item: ${error.message}`,
+        title: "Error",
+        description: `Failed to add item: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -313,8 +293,8 @@ const Checklists = () => {
     },
     onError: (error) => {
       toast({
-        title: "Erro",
-        description: `Falha ao atualizar item: ${error.message}`,
+        title: "Error",
+        description: `Failed to update item: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -341,14 +321,14 @@ const Checklists = () => {
       queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
       setIsBulkAddDialogOpen(false);
       toast({
-        title: "Itens adicionados",
-        description: "Os itens foram adicionados à sua checklist.",
+        title: "Items added",
+        description: "The items have been added to your checklist.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro",
-        description: `Falha ao adicionar itens: ${error.message}`,
+        title: "Error",
+        description: `Failed to add items: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -369,20 +349,20 @@ const Checklists = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
       toast({
-        title: "Item excluído",
-        description: "O item foi removido da sua checklist.",
+        title: "Item deleted",
+        description: "The item has been removed from your checklist.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro",
-        description: `Falha ao excluir item: ${error.message}`,
+        title: "Error",
+        description: `Failed to delete item: ${error.message}`,
         variant: "destructive",
       });
     },
   });
 
-  // Update checklist item text mutation
+  // Add new mutation for updating checklist item text
   const updateChecklistItemTextMutation = useMutation({
     mutationFn: async ({ id, text }: { id: string, text: string }) => {
       const { data, error } = await supabase
@@ -397,63 +377,14 @@ const Checklists = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['checklist-items'] });
       toast({
-        title: "Item atualizado",
-        description: "O item foi atualizado com sucesso.",
+        title: "Item updated",
+        description: "The item has been updated successfully.",
       });
     },
     onError: (error) => {
       toast({
-        title: "Erro",
-        description: `Falha ao atualizar item: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Reorder checklist items mutation
-  const reorderChecklistItemsMutation = useMutation({
-    mutationFn: async ({ checklistId, itemIds }: { checklistId: string, itemIds: string[] }) => {
-      // We don't have a position field in the database,
-      // so we're just logging the reordering for now.
-      // In a real application, you would add a position field to store the order.
-      console.log(`Reordering items for checklist ${checklistId}:`, itemIds);
-      return { checklistId, itemIds };
-    },
-    onSuccess: (data) => {
-      // Since we're not actually changing the database, we don't need to invalidate queries
-      toast({
-        title: "Itens reordenados",
-        description: "A ordem dos itens foi atualizada.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro",
-        description: `Falha ao reordenar itens: ${error.message}`,
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Reorder checklists mutation
-  const reorderChecklistsMutation = useMutation({
-    mutationFn: async (checklistIds: string[]) => {
-      // We don't have a position field in the database,
-      // so we're just logging the reordering for now.
-      console.log(`Reordering checklists:`, checklistIds);
-      return checklistIds;
-    },
-    onSuccess: (data) => {
-      // Since we're not actually changing the database, we don't need to invalidate queries
-      toast({
-        title: "Checklists reordenadas",
-        description: "A ordem das checklists foi atualizada.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro",
-        description: `Falha ao reordenar checklists: ${error.message}`,
+        title: "Error",
+        description: `Failed to update item: ${error.message}`,
         variant: "destructive",
       });
     },
@@ -462,8 +393,8 @@ const Checklists = () => {
   const handleCreateChecklist = () => {
     if (!newChecklist.name) {
       toast({
-        title: "Informações ausentes",
-        description: "Por favor, forneça um nome para sua checklist.",
+        title: "Missing information",
+        description: "Please provide a name for your checklist.",
         variant: "destructive",
       });
       return;
@@ -492,8 +423,8 @@ const Checklists = () => {
   const handleUpdateChecklist = () => {
     if (!currentChecklist || !newChecklist.name) {
       toast({
-        title: "Informações ausentes",
-        description: "Por favor, forneça um nome para sua checklist.",
+        title: "Missing information",
+        description: "Please provide a name for your checklist.",
         variant: "destructive",
       });
       return;
@@ -532,8 +463,8 @@ const Checklists = () => {
   const handleCreateItem = () => {
     if (!currentChecklist || !newItemText.trim()) {
       toast({
-        title: "Informações ausentes",
-        description: "Por favor, forneça um texto para seu item.",
+        title: "Missing information",
+        description: "Please provide text for your item.",
         variant: "destructive",
       });
       return;
@@ -558,8 +489,8 @@ const Checklists = () => {
   const handleUpdateItemText = (id: string, text: string) => {
     if (!text.trim()) {
       toast({
-        title: "Informações ausentes",
-        description: "O texto do item não pode estar vazio.",
+        title: "Missing information",
+        description: "Item text cannot be empty.",
         variant: "destructive",
       });
       return;
@@ -571,16 +502,6 @@ const Checklists = () => {
     });
   };
 
-  // Handler for reordering checklist items
-  const handleReorderItems = (checklistId: string, itemIds: string[]) => {
-    reorderChecklistItemsMutation.mutate({ checklistId, itemIds });
-  };
-
-  // Handler for reordering checklists
-  const handleReorderChecklists = (checklistIds: string[]) => {
-    reorderChecklistsMutation.mutate(checklistIds);
-  };
-
   const resetChecklistForm = () => {
     setNewChecklist({
       name: '',
@@ -590,12 +511,26 @@ const Checklists = () => {
     });
   };
 
+  // Calculate completion percentage for a checklist
+  const calculateCompletion = (checklistId: string) => {
+    const items = checklistItems.filter(item => item.checklist_id === checklistId);
+    if (items.length === 0) return 0;
+    const completedItems = items.filter(item => item.completed).length;
+    return Math.round((completedItems / items.length) * 100);
+  };
+
+  // Find the associated point for a checklist
+  const getAssociatedPoint = (pointId: string | null | undefined) => {
+    if (!pointId) return null;
+    return points.find(p => p.id === pointId);
+  };
+
   if (isLoadingChecklists) {
     return (
       <PageContainer>
         <div className="flex justify-center items-center h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-travel-blue" />
-          <span className="ml-2">Carregando checklists...</span>
+          <span className="ml-2">Loading checklists...</span>
         </div>
       </PageContainer>
     );
@@ -606,53 +541,54 @@ const Checklists = () => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-travel-dark">Checklists</h1>
-          <p className="text-travel-dark/70">Gerencie suas checklists e tarefas de viagem</p>
+          <p className="text-travel-dark/70">Manage your travel checklists and tasks</p>
         </div>
         <div className="flex gap-4 items-center">
+          <ChecklistViewToggle currentView={viewMode} onViewChange={setViewMode} />
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Adicionar Checklist
+                Add Checklist
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Criar uma Nova Checklist</DialogTitle>
+                <DialogTitle>Create a New Checklist</DialogTitle>
                 <DialogDescription>
-                  Adicione uma nova checklist para organizar suas tarefas.
+                  Add a new checklist to organize your tasks.
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-4 py-4">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Nome</Label>
+                  <Label htmlFor="name">Name</Label>
                   <Input
                     id="name"
                     value={newChecklist.name}
                     onChange={(e) => setNewChecklist({ ...newChecklist, name: e.target.value })}
-                    placeholder="ex: Itens Essenciais para Paris"
+                    placeholder="e.g., Paris Trip Essentials"
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="description">Descrição (opcional)</Label>
+                  <Label htmlFor="description">Description (optional)</Label>
                   <Textarea
                     id="description"
                     value={newChecklist.description || ''}
                     onChange={(e) => setNewChecklist({ ...newChecklist, description: e.target.value })}
-                    placeholder="Breve descrição desta checklist..."
+                    placeholder="Brief description of this checklist..."
                   />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="point">Ponto Associado (opcional)</Label>
+                  <Label htmlFor="point">Associated Point (optional)</Label>
                   <Select
                     value={newChecklist.pointId || 'none'}
                     onValueChange={(value) => setNewChecklist({ ...newChecklist, pointId: value === 'none' ? null : value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecione um ponto" />
+                      <SelectValue placeholder="Select a point" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Nenhum</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {points.map((point) => (
                         <SelectItem key={point.id} value={point.id}>
                           {point.name}
@@ -664,7 +600,7 @@ const Checklists = () => {
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
-                  Cancelar
+                  Cancel
                 </Button>
                 <Button
                   onClick={handleCreateChecklist}
@@ -674,10 +610,10 @@ const Checklists = () => {
                   {createChecklistMutation.isPending ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Criando...
+                      Creating...
                     </>
                   ) : (
-                    "Criar Checklist"
+                    "Create Checklist"
                   )}
                 </Button>
               </DialogFooter>
@@ -694,69 +630,293 @@ const Checklists = () => {
           transition={{ duration: 0.5 }}
         >
           <ClipboardList className="h-16 w-16 text-travel-mustard/50 mb-4" />
-          <h3 className="text-xl font-medium text-travel-dark">Nenhuma checklist ainda</h3>
-          <p className="text-travel-dark/70 mb-4">Crie sua primeira checklist para começar a organizar suas tarefas</p>
+          <h3 className="text-xl font-medium text-travel-dark">No checklists yet</h3>
+          <p className="text-travel-dark/70 mb-4">Create your first checklist to start organizing your tasks</p>
           <Button 
             className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
             onClick={() => setIsAddDialogOpen(true)}
           >
             <PlusCircle className="mr-2 h-4 w-4" />
-            Criar Sua Primeira Checklist
+            Create Your First Checklist
           </Button>
         </motion.div>
       ) : (
-        <ChecklistListView 
-          checklists={checklists}
-          checklistItems={checklistItems}
-          onEdit={handleEditChecklist}
-          onDelete={(id) => deleteChecklistMutation.mutate(id)}
-          onChecklistView={handleViewChecklist}
-          onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({ id, completed })}
-          onDeleteItem={(id) => deleteChecklistItemMutation.mutate(id)}
-          onAddItem={handleAddItem}
-          onBulkAddItems={handleBulkAddItems}
-          onUpdateItemText={handleUpdateItemText}
-          onReorderItems={handleReorderItems}
-          onReorderChecklists={handleReorderChecklists}
-        />
+        <AnimatePresence mode="wait">
+          {viewMode === 'grid' ? (
+            <motion.div 
+              key="grid-view"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {checklists.map((checklist) => {
+                const completionPercentage = calculateCompletion(checklist.id);
+                const associatedPoint = getAssociatedPoint(checklist.pointId || checklist.point_id);
+                const items = checklistItems.filter(item => item.checklist_id === checklist.id);
+                
+                return (
+                  <motion.div
+                    key={checklist.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                    layout
+                  >
+                    <Card className="overflow-hidden">
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <CardTitle>{checklist.name}</CardTitle>
+                            <CardDescription className="mt-1">
+                              {new Date(checklist.createdAt || checklist.created_at).toLocaleDateString()}
+                            </CardDescription>
+                          </div>
+                          <div className="flex gap-1">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8"
+                                    onClick={() => handleEditChecklist(checklist.id)}
+                                  >
+                                    <Edit className="h-4 w-4 text-travel-blue" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Edit Checklist</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-8 w-8" 
+                                    onClick={() => deleteChecklistMutation.mutate(checklist.id)}
+                                  >
+                                    <Trash className="h-4 w-4 text-travel-red" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Delete Checklist</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-travel-dark/80 mb-4">{checklist.description || 'No description'}</p>
+                        
+                        {associatedPoint && (
+                          <div className="flex items-start gap-2 mb-4">
+                            <MapPin className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-travel-dark/70">{associatedPoint.name}</span>
+                          </div>
+                        )}
+                        
+                        <div className="mb-4">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs text-travel-dark/70">Completion</span>
+                            <span className="text-xs font-medium">{completionPercentage}%</span>
+                          </div>
+                          <Progress value={completionPercentage} className="h-2" />
+                        </div>
+                        
+                        <div className="space-y-2 mt-4">
+                          {items.slice(0, 3).map(item => (
+                            <div key={item.id} className="flex items-center justify-between group">
+                              <div className="flex items-center gap-2">
+                                <Checkbox 
+                                  id={`item-${item.id}`}
+                                  checked={item.completed}
+                                  onCheckedChange={(checked) => 
+                                    toggleChecklistItemMutation.mutate({
+                                      id: item.id,
+                                      completed: checked as boolean
+                                    })
+                                  }
+                                />
+                                <label
+                                  htmlFor={`item-${item.id}`}
+                                  className={`text-sm ${
+                                    item.completed ? 'line-through text-travel-dark/50' : 'text-travel-dark'
+                                  }`}
+                                >
+                                  {item.text}
+                                </label>
+                              </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                                onClick={() => {
+                                  const newText = prompt("Edit item:", item.text);
+                                  if (newText !== null) {
+                                    handleUpdateItemText(item.id, newText);
+                                  }
+                                }}
+                              >
+                                <Edit className="h-3 w-3 text-travel-blue" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
+                                onClick={() => deleteChecklistItemMutation.mutate(item.id)}
+                              >
+                                <Trash className="h-3 w-3 text-travel-red" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                        
+                        {items.length > 3 && (
+                          <div className="flex justify-center mt-4">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="text-travel-dark hover:bg-travel-light-mustard"
+                              onClick={() => handleViewChecklist(checklist.id)}
+                            >
+                              <ChevronDown className="h-4 w-4 mr-1" />
+                              Show {items.length - 3} more items
+                            </Button>
+                          </div>
+                        )}
+                      </CardContent>
+                      <CardFooter>
+                        <div className="w-full flex justify-between items-center">
+                          <div className="flex gap-3">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 text-travel-blue border-travel-blue/30 hover:bg-travel-light-blue/10 hover:text-travel-blue"
+                                    onClick={() => handleAddItem(checklist.id)}
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Add Item</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 text-travel-blue border-travel-blue/30 hover:bg-travel-light-blue/10 hover:text-travel-blue"
+                                    onClick={() => handleBulkAddItems(checklist.id)}
+                                  >
+                                    <ListPlus className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Bulk Add Items</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                          
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="icon"
+                                  className="h-8 w-8 text-travel-dark border-travel-dark/30 hover:bg-travel-dark/10"
+                                  onClick={() => handleViewChecklist(checklist.id)}
+                                >
+                                  <ListChecks className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>View All Items</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                      </CardFooter>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="list-view"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+            >
+              <ChecklistListView 
+                checklists={checklists}
+                checklistItems={checklistItems}
+                onEdit={handleEditChecklist}
+                onDelete={(id) => deleteChecklistMutation.mutate(id)}
+                onChecklistView={handleViewChecklist}
+                onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({ id, completed })}
+                onDeleteItem={(id) => deleteChecklistItemMutation.mutate(id)}
+                onAddItem={handleAddItem}
+                onBulkAddItems={handleBulkAddItems}
+                onUpdateItemText={handleUpdateItemText}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       )}
 
       {/* Edit Checklist Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Editar Checklist</DialogTitle>
+            <DialogTitle>Edit Checklist</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="edit-name">Nome</Label>
+              <Label htmlFor="edit-name">Name</Label>
               <Input
                 id="edit-name"
                 value={newChecklist.name}
                 onChange={(e) => setNewChecklist({ ...newChecklist, name: e.target.value })}
-                placeholder="ex: Itens Essenciais para Paris"
+                placeholder="e.g., Paris Trip Essentials"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-description">Descrição (opcional)</Label>
+              <Label htmlFor="edit-description">Description (optional)</Label>
               <Textarea
                 id="edit-description"
                 value={newChecklist.description || ''}
                 onChange={(e) => setNewChecklist({ ...newChecklist, description: e.target.value })}
-                placeholder="Breve descrição desta checklist..."
+                placeholder="Brief description of this checklist..."
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-point">Ponto Associado (opcional)</Label>
+              <Label htmlFor="edit-point">Associated Point (optional)</Label>
               <Select
                 value={newChecklist.pointId || 'none'}
                 onValueChange={(value) => setNewChecklist({ ...newChecklist, pointId: value === 'none' ? null : value })}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione um ponto" />
+                  <SelectValue placeholder="Select a point" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Nenhum</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {points.map((point) => (
                     <SelectItem key={point.id} value={point.id}>
                       {point.name}
@@ -775,7 +935,7 @@ const Checklists = () => {
                 resetChecklistForm();
               }}
             >
-              Cancelar
+              Cancel
             </Button>
             <Button
               onClick={handleUpdateChecklist}
@@ -785,10 +945,10 @@ const Checklists = () => {
               {updateChecklistMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Atualizando...
+                  Updating...
                 </>
               ) : (
-                "Atualizar Checklist"
+                "Update Checklist"
               )}
             </Button>
           </DialogFooter>
@@ -801,17 +961,17 @@ const Checklists = () => {
           <DialogHeader>
             <DialogTitle>{currentChecklist?.name}</DialogTitle>
             <DialogDescription>
-              {currentChecklist?.description || 'Sem descrição'}
+              {currentChecklist?.description || 'No description'}
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             {currentChecklist && (
               <>
-                {points.find(p => p.id === (currentChecklist.pointId || currentChecklist.point_id)) && (
+                {getAssociatedPoint(currentChecklist.pointId || currentChecklist.point_id) && (
                   <div className="flex items-start gap-2 mb-4">
                     <MapPin className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
                     <span className="text-sm text-travel-dark/70">
-                      {points.find(p => p.id === (currentChecklist.pointId || currentChecklist.point_id))?.name}
+                      {getAssociatedPoint(currentChecklist.pointId || currentChecklist.point_id)?.name}
                     </span>
                   </div>
                 )}
@@ -846,7 +1006,7 @@ const Checklists = () => {
                             size="sm"
                             className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
                             onClick={() => {
-                              const newText = prompt("Editar item:", item.text);
+                              const newText = prompt("Edit item:", item.text);
                               if (newText !== null) {
                                 handleUpdateItemText(item.id, newText);
                               }
@@ -869,7 +1029,7 @@ const Checklists = () => {
                 </div>
                 {checklistItems.filter(item => item.checklist_id === currentChecklist.id).length === 0 && (
                   <div className="text-center py-8 text-travel-dark/60">
-                    <p>Nenhum item nesta checklist ainda.</p>
+                    <p>No items in this checklist yet.</p>
                   </div>
                 )}
               </>
@@ -889,7 +1049,7 @@ const Checklists = () => {
                 }}
               >
                 <Plus className="h-4 w-4 mr-1" />
-                Adicionar Item
+                Add Item
               </Button>
               <Button
                 variant="outline"
@@ -902,15 +1062,15 @@ const Checklists = () => {
                   }
                 }}
               >
-                <ListChecks className="h-4 w-4 mr-1" />
-                Adicionar Vários
+                <ListPlus className="h-4 w-4 mr-1" />
+                Bulk Add
               </Button>
             </div>
             <Button
               variant="outline"
               onClick={() => setIsViewDialogOpen(false)}
             >
-              Fechar
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -920,25 +1080,25 @@ const Checklists = () => {
       <Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Adicionar Item a {currentChecklist?.name}</DialogTitle>
+            <DialogTitle>Add Item to {currentChecklist?.name}</DialogTitle>
             <DialogDescription>
-              Adicione um novo item à sua checklist.
+              Add a new item to your checklist.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="item-text">Texto do Item</Label>
+              <Label htmlFor="item-text">Item Text</Label>
               <Input
                 id="item-text"
                 value={newItemText}
                 onChange={(e) => setNewItemText(e.target.value)}
-                placeholder="ex: Passaporte"
+                placeholder="e.g., Pack passport"
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddItemDialogOpen(false)}>
-              Cancelar
+              Cancel
             </Button>
             <Button
               onClick={handleCreateItem}
@@ -948,10 +1108,10 @@ const Checklists = () => {
               {createChecklistItemMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Adicionando...
+                  Adding...
                 </>
               ) : (
-                "Adicionar Item"
+                "Add Item"
               )}
             </Button>
           </DialogFooter>
@@ -960,4 +1120,15 @@ const Checklists = () => {
 
       {/* Bulk Add Items Dialog */}
       <BulkItemsDialog
-        checklistId={
+        checklistId={currentChecklist?.id || ''}
+        checklistName={currentChecklist?.name || ''}
+        open={isBulkAddDialogOpen}
+        onOpenChange={setIsBulkAddDialogOpen}
+        onAddItems={handleCreateMultipleItems}
+        isAdding={createMultipleChecklistItemsMutation.isPending}
+      />
+    </PageContainer>
+  );
+};
+
+export default Checklists;
