@@ -22,7 +22,7 @@ const DraggableList: React.FC<DraggableListProps> = ({
           <div
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className={className}
+            className={`w-full transition-all ${className}`}
           >
             {children}
             {provided.placeholder}

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { List } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ChecklistViewToggleProps {
   currentView: 'list';
@@ -9,15 +10,16 @@ interface ChecklistViewToggleProps {
 }
 
 const ChecklistViewToggle: React.FC<ChecklistViewToggleProps> = ({ currentView, onViewChange }) => {
-  // Componente simplificado já que só temos o modo lista
+  const isMobile = useIsMobile();
+  
   return (
     <div className="flex items-center space-x-2 relative">
       <Button
         variant="default"
-        size="sm"
-        className="relative z-10 bg-travel-blue text-white"
+        size={isMobile ? "sm" : "default"}
+        className="relative z-10 bg-travel-blue text-white hover:bg-travel-blue/90 transition-all"
       >
-        <List className="h-4 w-4 mr-1" />
+        <List className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-1`} />
         Lista
       </Button>
     </div>

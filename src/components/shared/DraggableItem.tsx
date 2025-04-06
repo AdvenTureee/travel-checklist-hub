@@ -17,7 +17,7 @@ const DraggableItem: React.FC<DraggableItemProps> = ({ id, index, children, clas
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`${className} ${snapshot.isDragging ? 'opacity-70 z-10' : ''}`}
+          className={`w-full transition-all duration-200 ${className} ${snapshot.isDragging ? 'opacity-70 shadow-lg z-10 bg-travel-beige' : ''}`}
         >
           {children}
         </div>
