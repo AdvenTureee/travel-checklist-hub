@@ -412,14 +412,14 @@ const Shopping: React.FC = () => {
       <Card className="mb-6 overflow-hidden border-travel-light-blue/30">
         <CardHeader className="pb-4 bg-gradient-to-r from-travel-light-blue/30 to-travel-beige">
           <div className="flex justify-between items-center">
-            <CardTitle className="text-xl text-travel-dark">Shopping Summary</CardTitle>
+            <CardTitle className="text-xl text-travel-dark">Sumário</CardTitle>
             <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
               <CollapsibleTrigger className="rounded-full p-1 hover:bg-travel-beige/50">
                 {isExpanded ? <ChevronUp className="h-5 w-5 text-travel-dark/70" /> : <ChevronDown className="h-5 w-5 text-travel-dark/70" />}
               </CollapsibleTrigger>
             </Collapsible>
           </div>
-          <CardDescription>Track your shopping expenses and budget</CardDescription>
+          
         </CardHeader>
         
         <Collapsible open={isExpanded}>
@@ -429,7 +429,7 @@ const Shopping: React.FC = () => {
                 <div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-travel-beige/50 p-4 rounded-lg">
-                      <p className="text-sm text-travel-dark/70 mb-1">Total Items</p>
+                      <p className="text-sm text-travel-dark/70 mb-1">Total</p>
                       <div className="flex items-center">
                         <ShoppingCart className="h-5 w-5 text-travel-blue mr-2" />
                         <span className="text-2xl font-semibold text-travel-dark">{items.length}</span>
@@ -459,7 +459,7 @@ const Shopping: React.FC = () => {
                 <div className="bg-white p-4 rounded-lg border border-travel-light-blue/20 flex flex-col justify-between">
                   <div>
                     <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-md font-medium text-travel-dark">Budget Status</h3>
+                      <h3 className="text-md font-medium text-travel-dark">Status do orçamento</h3>
                       {budget && <span className="text-sm font-medium" style={{
                       color: calculateBudgetProgress() > 80 ? '#E63946' : calculateBudgetProgress() > 60 ? '#F5CB5C' : '#457B9D'
                     }}>
@@ -471,7 +471,7 @@ const Shopping: React.FC = () => {
                         <Progress value={calculateBudgetProgress()} className="h-2 mb-2" indicatorClassName={calculateBudgetProgress() > 80 ? "bg-travel-red" : calculateBudgetProgress() > 60 ? "bg-travel-mustard" : "bg-travel-blue"} />
                         
                         <div className="flex justify-between text-sm mb-4">
-                          <span className="text-travel-dark/70">Remaining:</span>
+                          <span className="text-travel-dark/70">Restante:</span>
                           <span className="font-medium text-travel-blue">${calculateRemainingBudget().toFixed(2)}</span>
                         </div>
                       </> : <div className="text-center py-2 text-travel-dark/70 text-sm mb-4">
@@ -503,11 +503,11 @@ const Shopping: React.FC = () => {
             <TableHeader>
               <TableRow>
                 <TableHead className="w-10"></TableHead>
-                <TableHead className="w-12">Image</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-12">Imagem</TableHead>
+                <TableHead>Nome</TableHead>
+                <TableHead>Preço</TableHead>
+                <TableHead>Localização</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
