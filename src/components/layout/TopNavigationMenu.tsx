@@ -32,7 +32,7 @@ export function TopNavigationMenu() {
   }} transition={{
     duration: 0.3
   }}>
-      <NavigationMenu className="bg-white shadow-md p-1 border border-travel-light-mustard my-0 px-[20px] rounded-2xl mx-[209px]">
+      <NavigationMenu className="bg-white shadow-md p-1 border border-travel-light-mustard my-0 px-[20px] rounded-2xl mx-0">
         <NavigationMenuList className="space-x-0.5 rounded-none">
           {menuItems.map(item => {
           const Icon = item.icon;
