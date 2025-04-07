@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,7 +7,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Loader2 } from 'lucide-react';
 import { Checklist, Point } from '@/lib/types';
-
 interface ChecklistFormProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -23,7 +21,6 @@ interface ChecklistFormProps {
   submitButtonText: string;
   loadingText: string;
 }
-
 const ChecklistDialog = ({
   isOpen,
   onOpenChange,
@@ -38,8 +35,7 @@ const ChecklistDialog = ({
   submitButtonText,
   loadingText
 }: ChecklistFormProps) => {
-  return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+  return <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
@@ -48,67 +44,46 @@ const ChecklistDialog = ({
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={checklist.name || ''}
-              onChange={(e) => onChecklistChange({ ...checklist, name: e.target.value })}
-              placeholder="e.g., Paris Trip Essentials"
-            />
+            <Input id="name" value={checklist.name || ''} onChange={e => onChecklistChange({
+            ...checklist,
+            name: e.target.value
+          })} placeholder="e.g., Paris Trip Essentials" />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="description">Description (optional)</Label>
-            <Textarea
-              id="description"
-              value={checklist.description || ''}
-              onChange={(e) => onChecklistChange({ ...checklist, description: e.target.value })}
-              placeholder="Brief description of this checklist..."
-            />
+            <Textarea id="description" value={checklist.description || ''} onChange={e => onChecklistChange({
+            ...checklist,
+            description: e.target.value
+          })} placeholder="Brief description of this checklist..." />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="point">Associated Point (optional)</Label>
-            <Select
-              value={checklist.pointId || 'none'}
-              onValueChange={(value) => onChecklistChange({ ...checklist, pointId: value === 'none' ? null : value })}
-            >
+            <Select value={checklist.pointId || 'none'} onValueChange={value => onChecklistChange({
+            ...checklist,
+            pointId: value === 'none' ? null : value
+          })}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a point" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">None</SelectItem>
-                {points.map((point) => (
-                  <SelectItem key={point.id} value={point.id}>
+                {points.map(point => <SelectItem key={point.id} value={point.id}>
                     {point.name}
-                  </SelectItem>
-                ))}
+                  </SelectItem>)}
               </SelectContent>
             </Select>
           </div>
         </div>
         <DialogFooter>
-          <Button 
-            variant="outline" 
-            onClick={onCancel}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={onSubmit}
-            disabled={isSubmitting}
-            className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
-          >
-            {isSubmitting ? (
-              <>
+          <Button variant="outline" onClick={onCancel}>Cancelar</Button>
+          <Button onClick={onSubmit} disabled={isSubmitting} className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
+            {isSubmitting ? <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {loadingText}
-              </>
-            ) : (
-              submitButtonText
-            )}
+              </> : submitButtonText}
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
-  );
+    </Dialog>;
 };
-
 export default ChecklistDialog;
