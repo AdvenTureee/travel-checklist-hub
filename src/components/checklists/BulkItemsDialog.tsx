@@ -10,7 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 interface BulkItemsDialogProps {
   checklistId: string;
   checklistName: string;
-  open: boolean;
+  open: boolean; // Corrected prop name from isOpen to open
   onOpenChange: (open: boolean) => void;
   onAddItems: (items: string[]) => void;
   isAdding: boolean;
@@ -19,7 +19,7 @@ interface BulkItemsDialogProps {
 const BulkItemsDialog: React.FC<BulkItemsDialogProps> = ({
   checklistId,
   checklistName,
-  open,
+  open, // Updated prop name from isOpen to open
   onOpenChange,
   onAddItems,
   isAdding

@@ -683,11 +683,12 @@ const Checklists = () => {
       {/* Bulk Add Items Dialog */}
       {currentChecklist && (
         <BulkItemsDialog
-          isOpen={isBulkAddDialogOpen}
-          onOpenChange={setIsBulkAddDialogOpen}
+          checklistId={currentChecklist.id}
           checklistName={currentChecklist.name}
+          open={isBulkAddDialogOpen}
+          onOpenChange={setIsBulkAddDialogOpen}
           onAddItems={handleCreateMultipleItems}
-          isSubmitting={createMultipleChecklistItemsMutation.isPending}
+          isAdding={createMultipleChecklistItemsMutation.isPending}
         />
       )}
     </PageContainer>
