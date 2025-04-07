@@ -566,29 +566,33 @@ const Checklists = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 divide-y divide-travel-dark/10"
             >
-              {checklists.map((checklist) => {
+              {checklists.map((checklist, index) => {
                 const completionPercentage = calculateCompletion(checklist.id);
                 const associatedPoint = getAssociatedPoint(checklist.pointId || checklist.point_id);
                 const items = checklistItems.filter(item => item.checklist_id === checklist.id);
                 
+                // Determine row start for clear visual separation
+                const rowIndex = Math.floor(index / (window.innerWidth >= 1024 ? 3 : window.innerWidth >= 768 ? 2 : 1));
+                
                 return (
-                  <ChecklistCard
-                    key={checklist.id}
-                    checklist={checklist}
-                    items={items}
-                    completionPercentage={completionPercentage}
-                    associatedPoint={associatedPoint}
-                    onEdit={handleEditChecklist}
-                    onDelete={(id) => deleteChecklistMutation.mutate(id)}
-                    onView={handleViewChecklist}
-                    onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({ id, completed })}
-                    onUpdateItemText={handleUpdateItemText}
-                    onDeleteItem={(id) => deleteChecklistItemMutation.mutate(id)}
-                    onAddItem={handleAddItem}
-                    onBulkAddItems={handleBulkAddItems}
-                  />
+                  <div key={checklist.id} className={`${rowIndex > 0 ? 'pt-6' : ''}`}>
+                    <ChecklistCard
+                      checklist={checklist}
+                      items={items}
+                      completionPercentage={completionPercentage}
+                      associatedPoint={associatedPoint}
+                      onEdit={handleEditChecklist}
+                      onDelete={(id) => deleteChecklistMutation.mutate(id)}
+                      onView={handleViewChecklist}
+                      onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({ id, completed })}
+                      onUpdateItemText={handleUpdateItemText}
+                      onDeleteItem={(id) => deleteChecklistItemMutation.mutate(id)}
+                      onAddItem={handleAddItem}
+                      onBulkAddItems={handleBulkAddItems}
+                    />
+                  </div>
                 );
               })}
             </motion.div>
