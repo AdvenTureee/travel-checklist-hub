@@ -34,9 +34,9 @@ export function TopNavigationMenu() {
 
   return (
     <motion.div 
-      className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      className="fixed left-1/2 top-4 transform -translate-x-1/2 z-50"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
       <NavigationMenu className="bg-white shadow-md p-1 border border-travel-light-mustard my-0 mx-0 px-[20px] rounded-2xl">

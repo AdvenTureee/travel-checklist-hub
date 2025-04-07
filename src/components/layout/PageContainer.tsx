@@ -11,7 +11,7 @@ interface PageContainerProps {
 export function PageContainer({ children, className }: PageContainerProps) {
   return (
     <motion.main 
-      className={cn("flex-1 overflow-auto p-6 min-h-screen w-full bg-background", className)}
+      className={cn("flex-1 overflow-auto p-6 pt-20 min-h-screen w-full bg-background", className)}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
