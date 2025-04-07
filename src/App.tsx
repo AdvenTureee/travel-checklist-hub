@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -13,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import RequireAuth from "@/components/layout/RequireAuth";
+import { TopNavigationMenu } from "@/components/layout/TopNavigationMenu";
 
 const App = () => {
   // Create the client as a state variable to ensure it's only created once
@@ -56,10 +56,38 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Navigate to="/auth" replace />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/points" element={<RequireAuth><Points /></RequireAuth>} />
-                <Route path="/checklists" element={<RequireAuth><Checklists /></RequireAuth>} />
-                <Route path="/shopping" element={<RequireAuth><Shopping /></RequireAuth>} />
-                <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+                <Route path="/points" element={
+                  <RequireAuth>
+                    <>
+                      <TopNavigationMenu />
+                      <Points />
+                    </>
+                  </RequireAuth>
+                } />
+                <Route path="/checklists" element={
+                  <RequireAuth>
+                    <>
+                      <TopNavigationMenu />
+                      <Checklists />
+                    </>
+                  </RequireAuth>
+                } />
+                <Route path="/shopping" element={
+                  <RequireAuth>
+                    <>
+                      <TopNavigationMenu />
+                      <Shopping />
+                    </>
+                  </RequireAuth>
+                } />
+                <Route path="/settings" element={
+                  <RequireAuth>
+                    <>
+                      <TopNavigationMenu />
+                      <Settings />
+                    </>
+                  </RequireAuth>
+                } />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </div>
