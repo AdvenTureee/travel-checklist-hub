@@ -292,7 +292,7 @@ const Points: React.FC = () => {
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
+            <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark mx-0 text-sm py-0 px-[10px] rounded-md font-normal">
               <PlusCircle className="mr-2 h-4 w-4" />
               Adicionar Ponto
             </Button>
