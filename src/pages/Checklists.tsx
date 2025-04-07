@@ -955,4 +955,4 @@ const Checklists = () => {
         </DialogContent>
       </Dialog>
 
-      {/* View Checklist
+      {/* View Checklist Dialog */}
