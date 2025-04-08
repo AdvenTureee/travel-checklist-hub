@@ -595,7 +595,7 @@ const Checklists = () => {
         x: -20
       }} transition={{
         duration: 0.3
-      }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 divide-y divide-travel-dark/10 py-[20px]">
+      }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 divide-y divide-travel-dark/10 py-0">
               {checklists.map((checklist, index) => {
           const completionPercentage = calculateCompletion(checklist.id);
           const associatedPoint = getAssociatedPoint(checklist.pointId || checklist.point_id);
