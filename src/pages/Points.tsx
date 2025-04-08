@@ -285,14 +285,14 @@ const Points: React.FC = () => {
       </PageContainer>;
   }
   return <PageContainer>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between mx-0">
         <div>
           <h1 className="text-3xl font-bold text-travel-dark">Pontos de Interesse</h1>
           <p className="text-travel-dark/70">Gerencie seus lugares e destinos favoritos</p>
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark mx-0 text-sm py-0 px-[10px] rounded-md font-medium text-center">
+            <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark text-sm py-0 rounded-md font-medium text-left px-0 mx-0">
               <PlusCircle className="mr-2 h-4 w-4" />
               Adicionar Ponto
             </Button>
