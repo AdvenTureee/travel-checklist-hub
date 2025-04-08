@@ -61,6 +61,27 @@
     @apply scroll-smooth;
   }
   
+  /* Padronização de listas */
+  ul {
+    @apply space-y-2 pl-6 list-disc marker:text-travel-mustard;
+  }
+
+  ol {
+    @apply space-y-2 pl-6 list-decimal marker:text-travel-mustard marker:font-medium;
+  }
+
+  dl {
+    @apply space-y-4;
+  }
+
+  dt {
+    @apply font-medium text-travel-dark;
+  }
+
+  dd {
+    @apply pl-4 text-travel-dark/80;
+  }
+  
   /* Hide focus outlines for non-keyboard users */
   body:not(.user-is-tabbing) :focus {
     outline: none;
@@ -108,6 +129,23 @@
   
   .mobile-safe-area {
     @apply px-4 py-2 sm:px-6 sm:py-4;
+  }
+  
+  /* Novas utilidades para o redesign */
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-pretty {
+    text-wrap: pretty;
+  }
+  
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .animate-breathe {
+    animation: breathe 3s ease-in-out infinite;
   }
 }
 

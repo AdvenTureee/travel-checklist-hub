@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -117,6 +118,14 @@ export default {
 				'spin': {
 					to: { transform: 'rotate(360deg)' },
 				},
+				'float': {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-10px)' },
+				},
+				'breathe': {
+					'0%, 100%': { transform: 'scale(1)' },
+					'50%': { transform: 'scale(1.05)' },
+				},
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
@@ -127,6 +136,8 @@ export default {
 				'slide-in-up': 'slideInUp 0.5s ease-out forwards',
 				'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
 				'spin': 'spin 1s linear infinite',
+				'float': 'float 3s ease-in-out infinite',
+				'breathe': 'breathe 3s ease-in-out infinite',
 			},
 			screens: {
 				'xs': '475px',
