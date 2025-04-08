@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Checklist, ChecklistItem } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
@@ -10,7 +9,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion } from 'framer-motion';
 import { Input } from '@/components/ui/input';
-
 interface ChecklistListViewProps {
   checklists: Checklist[];
   checklistItems: ChecklistItem[];
@@ -23,7 +21,6 @@ interface ChecklistListViewProps {
   onBulkAddItems?: (checklistId: string) => void;
   onUpdateItemText?: (id: string, text: string) => void;
 }
-
 const ChecklistListView: React.FC<ChecklistListViewProps> = ({
   checklists,
   checklistItems,
@@ -94,26 +91,24 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
     const items = checklistItems.filter(item => item.checklist_id === checklistId);
     if (items.length === 0) return 0;
     const completedItems = items.filter(item => item.completed).length;
-    return Math.round((completedItems / items.length) * 100);
+    return Math.round(completedItems / items.length * 100);
   };
-
-  return (
-    <TooltipProvider>
-      <div className="space-y-4">
+  return <TooltipProvider>
+      <div className="space-y-4 py-0 px-0 mx-[43px] my-px">
         {checklists.map(checklist => {
-          const items = checklistItems.filter(item => item.checklist_id === checklist.id);
-          const completionPercentage = calculateCompletion(checklist.id);
-          const isExpanded = expandedChecklists[checklist.id] || false;
-          
-          return (
-            <motion.div 
-              key={checklist.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              layout
-            >
-              <Card className="border-l-4 border-l-travel-blue">
+        const items = checklistItems.filter(item => item.checklist_id === checklist.id);
+        const completionPercentage = calculateCompletion(checklist.id);
+        const isExpanded = expandedChecklists[checklist.id] || false;
+        return <motion.div key={checklist.id} initial={{
+          opacity: 0,
+          y: 20
+        }} animate={{
+          opacity: 1,
+          y: 0
+        }} transition={{
+          duration: 0.3
+        }} layout className="px-[37px] py-[59px] my-[15px] mx-[35px]">
+              <Card className="border-l-4 border-l-travel-blue px-[12px]">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">
                     <div>
@@ -125,12 +120,7 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                     <div className="flex space-x-1">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => onEdit(checklist.id)}
-                          >
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEdit(checklist.id)}>
                             <Edit className="h-4 w-4 text-travel-blue" />
                           </Button>
                         </TooltipTrigger>
@@ -141,12 +131,7 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                       
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => onDelete(checklist.id)}
-                          >
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onDelete(checklist.id)}>
                             <Trash className="h-4 w-4 text-travel-red" />
                           </Button>
                         </TooltipTrigger>
@@ -171,158 +156,81 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                       <div className="text-sm font-medium">Items ({items.length})</div>
                       <CollapsibleTrigger asChild>
                         <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
-                          {isExpanded ? 
-                            <ChevronUp className="h-4 w-4" /> : 
-                            <ChevronDown className="h-4 w-4" />
-                          }
+                          {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </Button>
                       </CollapsibleTrigger>
                     </div>
                     
-                    {!isExpanded && items.length > 0 && (
-                      <div className="space-y-2 mt-4">
-                        {items.slice(0, 3).map(item => (
-                          <div key={item.id} className="flex items-center justify-between group">
+                    {!isExpanded && items.length > 0 && <div className="space-y-2 mt-4">
+                        {items.slice(0, 3).map(item => <div key={item.id} className="flex items-center justify-between group">
                             <div className="flex items-center gap-2">
-                              <Checkbox
-                                id={`list-item-${item.id}`}
-                                checked={item.completed}
-                                onCheckedChange={(checked) => 
-                                  onToggleItem(item.id, checked as boolean)
-                                }
-                              />
-                              <label
-                                htmlFor={`list-item-${item.id}`}
-                                className={`text-sm ${
-                                  item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                                }`}
-                              >
+                              <Checkbox id={`list-item-${item.id}`} checked={item.completed} onCheckedChange={checked => onToggleItem(item.id, checked as boolean)} />
+                              <label htmlFor={`list-item-${item.id}`} className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                                 {item.text}
                               </label>
                             </div>
                             <div className="flex items-center opacity-0 group-hover:opacity-100">
-                              {onUpdateItemText && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-6 w-6 p-0 mr-1"
-                                  onClick={() => handleStartEdit(item)}
-                                >
+                              {onUpdateItemText && <Button variant="ghost" size="sm" className="h-6 w-6 p-0 mr-1" onClick={() => handleStartEdit(item)}>
                                   <Edit className="h-3 w-3 text-travel-blue" />
-                                </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0"
-                                onClick={() => onDeleteItem(item.id)}
-                              >
+                                </Button>}
+                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => onDeleteItem(item.id)}>
                                 <Trash className="h-3 w-3 text-travel-red" />
                               </Button>
                             </div>
-                          </div>
-                        ))}
-                        {items.length > 3 && (
-                          <div className="text-sm text-muted-foreground mt-1">
+                          </div>)}
+                        {items.length > 3 && <div className="text-sm text-muted-foreground mt-1">
                             + {items.length - 3} more items
-                          </div>
-                        )}
-                      </div>
-                    )}
+                          </div>}
+                      </div>}
                     
-                    <CollapsibleContent 
-                      className="transition-all data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up"
-                    >
-                      <motion.div 
-                        className="space-y-2 mt-2 max-h-[300px] overflow-y-auto pr-1"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.3, delay: 0.1 }}
-                      >
-                        {items.map(item => (
-                          <motion.div 
-                            key={item.id} 
-                            className="flex items-center justify-between group"
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.2 }}
-                          >
-                            {editingItemId === item.id ? (
-                              <div className="flex-1 flex items-center gap-2">
-                                <Input
-                                  ref={inputRef}
-                                  value={editingText}
-                                  onChange={(e) => setEditingText(e.target.value)}
-                                  onKeyDown={handleKeyDown}
-                                  className="h-7 py-1 text-sm"
-                                />
+                    <CollapsibleContent className="transition-all data-[state=open]:animate-collapsible-down data-[state=closed]:animate-collapsible-up">
+                      <motion.div className="space-y-2 mt-2 max-h-[300px] overflow-y-auto pr-1" initial={{
+                    opacity: 0
+                  }} animate={{
+                    opacity: 1
+                  }} transition={{
+                    duration: 0.3,
+                    delay: 0.1
+                  }}>
+                        {items.map(item => <motion.div key={item.id} className="flex items-center justify-between group" initial={{
+                      opacity: 0,
+                      y: 10
+                    }} animate={{
+                      opacity: 1,
+                      y: 0
+                    }} transition={{
+                      duration: 0.2
+                    }}>
+                            {editingItemId === item.id ? <div className="flex-1 flex items-center gap-2">
+                                <Input ref={inputRef} value={editingText} onChange={e => setEditingText(e.target.value)} onKeyDown={handleKeyDown} className="h-7 py-1 text-sm" />
                                 <div className="flex items-center">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0 text-green-600"
-                                    onClick={handleSaveEdit}
-                                  >
+                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-green-600" onClick={handleSaveEdit}>
                                     <Check className="h-4 w-4" />
                                   </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0 text-travel-red"
-                                    onClick={handleCancelEdit}
-                                  >
+                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-travel-red" onClick={handleCancelEdit}>
                                     <X className="h-4 w-4" />
                                   </Button>
                                 </div>
-                              </div>
-                            ) : (
-                              <>
+                              </div> : <>
                                 <div className="flex items-center gap-2">
-                                  <Checkbox
-                                    id={`expanded-item-${item.id}`}
-                                    checked={item.completed}
-                                    onCheckedChange={(checked) => 
-                                      onToggleItem(item.id, checked as boolean)
-                                    }
-                                  />
-                                  <label
-                                    htmlFor={`expanded-item-${item.id}`}
-                                    className={`text-sm ${
-                                      item.completed ? 'line-through text-muted-foreground' : 'text-foreground'
-                                    }`}
-                                  >
+                                  <Checkbox id={`expanded-item-${item.id}`} checked={item.completed} onCheckedChange={checked => onToggleItem(item.id, checked as boolean)} />
+                                  <label htmlFor={`expanded-item-${item.id}`} className={`text-sm ${item.completed ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
                                     {item.text}
                                   </label>
                                 </div>
                                 <div className="flex items-center opacity-0 group-hover:opacity-100">
-                                  {onUpdateItemText && (
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      className="h-6 w-6 p-0 mr-1"
-                                      onClick={() => handleStartEdit(item)}
-                                    >
+                                  {onUpdateItemText && <Button variant="ghost" size="sm" className="h-6 w-6 p-0 mr-1" onClick={() => handleStartEdit(item)}>
                                       <Edit className="h-3 w-3 text-travel-blue" />
-                                    </Button>
-                                  )}
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-6 w-6 p-0"
-                                    onClick={() => onDeleteItem(item.id)}
-                                  >
+                                    </Button>}
+                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => onDeleteItem(item.id)}>
                                     <Trash className="h-3 w-3 text-travel-red" />
                                   </Button>
                                 </div>
-                              </>
-                            )}
-                          </motion.div>
-                        ))}
-                        {items.length === 0 && (
-                          <div className="text-center py-4 text-muted-foreground text-sm">
+                              </>}
+                          </motion.div>)}
+                        {items.length === 0 && <div className="text-center py-4 text-muted-foreground text-sm">
                             No items in this checklist yet
-                          </div>
-                        )}
+                          </div>}
                       </motion.div>
                     </CollapsibleContent>
                   </Collapsible>
@@ -331,12 +239,7 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                   <div className="flex space-x-3">
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-travel-blue"
-                          onClick={() => onAddItem(checklist.id)}
-                        >
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-travel-blue" onClick={() => onAddItem(checklist.id)}>
                           <Plus className="h-4 w-4" />
                         </Button>
                       </TooltipTrigger>
@@ -345,32 +248,20 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                       </TooltipContent>
                     </Tooltip>
                     
-                    {onBulkAddItems && (
-                      <Tooltip>
+                    {onBulkAddItems && <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-travel-blue"
-                            onClick={() => onBulkAddItems(checklist.id)}
-                          >
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-travel-blue" onClick={() => onBulkAddItems(checklist.id)}>
                             <ListPlus className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent>
                           <p>Bulk Add Items</p>
                         </TooltipContent>
-                      </Tooltip>
-                    )}
+                      </Tooltip>}
                   </div>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => onChecklistView(checklist.id)}
-                        className="h-8 w-8 text-travel-dark"
-                      >
+                      <Button variant="outline" size="icon" onClick={() => onChecklistView(checklist.id)} className="h-8 w-8 text-travel-dark">
                         <ListChecks className="h-4 w-4" />
                       </Button>
                     </TooltipTrigger>
@@ -380,12 +271,9 @@ const ChecklistListView: React.FC<ChecklistListViewProps> = ({
                   </Tooltip>
                 </CardFooter>
               </Card>
-            </motion.div>
-          );
-        })}
+            </motion.div>;
+      })}
       </div>
-    </TooltipProvider>
-  );
+    </TooltipProvider>;
 };
-
 export default ChecklistListView;
