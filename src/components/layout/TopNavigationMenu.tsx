@@ -48,7 +48,7 @@ export function TopNavigationMenu() {
                     <TooltipTrigger asChild>
                       <Link to={item.to}>
                         <div className={cn("flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200", isActive ? "bg-travel-mustard text-travel-dark scale-110 shadow-sm" : "hover:bg-travel-light-mustard/50 text-travel-dark/70 hover:scale-105")} aria-label={item.label}>
-                          <Icon className="h-5 w-5" />
+                          <Icon className="h-5 w-5 mx-0 my-0 px-0 py-0 rounded-none" />
                         </div>
                       </Link>
                     </TooltipTrigger>

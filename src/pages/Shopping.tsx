@@ -397,19 +397,19 @@ const Shopping: React.FC = () => {
       </PageContainer>;
   }
   return <PageContainer>
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between mx-[160px]">
         <div>
           <h1 className="text-3xl font-bold text-travel-dark">Lista de compras</h1>
           <p className="text-travel-dark/70">Rastreie os itens que você deseja comprar durante sua viagem</p>
         </div>
-        <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark" onClick={() => setIsAddDialogOpen(true)}>
+        <Button onClick={() => setIsAddDialogOpen(true)} className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark mx-0">
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Item
         </Button>
       </div>
 
       {/* Improved Summary Card */}
-      <Card className="mb-6 overflow-hidden border-travel-light-blue/30">
+      <Card className="mb-6 overflow-hidden border-travel-light-blue/30 mx-[160px]">
         <CardHeader className="pb-4 bg-gradient-to-r from-travel-light-blue/30 to-travel-beige">
           <div className="flex justify-between items-center">
             <CardTitle className="text-xl text-travel-dark">Sumário</CardTitle>
@@ -502,7 +502,7 @@ const Shopping: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-10"></TableHead>
+                <TableHead className="w-10 mx-0"></TableHead>
                 <TableHead className="w-12">Imagem</TableHead>
                 <TableHead>Nome</TableHead>
                 <TableHead>Preço</TableHead>
