@@ -46,12 +46,12 @@ const ChecklistCard = ({
       transition={{ duration: 0.3 }}
       layout
     >
-      <Card className="overflow-hidden">
-        <CardHeader>
+      <Card className="overflow-hidden shadow-md border-l-4 border-l-travel-blue hover:shadow-lg transition-shadow duration-300">
+        <CardHeader className="pb-2 bg-gradient-to-r from-white to-travel-beige/30">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{checklist.name}</CardTitle>
-              <CardDescription className="mt-1">
+              <CardTitle className="text-xl text-travel-dark">{checklist.name}</CardTitle>
+              <CardDescription className="mt-1 text-travel-dark/70">
                 {new Date(checklist.createdAt || checklist.created_at).toLocaleDateString()}
               </CardDescription>
             </div>
@@ -62,7 +62,7 @@ const ChecklistCard = ({
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8"
+                      className="h-8 w-8 hover:bg-travel-light-blue/20"
                       onClick={() => onEdit(checklist.id)}
                     >
                       <Edit className="h-4 w-4 text-travel-blue" />
@@ -80,7 +80,7 @@ const ChecklistCard = ({
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="h-8 w-8" 
+                      className="h-8 w-8 hover:bg-travel-light-red/20" 
                       onClick={() => onDelete(checklist.id)}
                     >
                       <Trash className="h-4 w-4 text-travel-red" />
@@ -94,65 +94,68 @@ const ChecklistCard = ({
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-travel-dark/80 mb-4">{checklist.description || 'No description'}</p>
+        <CardContent className="pt-4">
+          <p className="text-sm text-travel-dark/80 mb-4 line-clamp-2">{checklist.description || 'No description'}</p>
           
           {associatedPoint && (
-            <div className="flex items-start gap-2 mb-4">
+            <div className="flex items-start gap-2 mb-4 p-2 bg-travel-beige rounded-md">
               <MapPin className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
-              <span className="text-sm text-travel-dark/70">{associatedPoint.name}</span>
+              <span className="text-sm text-travel-dark/80">{associatedPoint.name}</span>
             </div>
           )}
           
           <div className="mb-4">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-xs text-travel-dark/70">Completion</span>
-              <span className="text-xs font-medium">{completionPercentage}%</span>
+              <span className="text-xs font-medium text-travel-dark/70">Completion</span>
+              <span className="text-xs font-semibold">{completionPercentage}%</span>
             </div>
-            <Progress value={completionPercentage} className="h-2" />
+            <Progress value={completionPercentage} className="h-2.5 bg-travel-beige" indicatorClassName="bg-gradient-to-r from-travel-blue to-travel-light-blue" />
           </div>
           
           <div className="space-y-2 mt-4">
             {items.slice(0, 3).map(item => (
-              <div key={item.id} className="flex items-center justify-between group">
-                <div className="flex items-center gap-2">
+              <div key={item.id} className="flex items-center justify-between group p-2 rounded-md hover:bg-travel-beige/50 transition-colors">
+                <div className="flex items-center gap-2 flex-grow">
                   <Checkbox 
                     id={`item-${item.id}`}
                     checked={item.completed}
                     onCheckedChange={(checked) => 
                       onToggleItem(item.id, checked as boolean)
                     }
+                    className="border-travel-blue data-[state=checked]:bg-travel-blue data-[state=checked]:text-white"
                   />
                   <label
                     htmlFor={`item-${item.id}`}
-                    className={`text-sm ${
+                    className={`text-sm transition-all ${
                       item.completed ? 'line-through text-travel-dark/50' : 'text-travel-dark'
                     }`}
                   >
                     {item.text}
                   </label>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                  onClick={() => {
-                    const newText = prompt("Edit item:", item.text);
-                    if (newText !== null) {
-                      onUpdateItemText(item.id, newText);
-                    }
-                  }}
-                >
-                  <Edit className="h-3 w-3 text-travel-blue" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                  onClick={() => onDeleteItem(item.id)}
-                >
-                  <Trash className="h-3 w-3 text-travel-red" />
-                </Button>
+                <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 hover:bg-travel-light-blue/20"
+                    onClick={() => {
+                      const newText = prompt("Edit item:", item.text);
+                      if (newText !== null) {
+                        onUpdateItemText(item.id, newText);
+                      }
+                    }}
+                  >
+                    <Edit className="h-3 w-3 text-travel-blue" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 w-6 p-0 ml-1 hover:bg-travel-light-red/20"
+                    onClick={() => onDeleteItem(item.id)}
+                  >
+                    <Trash className="h-3 w-3 text-travel-red" />
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -162,7 +165,7 @@ const ChecklistCard = ({
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="text-travel-dark hover:bg-travel-light-mustard"
+                className="text-travel-dark hover:bg-travel-light-mustard font-medium"
                 onClick={() => onView(checklist.id)}
               >
                 <ChevronDown className="h-4 w-4 mr-1" />
@@ -171,7 +174,7 @@ const ChecklistCard = ({
             </div>
           )}
         </CardContent>
-        <CardFooter>
+        <CardFooter className="bg-travel-beige/30 border-t border-travel-beige">
           <div className="w-full flex justify-between items-center">
             <div className="flex gap-3">
               <TooltipProvider>

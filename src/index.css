@@ -1,4 +1,3 @@
-
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
@@ -61,7 +60,26 @@
     @apply scroll-smooth;
   }
   
-  /* Padronização de listas */
+  /* Custom scrollbar styles */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground));
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary));
+  }
+  
+  /* Standardized lists */
   ul {
     @apply space-y-2 pl-6 list-disc marker:text-travel-mustard;
   }
@@ -146,6 +164,21 @@
   
   .animate-breathe {
     animation: breathe 3s ease-in-out infinite;
+  }
+  
+  /* Enhanced progress bar styles */
+  .progress-indicator {
+    @apply bg-gradient-to-r from-travel-blue to-travel-light-blue;
+  }
+  
+  /* Enhanced card styles */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-md hover:-translate-y-1;
+  }
+  
+  /* Checklist specific utilities */
+  .checklist-item-hover {
+    @apply hover:bg-travel-beige/50 transition-colors duration-150;
   }
 }
 
