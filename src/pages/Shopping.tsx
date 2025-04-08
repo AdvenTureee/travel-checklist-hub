@@ -397,7 +397,7 @@ const Shopping: React.FC = () => {
       </PageContainer>;
   }
   return <PageContainer>
-      <div className="mb-6 flex items-center justify-between mx-[160px]">
+      <div className="mb-6 flex items-center justify-between mx-0">
         <div>
           <h1 className="text-3xl font-bold text-travel-dark">Lista de compras</h1>
           <p className="text-travel-dark/70">Rastreie os itens que você deseja comprar durante sua viagem</p>
@@ -409,7 +409,7 @@ const Shopping: React.FC = () => {
       </div>
 
       {/* Improved Summary Card */}
-      <Card className="mb-6 overflow-hidden border-travel-light-blue/30 mx-[160px]">
+      <Card className="mb-6 overflow-hidden border-travel-light-blue/30 mx-0">
         <CardHeader className="pb-4 bg-gradient-to-r from-travel-light-blue/30 to-travel-beige">
           <div className="flex justify-between items-center">
             <CardTitle className="text-xl text-travel-dark">Sumário</CardTitle>
