@@ -38,7 +38,7 @@ export function TopNavigationMenu() {
     duration: 0.3
   }}>
       <NavigationMenu className="bg-white/90 backdrop-blur-sm shadow-md p-1 border border-travel-light-mustard/50 rounded-full mx-0 px-0 py-[5px] my-[11px]">
-        <NavigationMenuList className="space-x-2 rounded-none">
+        <NavigationMenuList className="space-x-2 rounded-none py-0 px-[10px] mx-0 my-[5px]">
           <TooltipProvider delayDuration={300}>
             {menuItems.map(item => {
             const Icon = item.icon;
