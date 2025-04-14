@@ -2,13 +2,13 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
-import { MapPin, ListChecks, ShoppingCart, Settings } from 'lucide-react';
+import { Home, ListChecks, ShoppingCart, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 export function TopNavigationMenu() {
   const location = useLocation();
   const menuItems = [{
-    icon: MapPin,
+    icon: Home,
     label: 'Pontos',
     to: '/points',
     description: 'Gerencie seus pontos de interesse'
@@ -48,7 +48,7 @@ export function TopNavigationMenu() {
                     <TooltipTrigger asChild>
                       <Link to={item.to}>
                         <div className={cn("flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200", isActive ? "bg-travel-mustard text-travel-dark scale-110 shadow-sm" : "hover:bg-travel-light-mustard/50 text-travel-dark/70 hover:scale-105")} aria-label={item.label}>
-                          <Icon className="h-5 w-5 mx-0 my-0 px-0 py-0 rounded-none" />
+                          <Icon className="w-6 h-6 min-w-6 min-h-6 max-w-6 max-h-6 mx-0 my-0 px-0 py-0 rounded-none flex-shrink-0 flex-grow-0" />
                         </div>
                       </Link>
                     </TooltipTrigger>

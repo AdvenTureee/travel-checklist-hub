@@ -43,30 +43,30 @@ const ChecklistDialog = ({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
+            <Label htmlFor="name">Nome</Label>
             <Input id="name" value={checklist.name || ''} onChange={e => onChecklistChange({
             ...checklist,
             name: e.target.value
-          })} placeholder="e.g., Paris Trip Essentials" />
+          })} placeholder="ex: Itens essenciais para Paris" />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="description">Description (optional)</Label>
+            <Label htmlFor="description">Descrição (opcional)</Label>
             <Textarea id="description" value={checklist.description || ''} onChange={e => onChecklistChange({
             ...checklist,
             description: e.target.value
-          })} placeholder="Brief description of this checklist..." />
+          })} placeholder="Breve descrição desta checklist..." />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="point">Associated Point (optional)</Label>
+            <Label htmlFor="point">Ponto associado (opcional)</Label>
             <Select value={checklist.pointId || 'none'} onValueChange={value => onChecklistChange({
             ...checklist,
             pointId: value === 'none' ? null : value
           })}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a point" />
+                <SelectValue placeholder="Selecione um ponto" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="none">Nenhum</SelectItem>
                 {points.map(point => <SelectItem key={point.id} value={point.id}>
                     {point.name}
                   </SelectItem>)}
@@ -75,15 +75,27 @@ const ChecklistDialog = ({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>Cancelar</Button>
-          <Button onClick={onSubmit} disabled={isSubmitting} className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
-            {isSubmitting ? <>
+          <Button variant="outline" onClick={onCancel}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={onSubmit}
+            disabled={isSubmitting}
+            className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+          >
+            {isSubmitting ? (
+              <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 {loadingText}
-              </> : submitButtonText}
+              </>
+            ) : (
+              submitButtonText
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
-    </Dialog>;
-};
+    </Dialog>
+  }
+
+
 export default ChecklistDialog;

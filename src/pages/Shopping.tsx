@@ -133,14 +133,14 @@ const Shopping: React.FC = () => {
       });
       setIsAddDialogOpen(false);
       toast({
-        title: "Item added",
-        description: `${newItem.name} has been added to your shopping list.`
+        title: "Item adicionado",
+        description: `${newItem.name} foi adicionado à sua lista de compras.`
       });
       resetForm();
     },
     onError: (error: any) => {
       toast({
-        title: "Error adding item",
+        title: "Erro ao adicionar item",
         description: error.message,
         variant: "destructive"
       });
@@ -176,14 +176,14 @@ const Shopping: React.FC = () => {
       setIsEditDialogOpen(false);
       setEditItemId(null);
       toast({
-        title: "Item updated",
-        description: `${newItem.name} has been updated.`
+        title: "Item atualizado",
+        description: `${newItem.name} foi atualizado.`
       });
       resetForm();
     },
     onError: (error: any) => {
       toast({
-        title: "Error updating item",
+        title: "Erro ao atualizar item",
         description: error.message,
         variant: "destructive"
       });
@@ -205,13 +205,13 @@ const Shopping: React.FC = () => {
       });
       const itemToDelete = items.find(i => i.id === id);
       toast({
-        title: "Item deleted",
-        description: `${itemToDelete?.name} has been removed.`
+        title: "Item excluído",
+        description: `${itemToDelete?.name} foi removido.`
       });
     },
     onError: (error: any) => {
       toast({
-        title: "Error deleting item",
+        title: "Erro ao excluir item",
         description: error.message,
         variant: "destructive"
       });
@@ -243,7 +243,7 @@ const Shopping: React.FC = () => {
     },
     onError: (error: any) => {
       toast({
-        title: "Error updating status",
+        title: "Erro ao atualizar status",
         description: error.message,
         variant: "destructive"
       });
@@ -284,14 +284,14 @@ const Shopping: React.FC = () => {
       });
       setIsBudgetDialogOpen(false);
       toast({
-        title: "Budget updated",
-        description: "Your shopping budget has been updated."
+        title: "Orçamento atualizado",
+        description: "Seu orçamento de compras foi atualizado."
       });
       setNewBudget(0);
     },
     onError: (error: any) => {
       toast({
-        title: "Error updating budget",
+        title: "Erro ao atualizar orçamento",
         description: error.message,
         variant: "destructive"
       });
@@ -357,8 +357,8 @@ const Shopping: React.FC = () => {
   const handleUpdateBudget = () => {
     if (newBudget <= 0) {
       toast({
-        title: "Invalid budget",
-        description: "Please enter a valid budget amount greater than zero.",
+        title: "Orçamento inválido",
+        description: "Por favor, insira um valor de orçamento maior que zero.",
         variant: "destructive"
       });
       return;
@@ -392,7 +392,7 @@ const Shopping: React.FC = () => {
     return <PageContainer>
         <div className="flex justify-center items-center h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-travel-blue" />
-          <span className="ml-2">Loading shopping items...</span>
+          <span className="ml-2">Carregando itens de compras...</span>
         </div>
       </PageContainer>;
   }
@@ -404,7 +404,7 @@ const Shopping: React.FC = () => {
         </div>
         <Button onClick={() => setIsAddDialogOpen(true)} className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark mx-0">
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Item
+          Adicionar Item
         </Button>
       </div>
 
@@ -412,7 +412,7 @@ const Shopping: React.FC = () => {
       <Card className="mb-6 overflow-hidden border-travel-light-blue/30 mx-0">
         <CardHeader className="pb-4 bg-gradient-to-r from-travel-light-blue/30 to-travel-beige">
           <div className="flex justify-between items-center">
-            <CardTitle className="text-xl text-travel-dark">Sumário</CardTitle>
+            <CardTitle className="text-xl text-travel-dark">Resumo</CardTitle>
             <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
               <CollapsibleTrigger className="rounded-full p-1 hover:bg-travel-beige/50">
                 {isExpanded ? <ChevronUp className="h-5 w-5 text-travel-dark/70" /> : <ChevronDown className="h-5 w-5 text-travel-dark/70" />}
@@ -429,27 +429,27 @@ const Shopping: React.FC = () => {
                 <div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-travel-beige/50 p-4 rounded-lg">
-                      <p className="text-sm text-travel-dark/70 mb-1">Total</p>
+                      <p className="text-sm text-travel-dark/70 mb-1">Total de itens</p>
                       <div className="flex items-center">
                         <ShoppingCart className="h-5 w-5 text-travel-blue mr-2" />
                         <span className="text-2xl font-semibold text-travel-dark">{items.length}</span>
                       </div>
                       <div className="mt-2 text-sm">
-                        <span className="text-travel-blue font-medium">{items.filter(item => item.purchased).length}</span> purchased
-                        <span className="mx-2">•</span>
-                        <span className="text-travel-mustard font-medium">{items.filter(item => !item.purchased).length}</span> remaining
+                        <span className="text-travel-blue font-medium">{items.filter(item => item.purchased).length}</span> comprados
+                            <span className="mx-2">•</span>
+                            <span className="text-travel-mustard font-medium">{items.filter(item => !item.purchased).length}</span> restantes
                       </div>
                     </div>
                     
                     <div className="bg-travel-beige/50 p-4 rounded-lg">
-                      <p className="text-sm text-travel-dark/70 mb-1">Total Cost</p>
+                      <p className="text-sm text-travel-dark/70 mb-1">Custo total</p>
                       <div className="flex items-center">
                         <DollarSign className="h-5 w-5 text-travel-mustard mr-2" />
                         <span className="text-2xl font-semibold text-travel-dark">${calculateTotal().toFixed(2)}</span>
                       </div>
                       <div className="mt-2 text-sm">
                         <span className="text-travel-dark/70">
-                          {budget ? `of $${budget.amount.toFixed(2)} budget` : 'No budget set'}
+                          {budget ? `de $${budget.amount.toFixed(2)} de orçamento` : 'Nenhum orçamento definido'}
                         </span>
                       </div>
                     </div>
@@ -463,7 +463,7 @@ const Shopping: React.FC = () => {
                       {budget && <span className="text-sm font-medium" style={{
                       color: calculateBudgetProgress() > 80 ? '#E63946' : calculateBudgetProgress() > 60 ? '#F5CB5C' : '#457B9D'
                     }}>
-                          {calculateBudgetProgress()}% used
+                          {calculateBudgetProgress()}% usado
                         </span>}
                     </div>
                     
@@ -475,13 +475,13 @@ const Shopping: React.FC = () => {
                           <span className="font-medium text-travel-blue">${calculateRemainingBudget().toFixed(2)}</span>
                         </div>
                       </> : <div className="text-center py-2 text-travel-dark/70 text-sm mb-4">
-                        No budget defined yet
+                        Nenhum orçamento definido ainda
                       </div>}
                   </div>
                   
                   <Button variant="outline" className="border-travel-mustard text-travel-dark hover:bg-travel-mustard/20" onClick={handleOpenBudgetDialog}>
                     <Plus className="h-4 w-4 mr-2" />
-                    {budget ? 'Update Budget' : 'Add Budget'}
+                    {budget ? 'Atualizar orçamento' : 'Adicionar orçamento'}
                   </Button>
                 </div>
               </div>
@@ -491,14 +491,14 @@ const Shopping: React.FC = () => {
       </Card>
 
       {items.length === 0 ? <div className="flex flex-col items-center justify-center h-[400px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">
-          <ShoppingCart className="h-16 w-16 text-travel-mustard/50 mb-4" />
-          <h3 className="text-xl font-medium text-travel-dark">No items in your shopping list</h3>
-          <p className="text-travel-dark/70 mb-4">Start adding items you want to buy during your trip</p>
-          <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark" onClick={() => setIsAddDialogOpen(true)}>
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Your First Item
-          </Button>
-        </div> : <div className="overflow-x-auto">
+            <ShoppingCart className="h-16 w-16 text-travel-mustard/50 mb-4" />
+            <h3 className="text-xl font-medium text-travel-dark">Nenhum item na sua lista de compras</h3>
+            <p className="text-travel-dark/70 mb-4">Adicione itens que deseja comprar durante sua viagem</p>
+            <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark" onClick={() => setIsAddDialogOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Adicionar primeiro item
+            </Button>
+          </div> : <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -513,7 +513,7 @@ const Shopping: React.FC = () => {
             <TableBody>
               {items.map(item => <TableRow key={item.id} className={item.purchased ? "bg-travel-beige/20 opacity-75" : ""}>
                   <TableCell>
-                    <Button variant="ghost" size="icon" className={`h-8 w-8 ${item.purchased ? 'bg-travel-mustard/10' : 'bg-travel-light-blue/20'}`} onClick={() => handleTogglePurchased(item.id, item.purchased)} aria-label={item.purchased ? "Mark as not purchased" : "Mark as purchased"}>
+                    <Button variant="ghost" size="icon" className={`h-8 w-8 ${item.purchased ? 'bg-travel-mustard/10' : 'bg-travel-light-blue/20'}`} onClick={() => handleTogglePurchased(item.id, item.purchased)} aria-label={item.purchased ? "Marcar como não comprado" : "Marcar como comprado"}>
                       {item.purchased ? <Check className="h-4 w-4 text-travel-mustard" /> : <ShoppingCart className="h-4 w-4 text-travel-blue" />}
                     </Button>
                   </TableCell>

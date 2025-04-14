@@ -149,15 +149,15 @@ const Checklists = () => {
       });
       setIsAddDialogOpen(false);
       toast({
-        title: "Checklist created",
-        description: "Your new checklist has been created successfully."
+        title: "Checklist criada",
+        description: "Sua nova checklist foi criada com sucesso."
       });
       resetChecklistForm();
     },
     onError: error => {
       toast({
-        title: "Error",
-        description: `Failed to create checklist: ${error.message}`,
+        title: "Erro",
+        description: `Falha ao criar checklist: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -189,16 +189,16 @@ const Checklists = () => {
       });
       setIsEditDialogOpen(false);
       toast({
-        title: "Checklist updated",
-        description: "Your checklist has been updated successfully."
+        title: "Checklist atualizada",
+        description: "Sua checklist foi atualizada com sucesso."
       });
       setCurrentChecklist(null);
       resetChecklistForm();
     },
     onError: error => {
       toast({
-        title: "Error",
-        description: `Failed to update checklist: ${error.message}`,
+        title: "Erro",
+        description: `Falha ao atualizar checklist: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -228,14 +228,14 @@ const Checklists = () => {
         queryKey: ['checklist-items']
       });
       toast({
-        title: "Checklist deleted",
-        description: "The checklist has been deleted successfully."
+        title: "Checklist excluída",
+        description: "A checklist foi excluída com sucesso."
       });
     },
     onError: error => {
       toast({
-        title: "Error",
-        description: `Failed to delete checklist: ${error.message}`,
+        title: "Erro",
+        description: `Falha ao excluir checklist: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -268,14 +268,14 @@ const Checklists = () => {
       setIsAddItemDialogOpen(false);
       setNewItemText('');
       toast({
-        title: "Item added",
-        description: "The item has been added to your checklist."
+        title: "Item adicionado",
+        description: "O item foi adicionado à sua checklist."
       });
     },
     onError: error => {
       toast({
-        title: "Error",
-        description: `Failed to add item: ${error.message}`,
+        title: "Erro",
+        description: `Falha ao adicionar item: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -359,14 +359,14 @@ const Checklists = () => {
       });
       setIsBulkAddDialogOpen(false);
       toast({
-        title: "Items added",
-        description: "The items have been added to your checklist."
+        title: "Itens adicionados",
+        description: "Os itens foram adicionados à sua checklist."
       });
     },
     onError: error => {
       toast({
-        title: "Error",
-        description: `Failed to add items: ${error.message}`,
+        title: "Erro",
+        description: `Falha ao adicionar itens: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -387,14 +387,14 @@ const Checklists = () => {
         queryKey: ['checklist-items']
       });
       toast({
-        title: "Item deleted",
-        description: "The item has been removed from your checklist."
+        title: "Item excluído",
+        description: "O item foi removido da sua checklist."
       });
     },
     onError: error => {
       toast({
-        title: "Error",
-        description: `Failed to delete item: ${error.message}`,
+        title: "Erro",
+        description: `Falha ao excluir item: ${error.message}`,
         variant: "destructive"
       });
     }
@@ -423,8 +423,8 @@ const Checklists = () => {
         queryKey: ['checklist-items']
       });
       toast({
-        title: "Item updated",
-        description: "The item has been updated successfully."
+        title: "Item atualizado",
+        description: "O item foi atualizado com sucesso."
       });
     },
     onError: error => {
@@ -500,8 +500,8 @@ const Checklists = () => {
   const handleCreateItem = () => {
     if (!currentChecklist || !newItemText.trim()) {
       toast({
-        title: "Missing information",
-        description: "Please provide text for your item.",
+        title: "Informação obrigatória",
+        description: "Por favor, insira um texto para o item.",
         variant: "destructive"
       });
       return;
@@ -523,8 +523,8 @@ const Checklists = () => {
   const handleUpdateItemText = (id: string, text: string) => {
     if (!text.trim()) {
       toast({
-        title: "Missing information",
-        description: "Item text cannot be empty.",
+        title: "Informação obrigatória",
+        description: "O texto do item não pode estar vazio.",
         variant: "destructive"
       });
       return;
@@ -560,7 +560,7 @@ const Checklists = () => {
     return <PageContainer>
         <div className="flex justify-center items-center h-[400px]">
           <Loader2 className="h-8 w-8 animate-spin text-travel-blue" />
-          <span className="ml-2">Loading checklists...</span>
+          <span className="ml-2">Carregando checklists...</span>
         </div>
       </PageContainer>;
   }
@@ -568,7 +568,7 @@ const Checklists = () => {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-travel-dark">Checklists</h1>
-          <p className="text-travel-dark/70">Manage your travel checklists and tasks</p>
+          <p className="text-travel-dark/70">Gerencie suas listas de viagem e tarefas</p>
         </div>
         <div className="flex gap-4 items-center">
           <ChecklistViewToggle currentView={viewMode} onViewChange={setViewMode} />
@@ -576,7 +576,7 @@ const Checklists = () => {
             <DialogTrigger asChild>
               <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
                 <PlusCircle className="mr-2 h-4 w-4" />
-                Add Checklist
+                Nova Checklist
               </Button>
             </DialogTrigger>
           </Dialog>
@@ -630,13 +630,13 @@ const Checklists = () => {
         </AnimatePresence>}
 
       {/* Add/Edit Dialogs */}
-      <ChecklistDialog isOpen={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} title="Create a New Checklist" description="Add a new checklist to organize your tasks." checklist={newChecklist} points={points} isSubmitting={createChecklistMutation.isPending} onSubmit={handleCreateChecklist} onCancel={() => setIsAddDialogOpen(false)} onChecklistChange={setNewChecklist} submitButtonText="Create Checklist" loadingText="Creating..." />
+      <ChecklistDialog isOpen={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} title="Criar nova Checklist" description="Adicione uma nova checklist para organizar suas tarefas." checklist={newChecklist} points={points} isSubmitting={createChecklistMutation.isPending} onSubmit={handleCreateChecklist} onCancel={() => setIsAddDialogOpen(false)} onChecklistChange={setNewChecklist} submitButtonText="Criar Checklist" loadingText="Criando..." />
 
-      <ChecklistDialog isOpen={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} title="Edit Checklist" checklist={newChecklist} points={points} isSubmitting={updateChecklistMutation.isPending} onSubmit={handleUpdateChecklist} onCancel={() => {
+      <ChecklistDialog isOpen={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} title="Editar Checklist" checklist={newChecklist} points={points} isSubmitting={updateChecklistMutation.isPending} onSubmit={handleUpdateChecklist} onCancel={() => {
       setIsEditDialogOpen(false);
       setCurrentChecklist(null);
       resetChecklistForm();
-    }} onChecklistChange={setNewChecklist} submitButtonText="Update Checklist" loadingText="Updating..." />
+    }} onChecklistChange={setNewChecklist} submitButtonText="Salvar alterações" loadingText="Salvando..." />
 
       {/* View Checklist Dialog */}
       {currentChecklist && <ChecklistViewDialog isOpen={isViewDialogOpen} onOpenChange={setIsViewDialogOpen} checklist={currentChecklist} items={checklistItems.filter(item => item.checklist_id === currentChecklist.id)} associatedPoint={getAssociatedPoint(currentChecklist.pointId || currentChecklist.point_id)} completionPercentage={calculateCompletion(currentChecklist.id)} onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({

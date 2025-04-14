@@ -58,7 +58,7 @@ const ChecklistViewDialog = ({
           )}
           <div className="mt-4">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-xs font-medium text-travel-dark/70">Completion</span>
+              <span className="text-xs font-medium text-travel-dark/70">Conclusão</span>
               <span className="text-xs font-semibold">{completionPercentage}%</span>
             </div>
             <Progress 

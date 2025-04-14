@@ -11,7 +11,7 @@ const Dashboard = () => {
     navigate('/points');
   }, [navigate]);
   
-  return <PageContainer>Loading...</PageContainer>;
+  return <PageContainer>Carregando</PageContainer>;
 };
 
 export default Dashboard;

@@ -62,7 +62,7 @@ const ChecklistCard = ({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Edit Checklist</p>
+                    <p>Editar Checklist</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -75,7 +75,7 @@ const ChecklistCard = ({
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>Delete Checklist</p>
+                    <p>Excluir Checklist</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -83,7 +83,7 @@ const ChecklistCard = ({
           </div>
         </CardHeader>
         <CardContent className="pt-4">
-          <p className="text-sm text-travel-dark/80 mb-4 line-clamp-2">{checklist.description || 'No description'}</p>
+          <p className="text-sm text-travel-dark/80 mb-4 line-clamp-2">{checklist.description || 'Sem descrição'}</p>
           
           {associatedPoint && <div className="flex items-start gap-2 mb-4 p-2 bg-travel-beige rounded-md">
               <MapPin className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
@@ -92,7 +92,7 @@ const ChecklistCard = ({
           
           <div className="mb-4">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-xs font-medium text-travel-dark/70">Completion</span>
+              <span className="text-xs font-medium text-travel-dark/70">Conclusão</span>
               <span className="text-xs font-semibold">{completionPercentage}%</span>
             </div>
             <Progress value={completionPercentage} className="h-2.5 bg-travel-beige" indicatorClassName="bg-gradient-to-r from-travel-blue to-travel-light-blue" />
@@ -108,7 +108,7 @@ const ChecklistCard = ({
                 </div>
                 <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
                   <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-travel-light-blue/20" onClick={() => {
-                const newText = prompt("Edit item:", item.text);
+                const newText = prompt("Editar item:", item.text);
                 if (newText !== null) {
                   onUpdateItemText(item.id, newText);
                 }

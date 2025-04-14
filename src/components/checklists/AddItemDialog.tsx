@@ -29,7 +29,7 @@ const AddItemDialog = ({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Item to {checklistName}</DialogTitle>
+          <DialogTitle>Adicionar item à {checklistName}</DialogTitle>
         </DialogHeader>
         <div className="py-4">
           <div className="grid gap-2">
@@ -38,7 +38,7 @@ const AddItemDialog = ({
               id="item-text"
               value={itemText}
               onChange={(e) => onItemTextChange(e.target.value)}
-              placeholder="e.g., Pack passport"
+              placeholder="ex: Separar passaporte"
             />
           </div>
         </div>
@@ -47,7 +47,7 @@ const AddItemDialog = ({
             variant="outline" 
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            Cancelar
           </Button>
           <Button
             onClick={onSubmit}
@@ -57,10 +57,10 @@ const AddItemDialog = ({
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Adding...
+                Adicionando...
               </>
             ) : (
-              "Add Item"
+              'Adicionar Item'
             )}
           </Button>
         </DialogFooter>

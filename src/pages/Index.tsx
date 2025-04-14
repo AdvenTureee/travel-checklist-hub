@@ -15,7 +15,7 @@ const Index: React.FC = () => {
           <div className="flex justify-between items-center">
             <div className="flex items-center text-white font-bold text-2xl">
               <Plane className="h-6 w-6 mr-2" />
-              Travel Hub
+              Central de Viagens
             </div>
             <div>
               {user ? (

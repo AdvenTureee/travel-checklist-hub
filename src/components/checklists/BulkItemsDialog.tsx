@@ -46,19 +46,19 @@ const BulkItemsDialog: React.FC<BulkItemsDialogProps> = ({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[90vw] max-w-[550px] sm:w-auto">
         <DialogHeader>
-          <DialogTitle className="text-base sm:text-lg">Add Multiple Items to {checklistName}</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg">Adicionar vários itens à {checklistName}</DialogTitle>
           <DialogDescription className="text-xs sm:text-sm">
-            Enter one item per line. All items will be added to your checklist.
+            Digite um item por linha. Todos os itens serão adicionados à sua checklist.
           </DialogDescription>
         </DialogHeader>
         <div className="py-2 sm:py-4">
           <div className="grid gap-2">
-            <Label htmlFor="bulk-items">Items (one per line)</Label>
+            <Label htmlFor="bulk-items">Itens (um por linha)</Label>
             <Textarea
               id="bulk-items"
               value={bulkText}
               onChange={(e) => setBulkText(e.target.value)}
-              placeholder="Pack passport
+              placeholder="Separar passaporte
 Charge camera
 Print tickets
 Exchange currency"
