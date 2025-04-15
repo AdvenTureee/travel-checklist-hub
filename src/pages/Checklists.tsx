@@ -626,13 +626,14 @@ const Checklists = () => {
 </TableCell>
 <TableCell>
   <EditableCell
-    value={checklist.pointId || ''}
+    value={associatedPoint ? associatedPoint.name : ''}
     inputType="select"
     options={[{ value: '', label: 'Nenhum' }, ...points.map(p => ({ value: p.id, label: p.name }))]}
     onSave={newValue => updateChecklistMutation.mutate({
       id: checklist.id,
       checklist: { ...checklist, pointId: newValue || null }
     })}
+    displayValue={associatedPoint ? associatedPoint.name : 'Nenhum'}
     placeholder="Nenhum"
   />
 </TableCell>

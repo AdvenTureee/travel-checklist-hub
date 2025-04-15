@@ -7,6 +7,7 @@ interface EditableCellProps {
   className?: string;
   inputType?: 'text' | 'select';
   options?: { value: string; label: string }[];
+  displayValue?: string;
 }
 
 const EditableCell: React.FC<EditableCellProps> = ({
@@ -15,7 +16,8 @@ const EditableCell: React.FC<EditableCellProps> = ({
   placeholder = '',
   className = '',
   inputType = 'text',
-  options = []
+  options = [],
+  displayValue,
 }) => {
   const [editing, setEditing] = useState(false);
   const [inputValue, setInputValue] = useState(value);
@@ -88,7 +90,7 @@ const EditableCell: React.FC<EditableCellProps> = ({
       role="button"
       aria-label="Editar"
     >
-      {value || <span className="text-travel-dark/40 italic">{placeholder}</span>}
+      {displayValue !== undefined ? (displayValue || <span className="text-travel-dark/40 italic">{placeholder}</span>) : (value || <span className="text-travel-dark/40 italic">{placeholder}</span>)}
     </span>
   );
 };

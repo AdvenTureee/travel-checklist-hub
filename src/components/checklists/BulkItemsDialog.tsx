@@ -44,7 +44,7 @@ const BulkItemsDialog: React.FC<BulkItemsDialogProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90vw] max-w-[550px] sm:w-auto">
+      <DialogContent className="w-screen h-screen max-w-none max-h-none rounded-none p-0 flex flex-col justify-center items-center">
         <DialogHeader>
           <DialogTitle className="text-base sm:text-lg">Adicionar vários itens à {checklistName}</DialogTitle>
           <DialogDescription className="text-xs sm:text-sm">
@@ -58,11 +58,8 @@ const BulkItemsDialog: React.FC<BulkItemsDialogProps> = ({
               id="bulk-items"
               value={bulkText}
               onChange={(e) => setBulkText(e.target.value)}
-              placeholder="Separar passaporte
-Charge camera
-Print tickets
-Exchange currency"
-              className="min-h-[150px] sm:min-h-[200px]"
+              placeholder="Separar passaporte"
+              className="w-[90vw] sm:w-[600px] mx-auto min-h-[180px]"
             />
           </div>
         </div>
