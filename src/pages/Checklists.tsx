@@ -34,7 +34,7 @@ const Checklists = () => {
     pointId: null,
     isComplete: false
   });
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode, setViewMode] = useState<'grid'>('grid');
   const navigate = useNavigate();
   const {
     toast
@@ -571,7 +571,7 @@ const Checklists = () => {
           <p className="text-travel-dark/70">Gerencie suas listas de viagem e tarefas</p>
         </div>
         <div className="flex gap-4 items-center">
-          <ChecklistViewToggle currentView={viewMode} onViewChange={setViewMode} />
+          
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
@@ -584,7 +584,7 @@ const Checklists = () => {
       </div>
 
       {checklists.length === 0 ? <ChecklistEmptyState onCreateClick={() => setIsAddDialogOpen(true)} /> : <AnimatePresence mode="wait">
-          {viewMode === 'grid' ? <motion.div key="grid-view" initial={{
+          <motion.div key="grade-view" initial={{
         opacity: 0,
         x: -20
       }} animate={{
@@ -610,23 +610,7 @@ const Checklists = () => {
             })} onUpdateItemText={handleUpdateItemText} onDeleteItem={id => deleteChecklistItemMutation.mutate(id)} onAddItem={handleAddItem} onBulkAddItems={handleBulkAddItems} />
                   </div>;
         })}
-            </motion.div> : <motion.div key="list-view" initial={{
-        opacity: 0,
-        x: 20
-      }} animate={{
-        opacity: 1,
-        x: 0
-      }} exit={{
-        opacity: 0,
-        x: 20
-      }} transition={{
-        duration: 0.3
-      }}>
-              <ChecklistListView checklists={checklists} checklistItems={checklistItems} onEdit={handleEditChecklist} onDelete={id => deleteChecklistMutation.mutate(id)} onChecklistView={handleViewChecklist} onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({
-          id,
-          completed
-        })} onDeleteItem={id => deleteChecklistItemMutation.mutate(id)} onAddItem={handleAddItem} onBulkAddItems={handleBulkAddItems} onUpdateItemText={handleUpdateItemText} />
-            </motion.div>}
+            </motion.div>
         </AnimatePresence>}
 
       {/* Add/Edit Dialogs */}
@@ -649,6 +633,6 @@ const Checklists = () => {
 
       {/* Bulk Add Items Dialog */}
       {currentChecklist && <BulkItemsDialog checklistId={currentChecklist.id} checklistName={currentChecklist.name} open={isBulkAddDialogOpen} onOpenChange={setIsBulkAddDialogOpen} onAddItems={handleCreateMultipleItems} isAdding={createMultipleChecklistItemsMutation.isPending} />}
-    </PageContainer>;
-};
+    </PageContainer>
+}
 export default Checklists;

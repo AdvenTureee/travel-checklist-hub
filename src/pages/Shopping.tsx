@@ -409,7 +409,7 @@ const Shopping: React.FC = () => {
       </div>
 
       {/* Improved Summary Card */}
-      <Card className="mb-6 overflow-hidden border-travel-light-blue/30 mx-0">
+      <Card className="mb-6 overflow-hidden border-travel-light-blue/30 mx-0 px-2 sm:px-0">
         <CardHeader className="pb-4 bg-gradient-to-r from-travel-light-blue/30 to-travel-beige">
           <div className="flex justify-between items-center">
             <CardTitle className="text-xl text-travel-dark">Resumo</CardTitle>
@@ -424,8 +424,8 @@ const Shopping: React.FC = () => {
         
         <Collapsible open={isExpanded}>
           <CollapsibleContent>
-            <CardContent className="pt-4">
-              <div className="grid md:grid-cols-2 gap-6">
+            <CardContent className="pt-4 px-0 sm:px-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="bg-travel-beige/50 p-4 rounded-lg">
@@ -498,8 +498,8 @@ const Shopping: React.FC = () => {
               <PlusCircle className="mr-2 h-4 w-4" />
               Adicionar primeiro item
             </Button>
-          </div> : <div className="overflow-x-auto">
-          <Table>
+          </div> : <div className="overflow-x-auto w-full">
+          <Table className="min-w-[600px] sm:min-w-0">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-10 mx-0"></TableHead>
@@ -546,32 +546,41 @@ const Shopping: React.FC = () => {
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
-            <DialogTitle>Add Shopping Item</DialogTitle>
+            <DialogTitle>Adicionar Item de Compras</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="name">Item Name</Label>
-              <Input id="name" value={newItem.name} onChange={e => setNewItem({
-              ...newItem,
-              name: e.target.value
-            })} placeholder="e.g., Souvenir Magnet" className="w-full" />
+              <Label htmlFor="name">Nome do Item</Label>
+              <Input
+                id="name"
+                className="text-base py-2 w-full"
+                value={newItem.name}
+                onChange={e => setNewItem({ ...newItem, name: e.target.value })}
+                placeholder="ex: Ímã de lembrança"
+              />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="price">Price</Label>
-                <Input id="price" type="number" min="0" step="0.01" value={newItem.price} onChange={e => setNewItem({
-                ...newItem,
-                price: parseFloat(e.target.value)
-              })} placeholder="0.00" className="w-full" />
+                <Label htmlFor="price">Preço</Label>
+                <Input
+                  id="price"
+                  className="text-base py-2 w-full"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={newItem.price}
+                  onChange={e => setNewItem({ ...newItem, price: parseFloat(e.target.value) })}
+                  placeholder="0,00"
+                />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="currency">Currency</Label>
+                <Label htmlFor="currency">Moeda</Label>
                 <Select value={newItem.currency} onValueChange={value => setNewItem({
-                ...newItem,
-                currency: value
-              })}>
+                  ...newItem,
+                  currency: value
+                })}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select currency" />
+                    <SelectValue placeholder="Selecione a moeda" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="USD">USD ($)</SelectItem>
@@ -587,23 +596,26 @@ const Shopping: React.FC = () => {
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="image_url">Image URL (optional)</Label>
-              <Input id="image_url" value={newItem.image_url || ''} onChange={e => setNewItem({
-              ...newItem,
-              image_url: e.target.value
-            })} placeholder="https://example.com/image.jpg" className="w-full" />
+              <Label htmlFor="image_url">URL da Imagem (opcional)</Label>
+              <Input
+                id="image_url"
+                className="text-base py-2 w-full"
+                value={newItem.image_url || ''}
+                onChange={e => setNewItem({ ...newItem, image_url: e.target.value })}
+                placeholder="https://exemplo.com/imagem.jpg"
+              />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="point_id">Location (optional)</Label>
+              <Label htmlFor="point_id">Local (opcional)</Label>
               <Select value={newItem.point_id || 'none'} onValueChange={value => setNewItem({
-              ...newItem,
-              point_id: value
-            })}>
+                ...newItem,
+                point_id: value
+              })}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select location" />
+                  <SelectValue placeholder="Selecione o local" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {points.map(point => <SelectItem key={point.id} value={point.id}>
                       {point.name}
                     </SelectItem>)}
@@ -616,27 +628,25 @@ const Shopping: React.FC = () => {
             resetForm();
             setIsAddDialogOpen(false);
           }}>
-              Cancel
+              Cancelar
             </Button>
-            <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark" onClick={handleAddItem} disabled={addItemMutation.isPending}>
+            <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-full sm:w-auto mt-2 sm:mt-0" onClick={handleAddItem} disabled={addItemMutation.isPending}>
               {addItemMutation.isPending ? <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Adding...
-                </> : "Add Item"}
+                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                   Adicionando item...
+                 </> : "Adicionar Item"}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-
-      {/* Edit Item Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[550px]">
           <DialogHeader>
-            <DialogTitle>Edit Shopping Item</DialogTitle>
+            <DialogTitle>Editar Item de Compras</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="edit-name">Item Name</Label>
+              <Label htmlFor="edit-name">Nome do Item</Label>
               <Input id="edit-name" value={newItem.name} onChange={e => setNewItem({
               ...newItem,
               name: e.target.value
@@ -644,20 +654,20 @@ const Shopping: React.FC = () => {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="edit-price">Price</Label>
+                <Label htmlFor="edit-price">Preço</Label>
                 <Input id="edit-price" type="number" min="0" step="0.01" value={newItem.price} onChange={e => setNewItem({
                 ...newItem,
                 price: parseFloat(e.target.value)
               })} placeholder="0.00" className="w-full" />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="edit-currency">Currency</Label>
+                <Label htmlFor="edit-currency">Moeda</Label>
                 <Select value={newItem.currency} onValueChange={value => setNewItem({
                 ...newItem,
                 currency: value
               })}>
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select currency" />
+                    <SelectValue placeholder="Selecione a moeda" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="USD">USD ($)</SelectItem>
@@ -673,23 +683,23 @@ const Shopping: React.FC = () => {
               </div>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-image_url">Image URL (optional)</Label>
+              <Label htmlFor="edit-image_url">URL da Imagem (opcional)</Label>
               <Input id="edit-image_url" value={newItem.image_url || ''} onChange={e => setNewItem({
               ...newItem,
               image_url: e.target.value
             })} placeholder="https://example.com/image.jpg" className="w-full" />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="edit-point_id">Location (optional)</Label>
+              <Label htmlFor="edit-point_id">Local (opcional)</Label>
               <Select value={newItem.point_id || 'none'} onValueChange={value => setNewItem({
               ...newItem,
               point_id: value
             })}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select location" />
+                  <SelectValue placeholder="Selecione o local" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
+                  <SelectItem value="none">Nenhum</SelectItem>
                   {points.map(point => <SelectItem key={point.id} value={point.id}>
                       {point.name}
                     </SelectItem>)}
@@ -703,13 +713,13 @@ const Shopping: React.FC = () => {
             setEditItemId(null);
             setIsEditDialogOpen(false);
           }}>
-              Cancel
+              Cancelar
             </Button>
             <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark" onClick={handleUpdateItem} disabled={updateItemMutation.isPending}>
               {updateItemMutation.isPending ? <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating...
-                </> : "Update Item"}
+                  Atualizando...
+                </> : "Salvar Alterações"}
             </Button>
           </div>
         </DialogContent>
@@ -719,17 +729,17 @@ const Shopping: React.FC = () => {
       <Dialog open={isBudgetDialogOpen} onOpenChange={setIsBudgetDialogOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>{budget ? 'Update Shopping Budget' : 'Set Shopping Budget'}</DialogTitle>
+            <DialogTitle>{budget ? 'Atualizar Orçamento de Compras' : 'Definir Orçamento de Compras'}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="budget-amount">Budget Amount</Label>
+              <Label htmlFor="budget-amount">Valor do Orçamento</Label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-travel-dark/60" />
                 <Input id="budget-amount" type="number" min="0" step="0.01" value={newBudget} onChange={e => setNewBudget(parseFloat(e.target.value))} placeholder="0.00" className="w-full pl-10" />
               </div>
               <p className="text-sm text-travel-dark/70 mt-1">
-                Set the total amount you want to spend on shopping during your trip.
+                Defina o valor total que deseja gastar em compras durante sua viagem.
               </p>
             </div>
           </div>
@@ -738,17 +748,17 @@ const Shopping: React.FC = () => {
             setNewBudget(0);
             setIsBudgetDialogOpen(false);
           }}>
-              Cancel
+              Cancelar
             </Button>
             <Button className="bg-travel-blue hover:bg-travel-blue/80 text-white" onClick={handleUpdateBudget} disabled={updateBudgetMutation.isPending}>
               {updateBudgetMutation.isPending ? <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </> : budget ? "Update Budget" : "Save Budget"}
+                  Salvando...
+                </> : budget ? "Atualizar Orçamento" : "Salvar Orçamento"}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-    </PageContainer>;
-};
+    </PageContainer>
+}
 export default Shopping;
