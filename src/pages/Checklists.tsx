@@ -17,6 +17,7 @@ import ChecklistViewDialog from '@/components/checklists/ChecklistViewDialog';
 import ChecklistEmptyState from '@/components/checklists/ChecklistEmptyState';
 import AddItemDialog from '@/components/checklists/AddItemDialog';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import EditableCell from '@/components/ui/EditableCell';
 import { ListChecks, Edit, Trash, Plus, ListPlus } from 'lucide-react';
 
 const Checklists = () => {
@@ -603,9 +604,38 @@ const Checklists = () => {
           const items = checklistItems.filter(item => item.checklist_id === checklist.id);
           return (
             <TableRow key={checklist.id}>
-              <TableCell className="font-semibold text-travel-dark">{checklist.name}</TableCell>
-              <TableCell>{checklist.description || <span className="text-travel-dark/40 italic">Sem descrição</span>}</TableCell>
-              <TableCell>{associatedPoint ? associatedPoint.name : <span className="text-travel-dark/40 italic">Nenhum</span>}</TableCell>
+              <TableCell className="font-semibold text-travel-dark">
+  <EditableCell
+    value={checklist.name}
+    placeholder="Nome"
+    onSave={newValue => updateChecklistMutation.mutate({
+      id: checklist.id,
+      checklist: { ...checklist, name: newValue }
+    })}
+  />
+</TableCell>
+<TableCell>
+  <EditableCell
+    value={checklist.description || ''}
+    placeholder="Sem descrição"
+    onSave={newValue => updateChecklistMutation.mutate({
+      id: checklist.id,
+      checklist: { ...checklist, description: newValue }
+    })}
+  />
+</TableCell>
+<TableCell>
+  <EditableCell
+    value={checklist.pointId || ''}
+    inputType="select"
+    options={[{ value: '', label: 'Nenhum' }, ...points.map(p => ({ value: p.id, label: p.name }))]}
+    onSave={newValue => updateChecklistMutation.mutate({
+      id: checklist.id,
+      checklist: { ...checklist, pointId: newValue || null }
+    })}
+    placeholder="Nenhum"
+  />
+</TableCell>
               <TableCell>
                 <div className="flex flex-col gap-1 min-w-[120px]">
                   <span className="text-xs font-medium text-travel-dark/70">{completionPercentage}%</span>
