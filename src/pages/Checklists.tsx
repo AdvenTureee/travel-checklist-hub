@@ -9,17 +9,16 @@ import { Checklist, ChecklistItem, Point } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { PlusCircle, Loader2 } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
 
 // Import refactored components
-import ChecklistViewToggle from '@/components/checklists/ChecklistViewToggle';
-import ChecklistListView from '@/components/checklists/ChecklistListView';
 import BulkItemsDialog from '@/components/checklists/BulkItemsDialog';
-import ChecklistCard from '@/components/checklists/ChecklistCard';
 import ChecklistDialog from '@/components/checklists/ChecklistDialog';
 import ChecklistViewDialog from '@/components/checklists/ChecklistViewDialog';
 import ChecklistEmptyState from '@/components/checklists/ChecklistEmptyState';
 import AddItemDialog from '@/components/checklists/AddItemDialog';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { ListChecks, Edit, Trash, Plus, ListPlus } from 'lucide-react';
+
 const Checklists = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -582,35 +581,69 @@ const Checklists = () => {
         </div>
       </div>
 
-      {checklists.length === 0 ? <ChecklistEmptyState onCreateClick={() => setIsAddDialogOpen(true)} /> : <AnimatePresence mode="wait">
-          <motion.div key="grade-view" initial={{
-        opacity: 0,
-        x: -20
-      }} animate={{
-        opacity: 1,
-        x: 0
-      }} exit={{
-        opacity: 0,
-        x: -20
-      }} transition={{
-        duration: 0.3
-      }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 divide-y divide-travel-dark/10 py-0">
-              {checklists.map((checklist, index) => {
+      {checklists.length === 0 ? (
+  <ChecklistEmptyState onCreateClick={() => setIsAddDialogOpen(true)} />
+) : (
+  <div className="overflow-x-auto">
+    <Table className="min-w-full bg-white border border-travel-beige">
+      <TableHeader>
+        <TableRow>
+          <TableHead>Nome</TableHead>
+          <TableHead>Descrição</TableHead>
+          <TableHead>Ponto Associado</TableHead>
+          <TableHead>Conclusão</TableHead>
+          <TableHead>Ações</TableHead>
+          <TableHead>Itens</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {checklists.map((checklist) => {
           const completionPercentage = calculateCompletion(checklist.id);
           const associatedPoint = getAssociatedPoint(checklist.pointId || checklist.point_id);
           const items = checklistItems.filter(item => item.checklist_id === checklist.id);
-
-          // Determine row start for clear visual separation
-          const rowIndex = Math.floor(index / (window.innerWidth >= 1024 ? 3 : window.innerWidth >= 768 ? 2 : 1));
-          return <div key={checklist.id} className={`${rowIndex > 0 ? 'pt-6' : ''}`}>
-                    <ChecklistCard checklist={checklist} items={items} completionPercentage={completionPercentage} associatedPoint={associatedPoint} onEdit={handleEditChecklist} onDelete={id => deleteChecklistMutation.mutate(id)} onView={handleViewChecklist} onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({
-              id,
-              completed
-            })} onUpdateItemText={handleUpdateItemText} onDeleteItem={id => deleteChecklistItemMutation.mutate(id)} onAddItem={handleAddItem} onBulkAddItems={handleBulkAddItems} />
-                  </div>;
+          return (
+            <TableRow key={checklist.id}>
+              <TableCell className="font-semibold text-travel-dark">{checklist.name}</TableCell>
+              <TableCell>{checklist.description || <span className="text-travel-dark/40 italic">Sem descrição</span>}</TableCell>
+              <TableCell>{associatedPoint ? associatedPoint.name : <span className="text-travel-dark/40 italic">Nenhum</span>}</TableCell>
+              <TableCell>
+                <div className="flex flex-col gap-1 min-w-[120px]">
+                  <span className="text-xs font-medium text-travel-dark/70">{completionPercentage}%</span>
+                  <div className="w-full">
+                    <div className="h-2 bg-travel-beige rounded">
+                      <div className="h-2 rounded bg-gradient-to-r from-travel-blue to-travel-light-blue" style={{ width: `${completionPercentage}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex gap-2">
+                  <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-travel-light-blue/20" onClick={() => handleEditChecklist(checklist.id)} title="Editar">
+                    <Edit className="h-4 w-4 text-travel-blue" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-travel-light-red/20" onClick={() => deleteChecklistMutation.mutate(checklist.id)} title="Excluir">
+                    <Trash className="h-4 w-4 text-travel-red" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-travel-light-blue/20" onClick={() => handleAddItem(checklist.id)} title="Adicionar Item">
+                    <Plus className="h-4 w-4 text-travel-blue" />
+                  </Button>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-travel-light-blue/20" onClick={() => handleBulkAddItems(checklist.id)} title="Adicionar em Massa">
+                    <ListPlus className="h-4 w-4 text-travel-blue" />
+                  </Button>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Button size="icon" variant="outline" className="h-8 w-8 text-travel-dark hover:bg-travel-dark/10" onClick={() => handleViewChecklist(checklist.id)} title="Ver Itens">
+                  <ListChecks className="h-4 w-4" />
+                </Button>
+              </TableCell>
+            </TableRow>
+          );
         })}
-            </motion.div>
-        </AnimatePresence>}
+      </TableBody>
+    </Table>
+  </div>
+)}
 
       {/* Add/Edit Dialogs */}
       <ChecklistDialog isOpen={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} title="Criar nova Checklist" description="Adicione uma nova checklist para organizar suas tarefas." checklist={newChecklist} points={points} isSubmitting={createChecklistMutation.isPending} onSubmit={handleCreateChecklist} onCancel={() => setIsAddDialogOpen(false)} onChecklistChange={setNewChecklist} submitButtonText="Criar Checklist" loadingText="Criando..." />
