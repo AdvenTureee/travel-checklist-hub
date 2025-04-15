@@ -402,10 +402,9 @@ const Shopping: React.FC = () => {
           <h1 className="text-3xl font-bold text-travel-dark">Lista de compras</h1>
           <p className="text-travel-dark/70">Rastreie os itens que você deseja comprar durante sua viagem</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark mx-0">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Adicionar Item
-        </Button>
+        <Button onClick={() => setIsAddDialogOpen(true)} className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2">
+  <PlusCircle className="h-5 w-5" />
+</Button>
       </div>
 
       {/* Improved Summary Card */}

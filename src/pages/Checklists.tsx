@@ -574,10 +574,9 @@ const Checklists = () => {
           
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Nova Checklist
-              </Button>
+              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2">
+  <PlusCircle className="h-5 w-5" />
+</Button>
             </DialogTrigger>
           </Dialog>
         </div>
