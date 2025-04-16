@@ -9,6 +9,25 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      users: {
+        Row: {
+          id: string;
+          email: string | null;
+          created_at?: string;
+          // outros campos se necessário
+        };
+        Insert: {
+          id: string;
+          email?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      },
       checklist_items: {
         Row: {
           checklist_id: string
@@ -175,6 +194,52 @@ export type Database = {
           },
         ]
       }
+      shared_points: {
+        Row: {
+          id: string;
+          point_id: string;
+          user_id: string; // destinatário
+          sender_id: string; // remetente
+          created_at: string;
+        }
+        Insert: {
+          id?: string;
+          point_id: string;
+          user_id: string;
+          sender_id: string;
+          created_at?: string;
+        }
+        Update: {
+          id?: string;
+          point_id?: string;
+          user_id?: string;
+          sender_id?: string;
+          created_at?: string;
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_points_point_id_fkey",
+            columns: ["point_id"],
+            isOneToOne: false,
+            referencedRelation: "points",
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_points_user_id_fkey",
+            columns: ["user_id"],
+            isOneToOne: false,
+            referencedRelation: "users",
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_points_sender_id_fkey",
+            columns: ["sender_id"],
+            isOneToOne: false,
+            referencedRelation: "users",
+            referencedColumns: ["id"]
+          }
+        ]
+      },
       user_budgets: {
         Row: {
           amount: number

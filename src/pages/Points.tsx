@@ -7,19 +7,22 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, MapPin, Edit, Trash, Loader2, ExternalLink, Globe, Clock, Calendar } from 'lucide-react';
+import { PlusCircle, MapPin, Edit, Trash, Loader2, ExternalLink, Globe, Clock, Calendar, Share2 } from 'lucide-react';
 import { Point } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PointDetailsModal from '@/components/points/PointDetailsModal';
+import { SharePointDialog } from '@/components/points/SharePointDialog';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import OpeningHoursInput from '@/components/points/OpeningHoursInput';
 import { ptBR } from 'date-fns/locale';
 const Points: React.FC = () => {
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [sharePointId, setSharePointId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editPointId, setEditPointId] = useState<string | null>(null);
@@ -528,6 +531,9 @@ const Points: React.FC = () => {
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeletePoint(point.id)}>
                       <Trash className="h-4 w-4 text-travel-red" />
                     </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Compartilhar ponto" onClick={() => { setSharePointId(point.id); setIsShareDialogOpen(true); }}>
+                      <Share2 className="h-4 w-4 text-travel-blue" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -575,6 +581,12 @@ const Points: React.FC = () => {
             </Card>)}
         </div>}
 
+      {/* Dialog de Compartilhamento */}
+      <SharePointDialog
+        open={isShareDialogOpen}
+        onOpenChange={setIsShareDialogOpen}
+        pointId={sharePointId ?? ''}
+      />
       {/* Details Modal */}
       <PointDetailsModal point={selectedPoint} isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} />
     </PageContainer>;

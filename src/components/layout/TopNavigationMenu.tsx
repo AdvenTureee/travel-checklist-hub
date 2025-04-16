@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
-import { Home, ListChecks, ShoppingCart, Settings } from 'lucide-react';
+import { Home, ListChecks, MapPin, Plus, Settings, LogOut, User, ShoppingCart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 export function TopNavigationMenu() {
@@ -12,6 +12,11 @@ export function TopNavigationMenu() {
     label: 'Pontos',
     to: '/points',
     description: 'Gerencie seus pontos de interesse'
+  }, {
+    icon: User,
+    label: 'Recebidos',
+    to: '/shared-points',
+    description: 'Veja os pontos compartilhados com você'
   }, {
     icon: ListChecks,
     label: 'Checklists',
@@ -40,6 +45,12 @@ export function TopNavigationMenu() {
         {menuItems.map(item => {
           const Icon = item.icon;
           const isActive = location.pathname === item.to;
+          // Desabilitar o link de 'Recebidos' (shared-points)
+          // Permitir navegação normalmente para 'Recebidos'
+          // if (item.to === '/shared-points') {
+          //   ...
+          // }
+
           return (
             <Link
               key={item.to}

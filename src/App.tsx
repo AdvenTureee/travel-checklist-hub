@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Points from "./pages/Points";
+import SharedPoints from "./pages/SharedPoints";
 import Checklists from "./pages/Checklists";
 import Shopping from "./pages/Shopping";
 import Settings from "./pages/Settings";
@@ -61,6 +62,14 @@ const App = () => {
                     <>
                       <TopNavigationMenu />
                       <Points />
+                    </>
+                  </RequireAuth>
+                } />
+                <Route path="/shared-points" element={
+                  <RequireAuth>
+                    <>
+                      <TopNavigationMenu />
+                      <SharedPoints />
                     </>
                   </RequireAuth>
                 } />
