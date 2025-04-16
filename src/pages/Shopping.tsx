@@ -84,9 +84,9 @@ const Shopping: React.FC = () => {
       const {
         data,
         error
-      } = await supabase.from('points').select('id, name');
+      } = await supabase.from('points').select('id, name, google_maps_url');
       if (error) throw error;
-      return data as Pick<Point, 'id' | 'name'>[];
+      return data as (Pick<Point, 'id' | 'name' | 'googleMapsUrl' | 'google_maps_url'>)[];
     }
   });
 
@@ -525,7 +525,25 @@ const Shopping: React.FC = () => {
                     {item.name}
                   </TableCell>
                   <TableCell>${item.price.toFixed(2)}</TableCell>
-                  <TableCell>{getPointName(item.point_id)}</TableCell>
+                  <TableCell>
+  {(() => {
+    const point = points.find(p => p.id === item.point_id);
+    if (point && point.google_maps_url) {
+      return (
+        <a
+          href={point.google_maps_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-travel-blue underline hover:text-travel-mustard transition-colors"
+          title={point.name}
+        >
+          {point.name}
+        </a>
+      );
+    }
+    return getPointName(item.point_id);
+  })()}
+</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
                       <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditItem(item.id)}>
