@@ -194,4 +194,3 @@ const ChecklistViewDialog = ({
   );
 };
 
-export default ChecklistViewDialog;

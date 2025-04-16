@@ -506,7 +506,7 @@ const Points: React.FC = () => {
             Adicione Seu Primeiro Ponto
           </Button>
         </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {points.map(point => <Card key={point.id} className="overflow-hidden card-hover">
+          {points.map(point => <Card key={point.id} className="overflow-hidden card-hover border border-travel-mustard">
               {point.image_url && <div className="h-48 overflow-hidden cursor-pointer" onClick={() => handleOpenDetails(point)} aria-label={`Ver detalhes de ${point.name}`} role="button" tabIndex={0} onKeyDown={e => {
           if (e.key === 'Enter' || e.key === ' ') {
             handleOpenDetails(point);

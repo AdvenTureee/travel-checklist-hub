@@ -19,6 +19,8 @@ import AddItemDialog from '@/components/checklists/AddItemDialog';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import EditableCell from '@/components/ui/EditableCell';
 import { ListChecks, Edit, Trash, Plus, ListPlus } from 'lucide-react';
+import ChecklistDropdown from '@/components/ui/ChecklistDropdown';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 
 const Checklists = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -605,14 +607,29 @@ const Checklists = () => {
           return (
             <TableRow key={checklist.id}>
               <TableCell className="font-semibold text-travel-dark">
-  <EditableCell
-    value={checklist.name}
-    placeholder="Nome"
-    onSave={newValue => updateChecklistMutation.mutate({
-      id: checklist.id,
-      checklist: { ...checklist, name: newValue }
-    })}
-  />
+  <div className="flex items-center gap-2">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button size="icon" variant="ghost" className="h-8 w-8 text-travel-mustard hover:bg-travel-mustard/10" title="Marcar itens rapidamente">
+          <span className="font-bold text-lg">✓</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="p-0 bg-transparent border-none shadow-none">
+        <ChecklistDropdown
+          items={items}
+          onToggle={(id, completed) => toggleChecklistItemMutation.mutate({ id, completed })}
+        />
+      </DropdownMenuContent>
+    </DropdownMenu>
+    <EditableCell
+      value={checklist.name}
+      placeholder="Nome"
+      onSave={newValue => updateChecklistMutation.mutate({
+        id: checklist.id,
+        checklist: { ...checklist, name: newValue }
+      })}
+    />
+  </div>
 </TableCell>
 <TableCell>
   <EditableCell
@@ -663,11 +680,7 @@ const Checklists = () => {
                   </Button>
                 </div>
               </TableCell>
-              <TableCell>
-                <Button size="icon" variant="outline" className="h-8 w-8 text-travel-dark hover:bg-travel-dark/10" onClick={() => handleViewChecklist(checklist.id)} title="Ver Itens">
-                  <ListChecks className="h-4 w-4" />
-                </Button>
-              </TableCell>
+              
             </TableRow>
           );
         })}
@@ -686,10 +699,7 @@ const Checklists = () => {
     }} onChecklistChange={setNewChecklist} submitButtonText="Salvar alterações" loadingText="Salvando..." />
 
       {/* View Checklist Dialog */}
-      {currentChecklist && <ChecklistViewDialog isOpen={isViewDialogOpen} onOpenChange={setIsViewDialogOpen} checklist={currentChecklist} items={checklistItems.filter(item => item.checklist_id === currentChecklist.id)} associatedPoint={getAssociatedPoint(currentChecklist.pointId || currentChecklist.point_id)} completionPercentage={calculateCompletion(currentChecklist.id)} onToggleItem={(id, completed) => toggleChecklistItemMutation.mutate({
-      id,
-      completed
-    })} onDeleteItem={id => deleteChecklistItemMutation.mutate(id)} onUpdateItemText={handleUpdateItemText} onAddNewItem={handleCreateItem} newItemText={newItemText} onNewItemTextChange={setNewItemText} />}
+      
 
       {/* Add Item Dialog */}
       <AddItemDialog isOpen={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen} checklistName={currentChecklist?.name || ''} itemText={newItemText} onItemTextChange={setNewItemText} onSubmit={handleCreateItem} isSubmitting={createChecklistItemMutation.isPending} />
