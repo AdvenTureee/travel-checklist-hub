@@ -566,36 +566,40 @@ const Checklists = () => {
       </PageContainer>;
   }
   return <PageContainer>
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-travel-dark">Checklists</h1>
-          <p className="text-travel-dark/70">Gerencie suas listas de viagem e tarefas</p>
-        </div>
-        <div className="flex gap-4 items-center">
-          
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-10 w-10 flex items-center justify-center rounded-md" aria-label="Adicionar Checklist">
-  <PlusCircle className="h-5 w-5" />
-</Button>
-            </DialogTrigger>
-          </Dialog>
-        </div>
+      <div className="mb-4 flex flex-row items-center gap-6 sm:mb-6 sm:gap-6 sm:flex-row flex-col sm:items-center sm:justify-start w-full">
+      {/* Left action column for global actions (e.g., add checklist) */}
+      <div className="flex flex-row sm:flex-col items-start min-w-[56px] w-full sm:w-auto mb-2 sm:mb-0">
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <DialogTrigger asChild>
+            <Button
+              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md focus-visible:ring-2 focus-visible:ring-travel-mustard/70"
+              aria-label="Adicionar Checklist"
+            >
+              <PlusCircle className="h-6 w-6" />
+            </Button>
+          </DialogTrigger>
+        </Dialog>
       </div>
+      {/* Header and description */}
+      <div className="flex flex-col flex-1 w-full">
+        <h1 className="text-2xl sm:text-3xl font-bold text-travel-dark">Checklists</h1>
+        <p className="text-travel-dark/70 text-sm sm:text-base">Gerencie suas listas de viagem e tarefas</p>
+      </div>
+    </div>
 
       {checklists.length === 0 ? (
   <ChecklistEmptyState onCreateClick={() => setIsAddDialogOpen(true)} />
 ) : (
-  <div className="overflow-x-auto">
-    <Table className="min-w-full bg-white border border-travel-beige">
+  <div className="overflow-x-auto w-full md:w-full lg:w-full xl:w-full 2xl:w-full">
+    <Table className="min-w-full sm:min-w-full md:min-w-full lg:min-w-full xl:min-w-full 2xl:min-w-full bg-white border border-travel-beige text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">
       <TableHeader>
         <TableRow>
-          <TableHead>Nome</TableHead>
-          <TableHead>Descrição</TableHead>
-          <TableHead>Ponto Associado</TableHead>
-          <TableHead>Conclusão</TableHead>
-          <TableHead>Ações</TableHead>
-          <TableHead>Itens</TableHead>
+          <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Nome</TableHead>
+          <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Descrição</TableHead>
+          <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Ponto Associado</TableHead>
+          <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Conclusão</TableHead>
+          <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Ações</TableHead>
+          <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Itens</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

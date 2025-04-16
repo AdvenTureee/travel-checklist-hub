@@ -397,21 +397,29 @@ const Shopping: React.FC = () => {
       </PageContainer>;
   }
   return <PageContainer>
-      <div className="mb-6 flex items-center justify-between mx-0">
-        <div>
-          <h1 className="text-3xl font-bold text-travel-dark">Lista de compras</h1>
-          <p className="text-travel-dark/70">Rastreie os itens que você deseja comprar durante sua viagem</p>
+      <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:gap-6 items-start w-full">
+        {/* Coluna esquerda com botões de ação global */}
+        <div className="flex flex-row sm:flex-col gap-2 sm:gap-3 items-start min-w-[56px] w-full sm:w-auto mb-2 sm:mb-0">
+          <Button
+            onClick={() => setIsAddDialogOpen(true)}
+            className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md"
+            aria-label="Adicionar Item"
+          >
+            <PlusCircle className="h-6 w-6" />
+          </Button>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-10 w-10 flex items-center justify-center rounded-md" aria-label="Adicionar Item">
-  <PlusCircle className="h-5 w-5" />
-</Button>
+        {/* Header e descrição */}
+        <div className="flex flex-col flex-1 w-full">
+          <h1 className="text-2xl sm:text-3xl font-bold text-travel-dark">Lista de compras</h1>
+          <p className="text-travel-dark/70 text-sm sm:text-base">Rastreie os itens que você deseja comprar durante sua viagem</p>
+        </div>
       </div>
 
       {/* Improved Summary Card */}
-      <Card className="mb-6 overflow-hidden border-travel-light-blue/30 mx-0 px-2 sm:px-0">
-        <CardHeader className="pb-4 bg-gradient-to-r from-travel-light-blue/30 to-travel-beige">
-          <div className="flex justify-between items-center">
-            <CardTitle className="text-xl text-travel-dark">Resumo</CardTitle>
+      <Card className="mb-4 sm:mb-6 overflow-hidden border-travel-light-blue/30 mx-0 px-2 sm:px-0">
+        <CardHeader className="pb-2 sm:pb-4 bg-gradient-to-r from-travel-light-blue/30 to-travel-beige">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-0">
+            <CardTitle className="text-lg sm:text-xl text-travel-dark">Resumo</CardTitle>
             <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
               <CollapsibleTrigger className="rounded-full p-1 hover:bg-travel-beige/50">
                 {isExpanded ? <ChevronUp className="h-5 w-5 text-travel-dark/70" /> : <ChevronDown className="h-5 w-5 text-travel-dark/70" />}
