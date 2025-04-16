@@ -402,7 +402,7 @@ const Shopping: React.FC = () => {
           <h1 className="text-3xl font-bold text-travel-dark">Lista de compras</h1>
           <p className="text-travel-dark/70">Rastreie os itens que você deseja comprar durante sua viagem</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2">
+        <Button onClick={() => setIsAddDialogOpen(true)} className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-10 w-10 flex items-center justify-center rounded-md" aria-label="Adicionar Item">
   <PlusCircle className="h-5 w-5" />
 </Button>
       </div>

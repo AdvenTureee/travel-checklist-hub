@@ -575,7 +575,7 @@ const Checklists = () => {
           
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2">
+              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-10 w-10 flex items-center justify-center rounded-md" aria-label="Adicionar Checklist">
   <PlusCircle className="h-5 w-5" />
 </Button>
             </DialogTrigger>
