@@ -18,6 +18,7 @@ interface SharedPoint {
     user_id: string;
   };
   sender_email: string;
+  user_email: string;
 }
 
 import PointDetailsModal from '@/components/points/PointDetailsModal';
