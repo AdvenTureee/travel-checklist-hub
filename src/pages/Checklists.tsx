@@ -13,7 +13,6 @@ import { PlusCircle, Loader2 } from 'lucide-react';
 // Import refactored components
 import BulkItemsDialog from '@/components/checklists/BulkItemsDialog';
 import ChecklistDialog from '@/components/checklists/ChecklistDialog';
-import ChecklistViewDialog from '@/components/checklists/ChecklistViewDialog';
 import ChecklistEmptyState from '@/components/checklists/ChecklistEmptyState';
 import AddItemDialog from '@/components/checklists/AddItemDialog';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
