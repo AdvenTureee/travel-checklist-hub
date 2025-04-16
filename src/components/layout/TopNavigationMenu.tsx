@@ -28,39 +28,36 @@ export function TopNavigationMenu() {
     to: '/settings',
     description: 'Ajuste as preferências do sistema'
   }];
-  return <motion.div className="fixed left-0 right-0 top-0 z-50 flex justify-center" initial={{
-    opacity: 0,
-    y: -20
-  }} animate={{
-    opacity: 1,
-    y: 0
-  }} transition={{
-    duration: 0.3
-  }}>
-      <NavigationMenu className="bg-white/90 backdrop-blur-sm shadow-md p-1 border border-travel-light-mustard/50 rounded-full mx-0 px-0 py-[5px] my-[11px]">
-        <NavigationMenuList className="space-x-2 rounded-none py-0 px-[10px] mx-0 my-[5px]">
-          <TooltipProvider delayDuration={300}>
-            {menuItems.map(item => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.to;
-            return <NavigationMenuItem key={item.to}>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Link to={item.to}>
-                        <div className={cn("flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200", isActive ? "bg-travel-mustard text-travel-dark scale-110 shadow-sm" : "hover:bg-travel-light-mustard/50 text-travel-dark/70 hover:scale-105")} aria-label={item.label}>
-                          <Icon className="w-6 h-6 min-w-6 min-h-6 max-w-6 max-h-6 mx-auto my-auto p-0 rounded-none flex-shrink-0 flex-grow-0 flex items-center justify-center" style={{ display: 'block' }} />
-                        </div>
-                      </Link>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-white/90 backdrop-blur-sm border-travel-light-mustard/50">
-                      <p className="font-medium">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">{item.description}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </NavigationMenuItem>;
-          })}
-          </TooltipProvider>
-        </NavigationMenuList>
-      </NavigationMenu>
-    </motion.div>;
+
+  return (
+    <motion.div
+      className="fixed left-0 right-0 top-0 z-50 flex justify-center"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <div className="bg-white/90 backdrop-blur-sm shadow-md border border-travel-light-mustard/50 rounded-full px-4 py-2 flex items-center gap-3 mt-3">
+        {menuItems.map(item => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.to;
+          return (
+            <Link
+              key={item.to}
+              to={item.to}
+              title={item.label + (item.description ? ` — ${item.description}` : '')}
+              className={cn(
+                "flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200",
+                isActive
+                  ? "bg-travel-mustard text-travel-dark scale-110 shadow-md"
+                  : "hover:bg-travel-light-mustard/50 text-travel-dark/70 hover:scale-105"
+              )}
+              aria-label={item.label}
+            >
+              <Icon className="w-6 h-6 mx-auto my-auto align-middle leading-[0]" style={{ display: 'block' }} />
+            </Link>
+          );
+        })}
+      </div>
+    </motion.div>
+  );
 }
