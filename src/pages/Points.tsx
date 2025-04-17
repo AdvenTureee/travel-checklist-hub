@@ -23,21 +23,51 @@ import { ptBR } from 'date-fns/locale';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 const Points: React.FC = () => {
+  const { user } = useAuth();
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   // Função para obter tripId da query ou localStorage
   function getTripId() {
     const params = new URLSearchParams(location.search);
-    return params.get('tripId') || localStorage.getItem('selectedTripId');
+    return params.get('tripId'); // Nunca use localStorage para garantir filtro correto
   }
   const tripId = getTripId();
-  // Se não houver tripId, redireciona para /trips
-  React.useEffect(() => {
-    if (!tripId) {
+
+  // Função para verificar se o usuário tem acesso à viagem (dono ou compartilhada)
+  const [hasTripAccess, setHasTripAccess] = useState<boolean | null>(null);
+  useEffect(() => {
+    async function checkAccess() {
+      if (!tripId || !user) {
+        setHasTripAccess(false);
+        return;
+      }
+      // Limpar selectedTripId do localStorage para evitar confusão
+      localStorage.removeItem('selectedTripId');
+      // Checar se é dono
+      const { data: trip } = await supabase.from('trip').select('user_id').eq('id', tripId).maybeSingle();
+      if (trip && trip.user_id === user.id) {
+        setHasTripAccess(true);
+        return;
+      }
+      // Checar se é compartilhada
+      const { data: share } = await supabase.from('trip_shares')
+        .select('id')
+        .eq('trip_id', tripId)
+        .eq('status', 'accepted')
+        .or(`invitee_id.eq.${user.id},inviter_id.eq.${user.id}`)
+        .maybeSingle();
+      setHasTripAccess(!!share);
+    }
+    checkAccess();
+  }, [tripId, user]);
+
+  // Se não houver tripId ou não tiver acesso, redireciona
+  useEffect(() => {
+    if (hasTripAccess === false) {
       navigate('/trips');
     }
-  }, [tripId, navigate]);
+  }, [hasTripAccess, navigate]);
   const [sharePointId, setSharePointId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -57,9 +87,7 @@ const Points: React.FC = () => {
   const {
     toast
   } = useToast();
-  const {
-    user
-  } = useAuth();
+
   const queryClient = useQueryClient();
 
   // Fetch points from Supabase
@@ -70,11 +98,12 @@ const Points: React.FC = () => {
   } = useQuery({
     queryKey: ['points', tripId],
     queryFn: async () => {
-      let query = supabase.from('points').select('*').order('created_at', { ascending: false });
-      if (tripId) {
-        query = query.eq('trip_id', tripId);
-      }
-      const { data, error } = await query;
+      if (!tripId) return [];
+      const { data, error } = await supabase
+        .from('points')
+        .select('*')
+        .eq('trip_id', tripId)
+        .order('created_at', { ascending: false });
       if (error) throw error;
       return data as Point[];
     },
@@ -305,6 +334,16 @@ const Points: React.FC = () => {
       </PageContainer>;
   }
   return <PageContainer>
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => navigate('/trips')}
+          className="mr-2 text-travel-blue hover:text-travel-dark flex items-center"
+          title="Sair da viagem"
+        >
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h1 className="text-2xl font-bold">Pontos de Interesse</h1>
+      </div>
       <div className="mb-6 flex flex-row gap-6 items-start">
         {/* Coluna esquerda com botões de ação global */}
         {/* Coluna esquerda com botões de ação global */}
@@ -531,13 +570,8 @@ const Points: React.FC = () => {
           </Button>
         </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {points.map(point => <Card key={point.id} className="overflow-hidden card-hover border border-travel-mustard">
-              {point.image_url && <div className="h-48 overflow-hidden cursor-pointer" onClick={() => handleOpenDetails(point)} aria-label={`Ver detalhes de ${point.name}`} role="button" tabIndex={0} onKeyDown={e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            handleOpenDetails(point);
-          }
-        }}>
-                  <img src={point.image_url} alt={point.name} className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
-                </div>}
+              {point.image_url && <ImageWithShimmer src={point.image_url} alt={point.name} onClick={() => handleOpenDetails(point)} />}
+
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -552,9 +586,6 @@ const Points: React.FC = () => {
                     </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeletePoint(point.id)}>
                       <Trash className="h-4 w-4 text-travel-red" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Compartilhar ponto" onClick={() => { setSharePointId(point.id); setIsShareDialogOpen(true); }}>
-                      <Share2 className="h-4 w-4 text-travel-blue" />
                     </Button>
                   </div>
                 </div>
@@ -613,4 +644,6 @@ const Points: React.FC = () => {
       <PointDetailsModal point={selectedPoint} isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} />
     </PageContainer>;
 };
+import { ImageWithShimmer } from "../components/ImageWithShimmer";
+
 export default Points;

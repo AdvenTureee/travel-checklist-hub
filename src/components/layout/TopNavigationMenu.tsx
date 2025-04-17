@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
-import { Plane, ListChecks, MapPin, Settings, LogOut, User, ShoppingCart } from 'lucide-react';
+import { Plane, ListChecks, MapPin, Settings, LogOut, User, ShoppingCart, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 export function TopNavigationMenu() {
@@ -16,67 +16,125 @@ export function TopNavigationMenu() {
   }
   const inTrip = isInTrip();
 
-  const menuItems = [
-    {
-      icon: Plane,
-      label: 'Viagens',
-      to: '/trips',
-      description: 'Gerencie suas viagens',
-      alwaysShow: true
-    },
-    {
-      icon: MapPin,
-      label: 'Pontos',
-      to: '/points',
-      description: 'Gerencie seus pontos de interesse',
-      showWhenInTrip: true
-    },
-    {
-      icon: ListChecks,
-      label: 'Checklists',
-      to: '/checklists',
-      description: 'Organize suas listas de tarefas',
-      showWhenInTrip: true
-    },
-    {
-      icon: ShoppingCart,
-      label: 'Compras',
-      to: '/shopping',
-      description: 'Gerencie sua lista de compras',
-      showWhenInTrip: true
-    }
-  ];
-  const recebidosItem = {
+  const params = new URLSearchParams(location.search);
+const tripId = params.get('tripId');
+
+type MenuItem = {
+  icon: React.ElementType;
+  label: string;
+  to: string;
+  description: string;
+  alwaysShow?: boolean;
+  showWhenInTrip?: boolean;
+  matchPath?: string;
+};
+
+const menuItems: MenuItem[] = [
+  {
+    icon: Plane,
+    label: 'Viagens',
+    to: '/trips',
+    description: 'Gerencie suas viagens',
+    alwaysShow: true,
+    matchPath: '/trips',
+  },
+  {
+    icon: MapPin,
+    label: 'Pontos',
+    to: tripId ? `/points?tripId=${tripId}` : '/points',
+    description: 'Gerencie seus pontos de interesse',
+    showWhenInTrip: true,
+    matchPath: '/points',
+  },
+  {
+    icon: ListChecks,
+    label: 'Checklists',
+    to: tripId ? `/checklists?tripId=${tripId}` : '/checklists',
+    description: 'Organize suas listas de tarefas',
+    showWhenInTrip: true,
+    matchPath: '/checklists',
+  },
+  {
+    icon: ShoppingCart,
+    label: 'Compras',
+    to: tripId ? `/shopping?tripId=${tripId}` : '/shopping',
+    description: 'Gerencie sua lista de compras',
+    showWhenInTrip: true,
+    matchPath: '/shopping',
+  }
+];
+  const recebidosItem: MenuItem = {
     icon: User,
     label: 'Recebidos',
     to: '/shared-points',
     description: 'Veja os pontos compartilhados com você',
-    alwaysShow: true
+    alwaysShow: true,
+    matchPath: '/shared-points',
   };
-  const settingsItem = {
+  const chatItem: MenuItem = {
+    icon: MessageCircle, // Ícone de balão de conversa
+    label: 'Chat',
+    to: '/chat',
+    description: 'Converse e compartilhe viagens',
+    alwaysShow: true,
+    matchPath: '/chat',
+  };
+  const settingsItem: MenuItem = {
     icon: Settings,
     label: 'Configurações',
     to: '/settings',
     description: 'Ajuste as preferências do sistema',
-    alwaysShow: true
+    alwaysShow: true,
+    matchPath: '/settings',
   };
 
 
+  // Novo: renderização isolada do botão de chat
+  function renderChatButton() {
+    const Icon = chatItem.icon;
+    const isActive = location.pathname === chatItem.to;
+    return (
+      <Link
+        key={chatItem.to}
+        to={chatItem.to}
+        title={chatItem.label + (chatItem.description ? ` — ${chatItem.description}` : '')}
+        className={cn(
+          "fixed top-4 right-6 z-[60] bg-white/90 backdrop-blur-sm shadow-lg border border-travel-light-mustard/50 rounded-full p-3 flex items-center justify-center transition-all duration-200",
+          isActive
+            ? "bg-travel-mustard text-travel-dark scale-110 shadow-md ring-2 ring-travel-mustard ring-offset-2 underline underline-offset-4"
+            : "hover:bg-travel-light-mustard/50 text-travel-dark/70 hover:scale-105"
+        )}
+        aria-label={chatItem.label}
+        style={{ boxShadow: '0 4px 16px 0 rgba(0,0,0,0.08)' }}
+      >
+        <Icon className="w-7 h-7 mx-auto my-auto align-middle leading-[0]" style={{ display: 'block' }} />
+      </Link>
+    );
+  }
+
+
+
+
   return (
-    <motion.div
-      className="fixed left-0 right-0 top-0 z-50 flex justify-center"
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      <div className="bg-white/90 backdrop-blur-sm shadow-md border border-travel-light-mustard/50 rounded-full px-4 py-2 flex items-center gap-3 mt-3">
-        {[
-          ...menuItems.filter(item => item.alwaysShow || (item.showWhenInTrip && inTrip)),
-          recebidosItem,
-          settingsItem
-        ].map((item, idx, arr) => {
+    <>
+
+      {renderChatButton()}
+      <motion.div
+        className="fixed left-0 right-0 top-0 z-50 flex justify-center"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="bg-white/90 backdrop-blur-sm shadow-md border border-travel-light-mustard/50 rounded-full px-4 py-2 flex items-center gap-3 mt-3">
+          {[
+            ...menuItems.filter(item => item.alwaysShow || (item.showWhenInTrip && inTrip)),
+  
+            settingsItem
+          ].map((item, idx, arr) => {
           const Icon = item.icon;
-          const isActive = location.pathname === item.to;
+          const isActive = item.matchPath
+  ? location.pathname.startsWith(item.matchPath)
+  : location.pathname === item.to;
           // Se for o botão de Viagens, sobrescreva o onClick
           if (item.label === 'Viagens') {
             return (
@@ -87,7 +145,7 @@ export function TopNavigationMenu() {
                 className={cn(
                   "flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200",
                   isActive
-                    ? "bg-travel-mustard text-travel-dark scale-110 shadow-md"
+                    ? "bg-travel-mustard text-travel-dark scale-110 shadow-md ring-2 ring-travel-mustard ring-offset-2 underline underline-offset-4"
                     : "hover:bg-travel-light-mustard/50 text-travel-dark/70 hover:scale-105"
                 )}
                 aria-label={item.label}
@@ -111,7 +169,7 @@ export function TopNavigationMenu() {
                   className={cn(
                     "flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200",
                     isActive
-                      ? "bg-travel-mustard text-travel-dark scale-110 shadow-md"
+                      ? "bg-travel-mustard text-travel-dark scale-110 shadow-md ring-2 ring-travel-mustard ring-offset-2 underline underline-offset-4"
                       : "hover:bg-travel-light-mustard/50 text-travel-dark/70 hover:scale-105"
                   )}
                   aria-label={item.label}
@@ -132,7 +190,7 @@ export function TopNavigationMenu() {
                 className={cn(
                   "flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200",
                   isActive
-                    ? "bg-travel-mustard text-travel-dark scale-110 shadow-md"
+                    ? "bg-travel-mustard text-travel-dark scale-110 shadow-md ring-2 ring-travel-mustard ring-offset-2 underline underline-offset-4"
                     : "hover:bg-travel-light-mustard/50 text-travel-dark/70 hover:scale-105"
                 )}
                 aria-label={item.label}
@@ -150,7 +208,7 @@ export function TopNavigationMenu() {
               className={cn(
                 "flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200",
                 isActive
-                  ? "bg-travel-mustard text-travel-dark scale-110 shadow-md"
+                  ? "bg-travel-mustard text-travel-dark scale-110 shadow-md ring-2 ring-travel-mustard ring-offset-2 underline underline-offset-4"
                   : "hover:bg-travel-light-mustard/50 text-travel-dark/70 hover:scale-105"
               )}
               aria-label={item.label}
@@ -161,5 +219,6 @@ export function TopNavigationMenu() {
         })}
       </div>
     </motion.div>
+    </>
   );
 }

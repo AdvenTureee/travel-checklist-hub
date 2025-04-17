@@ -16,6 +16,7 @@ export type Database = {
           created_at: string
           id: string
           text: string
+          trip_id: string | null
         }
         Insert: {
           checklist_id: string
@@ -23,6 +24,7 @@ export type Database = {
           created_at?: string
           id?: string
           text: string
+          trip_id?: string | null
         }
         Update: {
           checklist_id?: string
@@ -30,6 +32,7 @@ export type Database = {
           created_at?: string
           id?: string
           text?: string
+          trip_id?: string | null
         }
         Relationships: [
           {
@@ -37,6 +40,13 @@ export type Database = {
             columns: ["checklist_id"]
             isOneToOne: false
             referencedRelation: "checklists"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklist_items_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trip"
             referencedColumns: ["id"]
           },
         ]
@@ -170,84 +180,6 @@ export type Database = {
           },
         ]
       }
-      shared_trips: {
-        Row: {
-          id: string;
-          trip_id: string;
-          user_id: string;
-          sender_id: string | null;
-          created_at: string;
-        };
-        Insert: {
-          id?: string;
-          trip_id: string;
-          user_id: string;
-          sender_id?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          trip_id?: string;
-          user_id?: string;
-          sender_id?: string | null;
-          created_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "shared_trips_trip_id_fkey";
-            columns: ["trip_id"];
-            isOneToOne: false;
-            referencedRelation: "trip";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "shared_trips_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "shared_trips_sender_id_fkey";
-            columns: ["sender_id"];
-            isOneToOne: false;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          }
-        ];
-      },
-      shared_points: {
-        Row: {
-          created_at: string | null
-          id: string
-          point_id: string
-          sender_id: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          point_id: string
-          sender_id: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          point_id?: string
-          sender_id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "shared_points_point_id_fkey"
-            columns: ["point_id"]
-            isOneToOne: false
-            referencedRelation: "points"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       shopping_list_items: {
         Row: {
           checklist_id: string | null
@@ -353,6 +285,108 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_chat_messages: {
+        Row: {
+          chat_id: string
+          id: string
+          message: string
+          sender_id: string
+          sent_at: string | null
+        }
+        Insert: {
+          chat_id: string
+          id?: string
+          message: string
+          sender_id: string
+          sent_at?: string | null
+        }
+        Update: {
+          chat_id?: string
+          id?: string
+          message?: string
+          sender_id?: string
+          sent_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_chat_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "trip_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_chats: {
+        Row: {
+          created_at: string | null
+          id: string
+          trip_id: string
+          user1_id: string
+          user2_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          trip_id: string
+          user1_id: string
+          user2_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          trip_id?: string
+          user1_id?: string
+          user2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_chats_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trip"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trip_shares: {
+        Row: {
+          id: string
+          invited_at: string | null
+          invitee_id: string
+          inviter_id: string
+          responded_at: string | null
+          status: string
+          trip_id: string
+        }
+        Insert: {
+          id?: string
+          invited_at?: string | null
+          invitee_id: string
+          inviter_id: string
+          responded_at?: string | null
+          status?: string
+          trip_id: string
+        }
+        Update: {
+          id?: string
+          invited_at?: string | null
+          invitee_id?: string
+          inviter_id?: string
+          responded_at?: string | null
+          status?: string
+          trip_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trip_shares_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trip"
             referencedColumns: ["id"]
           },
         ]

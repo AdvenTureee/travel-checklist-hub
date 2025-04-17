@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Plus, MapPin, Calendar, Edit, Trash, Share2 } from 'lucide-react';
 import { ShareTripDialog } from '@/components/trips/ShareTripDialog';
+import TripChatButton from '@/components/chat/TripChatButton';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface Trip {
@@ -19,13 +20,48 @@ interface Trip {
   created_at: string;
 }
 
+import type { Database } from '@/integrations/supabase/types';
+
 const Trips: React.FC = () => {
+  const { user } = useAuth();
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
-  const { user } = useAuth();
+  const [otherUserIdForSelectedTrip, setOtherUserIdForSelectedTrip] = useState<string | null>(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  // Fetch the other user's id for the selected trip when selectedTripId or user changes
+  useEffect(() => {
+    const fetchOtherUserId = async () => {
+      if (!selectedTripId || !user?.id) {
+        setOtherUserIdForSelectedTrip(null);
+        return;
+      }
+      const { data, error } = await supabase
+        .from('trip_shares')
+        .select('inviter_id, invitee_id, status')
+        .eq('trip_id', selectedTripId)
+        .eq('status', 'accepted');
+      if (error || !data || data.length === 0) {
+        setOtherUserIdForSelectedTrip(null);
+        return;
+      }
+      // Find the row where the user is either inviter or invitee, and return the other
+      const share = data.find(
+        (row: Database['public']['Tables']['trip_shares']['Row']) =>
+          row.inviter_id === user.id || row.invitee_id === user.id
+      );
+      if (!share) {
+        setOtherUserIdForSelectedTrip(null);
+        return;
+      }
+      const otherId = share.inviter_id === user.id ? share.invitee_id : share.inviter_id;
+      setOtherUserIdForSelectedTrip(otherId);
+    };
+    fetchOtherUserId();
+  }, [selectedTripId, user]);
+
   const [newTrip, setNewTrip] = useState({ nome: '', local: '', datain: '', dataout: '' });
   const [showNewTripFields, setShowNewTripFields] = useState(false);
   const [deleteDialogId, setDeleteDialogId] = useState<string|null>(null);
@@ -52,11 +88,26 @@ const Trips: React.FC = () => {
 
   // Fetch trips
   const { data: trips = [], isLoading } = useQuery({
-    queryKey: ['trips'],
+    queryKey: ['trips', user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from('trip').select('*').eq('user_id', user?.id).order('created_at', { ascending: false });
-      if (error) throw error;
-      return data || [];
+      if (!user?.id) return [];
+      // Buscar trips onde o usuário é dono
+      const { data: ownTrips, error: ownErr } = await supabase.from('trip').select('*').eq('user_id', user.id);
+      if (ownErr) throw ownErr;
+      // Buscar trips compartilhadas
+      const { data: sharedRows, error: sharedErr } = await supabase
+        .from('trip_shares')
+        .select('trip(*)')
+        .or(`inviter_id.eq.${user.id},invitee_id.eq.${user.id}`)
+        .eq('status', 'accepted');
+      if (sharedErr) throw sharedErr;
+      const sharedTrips = (sharedRows || []).map((row: any) => row.trip).filter(Boolean);
+      // Unir e remover duplicatas por id
+      const allTrips = [...(ownTrips || []), ...sharedTrips];
+      const uniqueTrips = allTrips.filter((trip, idx, arr) => arr.findIndex(t => t.id === trip.id) === idx);
+      // Ordenar por data de criação (mais recente primeiro)
+      uniqueTrips.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      return uniqueTrips;
     },
     enabled: !!user?.id,
   });
@@ -78,7 +129,6 @@ const Trips: React.FC = () => {
 
   // Select a trip and redirect
   const handleSelectTrip = (tripId: string) => {
-    localStorage.setItem('selectedTripId', tripId);
     navigate(`/points?tripId=${tripId}`);
   };
 
@@ -107,7 +157,7 @@ const Trips: React.FC = () => {
   return (
     <>
 
-      <div className="max-w-2xl mx-auto py-8 px-4">
+      <div className="max-w-2xl mx-auto py-8 px-4 mt-16">
         <h1 className="text-2xl font-bold mb-4">Minhas Viagens</h1>
       <div className="mb-8">
         <Card>
@@ -142,14 +192,17 @@ const Trips: React.FC = () => {
         {trips.map(trip => (
           <Card key={trip.id} className="hover:shadow-lg cursor-pointer transition" onClick={() => handleSelectTrip(trip.id)}>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>{trip.nome}</CardTitle>
+              <div className="flex flex-col gap-1">
+                <CardTitle>{trip.nome}</CardTitle>
+                {trip.user_id && user?.id && trip.user_id !== user.id && (
+                  <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded">Viagem compartilhada</span>
+                )}
+              </div>
               <div className="flex gap-2">
                 <Button size="icon" variant="ghost" onClick={e => { e.stopPropagation(); setEditTripId(trip.id); setEditTrip({ nome: trip.nome, local: trip.local, datain: trip.datain, dataout: trip.dataout }); }}>
                   <Edit className="w-4 h-4 text-travel-blue" />
                 </Button>
-                <Button size="icon" variant="ghost" onClick={e => { e.stopPropagation(); setSelectedTripId(trip.id); setShareDialogOpen(true); }}>
-                  <Share2 className="w-4 h-4 text-travel-blue" />
-                </Button>
+
                 <Dialog open={deleteDialogId === trip.id} onOpenChange={open => { if (!open) setDeleteDialogId(null); }}>
                   <DialogTrigger asChild>
                     <Button size="icon" variant="ghost" onClick={e => { e.stopPropagation(); setDeleteDialogId(trip.id); }}>
@@ -205,6 +258,13 @@ const Trips: React.FC = () => {
       onOpenChange={setShareDialogOpen}
       tripId={selectedTripId}
     />
+    {/* Render floating chat button if a trip is selected and user is not the only participant */}
+    {selectedTripId && user && otherUserIdForSelectedTrip && (
+      <TripChatButton 
+        tripId={selectedTripId} 
+        otherUserId={otherUserIdForSelectedTrip} 
+      />
+    )}
   </>);
 };
 

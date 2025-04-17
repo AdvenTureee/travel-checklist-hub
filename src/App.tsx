@@ -3,12 +3,15 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { PageTransition } from "@/components/PageTransition";
+import { ScrollToTop } from "@/components/ScrollToTop";
 import Points from "./pages/Points";
-import SharedPoints from "./pages/SharedPoints";
+
 import Checklists from "./pages/Checklists";
 import Shopping from "./pages/Shopping";
-import Settings from "./pages/Settings";
+import Settings from './pages/Settings';
+import Chat from './pages/Chat';
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
 import Trips from "./pages/Trips";
@@ -17,6 +20,26 @@ import RequireAuth from "@/components/layout/RequireAuth";
 import { TopNavigationMenu } from "@/components/layout/TopNavigationMenu";
 
 const App = () => {
+  const location = typeof window !== 'undefined' ? window.location : undefined;
+  // React Router v6: useLocation só funciona dentro de Router, então criamos um wrapper
+  const AnimatedRoutes = () => {
+    const location = useLocation();
+    return (
+      <PageTransition locationKey={location.key}>
+        <Routes location={location}>
+          <Route path="/" element={<Navigate to="/auth" replace />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/points" element={<RequireAuth><><TopNavigationMenu /><Points /></></RequireAuth>} />
+                    <Route path="/checklists" element={<RequireAuth><><TopNavigationMenu /><Checklists /></></RequireAuth>} />
+          <Route path="/shopping" element={<RequireAuth><><TopNavigationMenu /><Shopping /></></RequireAuth>} />
+          <Route path="/trips" element={<RequireAuth><><TopNavigationMenu /><Trips /></></RequireAuth>} />
+          <Route path="/settings" element={<RequireAuth><><TopNavigationMenu /><Settings /></></RequireAuth>} />
+          <Route path="/chat" element={<RequireAuth><><TopNavigationMenu /><Chat /></></RequireAuth>} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </PageTransition>
+    );
+  }
   // Create the client as a state variable to ensure it's only created once
   const [queryClient] = useState(() => new QueryClient());
   
@@ -51,63 +74,12 @@ const App = () => {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <div className="app-container">
+            <div className="app-container custom-scroll">
+              <ScrollToTop />
               <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-white focus:text-travel-dark focus:top-0 focus:left-0">
                 Pular para o conteúdo principal
               </a>
-              <Routes>
-                <Route path="/" element={<Navigate to="/auth" replace />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/points" element={
-                  <RequireAuth>
-                    <>
-                      <TopNavigationMenu />
-                      <Points />
-                    </>
-                  </RequireAuth>
-                } />
-                <Route path="/shared-points" element={
-                  <RequireAuth>
-                    <>
-                      <TopNavigationMenu />
-                      <SharedPoints />
-                    </>
-                  </RequireAuth>
-                } />
-                <Route path="/checklists" element={
-                  <RequireAuth>
-                    <>
-                      <TopNavigationMenu />
-                      <Checklists />
-                    </>
-                  </RequireAuth>
-                } />
-                <Route path="/shopping" element={
-                  <RequireAuth>
-                    <>
-                      <TopNavigationMenu />
-                      <Shopping />
-                    </>
-                  </RequireAuth>
-                } />
-                <Route path="/trips" element={
-                  <RequireAuth>
-                    <>
-                      <TopNavigationMenu />
-                      <Trips />
-                    </>
-                  </RequireAuth>
-                } />
-                <Route path="/settings" element={
-                  <RequireAuth>
-                    <>
-                      <TopNavigationMenu />
-                      <Settings />
-                    </>
-                  </RequireAuth>
-                } />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <AnimatedRoutes />
             </div>
           </AuthProvider>
         </BrowserRouter>

@@ -17,7 +17,8 @@ export const ShareTripDialog: React.FC<ShareTripDialogProps> = ({ open, onOpenCh
       <DialogContent>
         <div className="text-center p-4">
           <h2 className="text-lg font-bold mb-2">Compartilhamento de viagens</h2>
-          <p className="text-gray-600">Esta funcionalidade está temporariamente desativada.<br/>Em breve, uma nova versão estará disponível para compartilhar viagens com outros usuários.</p>
+          <p className="text-gray-600">Esta funcionalidade está temporariamente desativada.
+          </p>
         </div>
       </DialogContent>
     </Dialog>

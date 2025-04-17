@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -25,6 +25,7 @@ import { useLocation } from 'react-router-dom';
 import Confetti from '@/components/ui/Confetti';
 
 const Checklists = () => {
+  const { user } = useAuth();
   const [showConfetti, setShowConfetti] = useState(false);
   const [lastCelebratedIds, setLastCelebratedIds] = useState<string[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -33,15 +34,44 @@ const Checklists = () => {
   // Função para obter tripId da query ou localStorage
   function getTripId() {
     const params = new URLSearchParams(location.search);
-    return params.get('tripId') || localStorage.getItem('selectedTripId');
+    return params.get('tripId'); // Nunca use localStorage para garantir filtro correto
   }
   const tripId = getTripId();
-  // Se não houver tripId, redireciona para /trips
-  React.useEffect(() => {
-    if (!tripId) {
+
+  // Função para verificar se o usuário tem acesso à viagem (dono ou compartilhada)
+  const [hasTripAccess, setHasTripAccess] = useState<boolean | null>(null);
+  useEffect(() => {
+    async function checkAccess() {
+      if (!tripId || !user) {
+        setHasTripAccess(false);
+        return;
+      }
+      // Limpar selectedTripId do localStorage para evitar confusão
+      localStorage.removeItem('selectedTripId');
+      // Checar se é dono
+      const { data: trip } = await supabase.from('trip').select('user_id').eq('id', tripId).maybeSingle();
+      if (trip && trip.user_id === user.id) {
+        setHasTripAccess(true);
+        return;
+      }
+      // Checar se é compartilhada
+      const { data: share } = await supabase.from('trip_shares')
+        .select('id')
+        .eq('trip_id', tripId)
+        .eq('status', 'accepted')
+        .or(`invitee_id.eq.${user.id},inviter_id.eq.${user.id}`)
+        .maybeSingle();
+      setHasTripAccess(!!share);
+    }
+    checkAccess();
+  }, [tripId, user]);
+
+  // Se não houver tripId ou não tiver acesso, redireciona
+  useEffect(() => {
+    if (hasTripAccess === false) {
       navigate('/trips');
     }
-  }, [tripId, navigate]);
+  }, [hasTripAccess, navigate]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
@@ -58,9 +88,7 @@ const Checklists = () => {
   const {
     toast
   } = useToast();
-  const {
-    user
-  } = useAuth();
+
   const queryClient = useQueryClient();
 
   // Fetch points for association with checklists
@@ -115,18 +143,18 @@ const Checklists = () => {
   const {
     data: checklistItems = []
   } = useQuery({
-    queryKey: ['checklist-items'],
+    queryKey: ['checklist-items', tripId],
     queryFn: async () => {
-      const {
-        data,
-        error
-      } = await supabase.from('checklist_items').select('*').order('created_at', {
-        ascending: true
-      });
+      if (!tripId) return [];
+      const { data, error } = await supabase
+        .from('checklist_items')
+        .select('*')
+        .eq('trip_id', tripId)
+        .order('created_at', { ascending: true });
       if (error) throw error;
       return data as ChecklistItem[];
     },
-    enabled: checklists.length > 0
+    enabled: !!tripId && checklists.length > 0
   });
 
   // Create checklist mutation
@@ -592,6 +620,16 @@ const Checklists = () => {
 if (isLoadingChecklists) {
   return (
     <PageContainer>
+      <div className="flex items-center mb-6">
+        <button
+          onClick={() => navigate('/trips')}
+          className="mr-2 text-travel-blue hover:text-travel-dark flex items-center"
+          title="Voltar para viagens"
+        >
+          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        </button>
+        <h1 className="text-2xl font-bold">Checklists</h1>
+      </div>
       <div className="flex justify-center items-center h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-travel-blue" />
         <span className="ml-2">Carregando checklists...</span>
@@ -602,6 +640,16 @@ if (isLoadingChecklists) {
 
 return (
   <PageContainer>
+    <div className="flex items-center mb-6">
+      <button
+        onClick={() => navigate('/trips')}
+        className="mr-2 text-travel-blue hover:text-travel-dark flex items-center"
+        title="Voltar para viagens"
+      >
+        <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+      </button>
+      <h1 className="text-2xl font-bold">Checklists</h1>
+    </div>
     {showConfetti && (
       <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
     )}
