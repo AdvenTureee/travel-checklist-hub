@@ -26,7 +26,7 @@ const App = () => {
     const location = useLocation();
     return (
       <>
-        <TopNavigationMenu />
+        {location.pathname !== '/auth' && <TopNavigationMenu />}
         <PageTransition locationKey={location.key}>
           <Routes location={location}>
             <Route path="/" element={<Navigate to="/auth" replace />} />
@@ -34,7 +34,7 @@ const App = () => {
             <Route path="/points" element={<RequireAuth><Points /></RequireAuth>} />
             <Route path="/checklists" element={<RequireAuth><Checklists /></RequireAuth>} />
             <Route path="/shopping" element={<RequireAuth><Shopping /></RequireAuth>} />
-            <Route path="/trips" element={<RequireAuth><Trips /></RequireAuth>} />
+            <Route path="/trips" element={<RequireAuth><Trips compact /></RequireAuth>} />
             <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
             <Route path="/chat" element={<RequireAuth><Chat /></RequireAuth>} />
             <Route path="*" element={<NotFound />} />

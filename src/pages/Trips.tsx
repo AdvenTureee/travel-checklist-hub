@@ -24,7 +24,11 @@ interface Trip {
 
 import type { Database } from '@/integrations/supabase/types';
 
-const Trips: React.FC = () => {
+interface TripsProps {
+  compact?: boolean;
+}
+
+const Trips: React.FC<TripsProps> = ({ compact = false }) => {
   const { user } = useAuth();
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
@@ -33,7 +37,6 @@ const Trips: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  // Fetch the other user's id for the selected trip when selectedTripId or user changes
   useEffect(() => {
     const fetchOtherUserId = async () => {
       if (!selectedTripId || !user?.id) {
@@ -49,7 +52,6 @@ const Trips: React.FC = () => {
         setOtherUserIdForSelectedTrip(null);
         return;
       }
-      // Find the row where the user is either inviter or invitee, and return the other
       const share = data.find(
         (row: Database['public']['Tables']['trip_shares']['Row']) =>
           row.inviter_id === user.id || row.invitee_id === user.id
@@ -70,7 +72,6 @@ const Trips: React.FC = () => {
   const [editTripId, setEditTripId] = useState<string|null>(null);
   const [editTrip, setEditTrip] = useState({ nome: '', local: '', datain: '', dataout: '' });
 
-  // Função para deletar viagem
   const handleDeleteTrip = async (tripId: string) => {
     await supabase.from('trip').delete().eq('id', tripId);
     setDeleteDialogId(null);
@@ -79,7 +80,6 @@ const Trips: React.FC = () => {
     navigate('/trips');
   };
 
-  // Função para editar viagem
   const handleEditTrip = async () => {
     if (!editTripId) return;
     await supabase.from('trip').update(editTrip).eq('id', editTripId);
@@ -87,16 +87,12 @@ const Trips: React.FC = () => {
     queryClient.invalidateQueries({ queryKey: ['trips'] });
   };
 
-
-  // Fetch trips
   const { data: trips = [], isLoading } = useQuery({
     queryKey: ['trips', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      // Buscar trips onde o usuário é dono
       const { data: ownTrips, error: ownErr } = await supabase.from('trip').select('*').eq('user_id', user.id);
       if (ownErr) throw ownErr;
-      // Buscar trips compartilhadas
       const { data: sharedRows, error: sharedErr } = await supabase
         .from('trip_shares')
         .select('trip(*)')
@@ -104,17 +100,14 @@ const Trips: React.FC = () => {
         .eq('status', 'accepted');
       if (sharedErr) throw sharedErr;
       const sharedTrips = (sharedRows || []).map((row: any) => row.trip).filter(Boolean);
-      // Unir e remover duplicatas por id
       const allTrips = [...(ownTrips || []), ...sharedTrips];
       const uniqueTrips = allTrips.filter((trip, idx, arr) => arr.findIndex(t => t.id === trip.id) === idx);
-      // Ordenar por data de criação (mais recente primeiro)
       uniqueTrips.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       return uniqueTrips;
     },
     enabled: !!user?.id,
   });
 
-  // Create trip mutation
   const createTripMutation = useMutation({
     mutationFn: async (trip: typeof newTrip) => {
       const { data, error } = await supabase.from('trip').insert([
@@ -129,7 +122,6 @@ const Trips: React.FC = () => {
     }
   });
 
-  // Select a trip and redirect
   const handleSelectTrip = (tripId: string) => {
     navigate(`/points?tripId=${tripId}`);
   };
@@ -164,29 +156,29 @@ const Trips: React.FC = () => {
         exit={{ opacity: 0, y: 24 }}
         transition={{ duration: 0.35, ease: 'easeInOut' }}
       >
-        <div className="max-w-2xl mx-auto py-8 px-4 mt-16">
-          <h1 className="text-2xl font-bold mb-4">Minhas Viagens</h1>
-          <div className="mb-8">
+        <div className={`max-w-2xl mx-auto ${compact ? 'py-4 px-2 mt-6' : 'py-8 px-4 mt-16'}`}>
+          <h1 className={`${compact ? 'text-lg mb-2' : 'text-2xl mb-4'} font-bold`}>Minhas Viagens</h1>
+          <div className={compact ? 'mb-4' : 'mb-8'}>
             <Card>
               <CardHeader>
-                <CardTitle>Nova Viagem</CardTitle>
+                <span className={`${compact ? 'text-base' : 'text-lg'} font-semibold`}>Nova Viagem</span>
               </CardHeader>
               <CardContent>
                 {showNewTripFields ? (
-                  <div className="flex flex-col gap-3">
-                    <Input placeholder="Nome da viagem" value={newTrip.nome} onChange={e => setNewTrip({ ...newTrip, nome: e.target.value })} />
-                    <Input placeholder="Local" value={newTrip.local} onChange={e => setNewTrip({ ...newTrip, local: e.target.value })} />
+                  <div className={`flex flex-col ${compact ? 'gap-1' : 'gap-3'}`}>
+                    <Input className={compact ? 'h-8 text-sm' : ''} placeholder="Nome da viagem" value={newTrip.nome} onChange={e => setNewTrip({ ...newTrip, nome: e.target.value })} />
+                    <Input className={compact ? 'h-8 text-sm' : ''} placeholder="Local" value={newTrip.local} onChange={e => setNewTrip({ ...newTrip, local: e.target.value })} />
                     <div className="flex gap-2">
-                      <Input type="date" value={newTrip.datain} onChange={e => setNewTrip({ ...newTrip, datain: e.target.value })} />
-                      <Input type="date" value={newTrip.dataout} onChange={e => setNewTrip({ ...newTrip, dataout: e.target.value })} />
+                      <Input className={compact ? 'h-8 text-sm' : ''} type="date" value={newTrip.datain} onChange={e => setNewTrip({ ...newTrip, datain: e.target.value })} />
+                      <Input className={compact ? 'h-8 text-sm' : ''} type="date" value={newTrip.dataout} onChange={e => setNewTrip({ ...newTrip, dataout: e.target.value })} />
                     </div>
-                    <Button onClick={handleCreateTrip} disabled={createTripMutation.isPending}>
+                    <Button size={compact ? 'sm' : 'default'} onClick={handleCreateTrip} disabled={createTripMutation.isPending}>
                       <Plus className="mr-2 h-4 w-4" />
                       Criar viagem
                     </Button>
                   </div>
                 ) : (
-                  <Button onClick={() => setShowNewTripFields(true)}>
+                  <Button size={compact ? 'sm' : 'default'} onClick={() => setShowNewTripFields(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     Adicionar viagem
                   </Button>
@@ -195,18 +187,18 @@ const Trips: React.FC = () => {
             </Card>
           </div>
 
-          <div className="grid gap-4">
+          <div className={`grid ${compact ? 'gap-2' : 'gap-4'}`}>
             {trips.map(trip => (
-              <Card key={trip.id} className="hover:shadow-lg cursor-pointer transition" onClick={() => handleSelectTrip(trip.id)}>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div className="flex flex-col gap-1">
-                    <CardTitle>{trip.nome}</CardTitle>
+              <Card key={trip.id} className={`hover:shadow-lg cursor-pointer transition ${compact ? 'p-2' : ''}`} onClick={() => handleSelectTrip(trip.id)}>
+                <CardHeader className={`flex flex-row items-center justify-between ${compact ? 'py-2 px-2' : ''}`}>
+                  <div className={`flex flex-col ${compact ? 'gap-0.5' : 'gap-1'}`}>
+                    <span className={`${compact ? 'text-base' : 'text-lg'} font-semibold`}>{trip.nome}</span>
                     {trip.user_id && user?.id && trip.user_id !== user.id && (
-                      <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded">Viagem compartilhada</span>
+                      <span className={`inline-block bg-blue-100 text-blue-700 ${compact ? 'text-[10px] px-1 py-0.5' : 'text-xs px-2 py-1'} font-semibold rounded`}>Viagem compartilhada</span>
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <Button size="icon" variant="ghost" onClick={e => { e.stopPropagation(); setEditTripId(trip.id); setEditTrip({ nome: trip.nome, local: trip.local, datain: trip.datain, dataout: trip.dataout }); }}>
+                    <Button size={compact ? 'sm' : 'icon'} variant="ghost" onClick={e => { e.stopPropagation(); setEditTripId(trip.id); setEditTrip({ nome: trip.nome, local: trip.local, datain: trip.datain, dataout: trip.dataout }); }}>
                       <Edit className="w-4 h-4 text-travel-blue" />
                     </Button>
 
@@ -265,7 +257,6 @@ const Trips: React.FC = () => {
           onOpenChange={setShareDialogOpen}
           tripId={selectedTripId}
         />
-        {/* Render floating chat button if a trip is selected and user is not the only participant */}
         {selectedTripId && user && otherUserIdForSelectedTrip && (
           <TripChatButton 
             tripId={selectedTripId} 
