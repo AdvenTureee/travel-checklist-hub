@@ -99,7 +99,7 @@ const menuItems: MenuItem[] = [
         to={chatItem.to}
         title={chatItem.label + (chatItem.description ? ` — ${chatItem.description}` : '')}
         className={cn(
-          "fixed top-4 right-6 z-[60] bg-white/90 backdrop-blur-sm shadow-lg border border-travel-light-mustard/50 rounded-full p-3 flex items-center justify-center transition-all duration-200",
+          "fixed bottom-6 right-6 z-[60] bg-white/90 backdrop-blur-sm shadow-lg border border-travel-light-mustard/50 rounded-full p-3 flex items-center justify-center transition-all duration-200",
           isActive
             ? "bg-travel-mustard text-travel-dark scale-110 shadow-md ring-2 ring-travel-mustard ring-offset-2 underline underline-offset-4"
             : "hover:bg-travel-light-mustard/50 text-travel-dark/70 hover:scale-105"

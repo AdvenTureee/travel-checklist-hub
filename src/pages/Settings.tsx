@@ -10,7 +10,10 @@ import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { Settings as SettingsIcon, Save, Bell, Shield } from 'lucide-react';
 
+import { useNavigate } from 'react-router-dom';
+
 const Settings = () => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [settings, setSettings] = useState({
@@ -61,6 +64,11 @@ const Settings = () => {
         confirmPassword: '',
       });
     }, 1000);
+  };
+
+  const handleLogout = async () => {
+    await import('@/integrations/supabase/client').then(({ supabase }) => supabase.auth.signOut());
+    navigate('/auth', { replace: true });
   };
 
   return (
@@ -165,6 +173,14 @@ const Settings = () => {
             )}
           </Button>
         </div>
+      </div>
+      <div className="flex justify-end mt-10">
+        <Button
+          className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg shadow-md text-lg font-semibold"
+          onClick={handleLogout}
+        >
+          Sair da Conta
+        </Button>
       </div>
     </PageContainer>
   );

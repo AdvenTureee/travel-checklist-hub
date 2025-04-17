@@ -22,7 +22,11 @@ interface TripShare {
   inviter: { email: string };
 }
 
+import { PageContainer } from '@/components/layout/PageContainer';
+
 const Chat: React.FC = () => {
+  // ...
+
   const { user } = useAuth();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
@@ -196,13 +200,13 @@ const Chat: React.FC = () => {
                       Abrir chat
                     </Button>
                     <Button
-  size="sm"
-  variant="outline"
-  className="border-travel-blue text-travel-blue group-hover:bg-travel-blue/10"
-  onClick={() => window.location.href = `/points?tripId=${tripShare.trip_id}`}
->
-  Ver viagem
-</Button>
+                      size="sm"
+                      variant="outline"
+                      className="border-travel-blue text-travel-blue group-hover:bg-travel-blue/10"
+                      onClick={() => window.location.href = `/points?tripId=${tripShare.trip_id}`}
+                    >
+                      Ver viagem
+                    </Button>
                   </div>
                 </li>
               );
@@ -272,4 +276,7 @@ const Chat: React.FC = () => {
   );
 };
 
+
 export default Chat;
+
+
