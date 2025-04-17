@@ -9,25 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      users: {
-        Row: {
-          id: string;
-          email: string | null;
-          created_at?: string;
-          // outros campos se necessário
-        };
-        Insert: {
-          id: string;
-          email?: string | null;
-          created_at?: string;
-        };
-        Update: {
-          id?: string;
-          email?: string | null;
-          created_at?: string;
-        };
-        Relationships: [];
-      },
       checklist_items: {
         Row: {
           checklist_id: string
@@ -68,6 +49,7 @@ export type Database = {
           is_complete: boolean
           name: string
           point_id: string | null
+          trip_id: string | null
           user_id: string
         }
         Insert: {
@@ -77,6 +59,7 @@ export type Database = {
           is_complete?: boolean
           name: string
           point_id?: string | null
+          trip_id?: string | null
           user_id: string
         }
         Update: {
@@ -86,6 +69,7 @@ export type Database = {
           is_complete?: boolean
           name?: string
           point_id?: string | null
+          trip_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -94,6 +78,27 @@ export type Database = {
             columns: ["point_id"]
             isOneToOne: false
             referencedRelation: "points"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklists_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trip"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "all_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "checklists_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
         ]
@@ -109,6 +114,7 @@ export type Database = {
           name: string
           opening_hours: string | null
           planned_visit_date: string | null
+          trip_id: string | null
           type: string
           user_id: string
         }
@@ -122,6 +128,7 @@ export type Database = {
           name: string
           opening_hours?: string | null
           planned_visit_date?: string | null
+          trip_id?: string | null
           type: string
           user_id: string
         }
@@ -135,10 +142,65 @@ export type Database = {
           name?: string
           opening_hours?: string | null
           planned_visit_date?: string | null
+          trip_id?: string | null
           type?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "points_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trip"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "all_users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "points_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shared_points: {
+        Row: {
+          created_at: string | null
+          id: string
+          point_id: string
+          sender_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          point_id: string
+          sender_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          point_id?: string
+          sender_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_points_point_id_fkey"
+            columns: ["point_id"]
+            isOneToOne: false
+            referencedRelation: "points"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       shopping_list_items: {
         Row: {
@@ -151,6 +213,7 @@ export type Database = {
           point_id: string | null
           price: number
           purchased: boolean
+          trip_id: string | null
           user_id: string
         }
         Insert: {
@@ -163,6 +226,7 @@ export type Database = {
           point_id?: string | null
           price?: number
           purchased?: boolean
+          trip_id?: string | null
           user_id: string
         }
         Update: {
@@ -175,6 +239,7 @@ export type Database = {
           point_id?: string | null
           price?: number
           purchased?: boolean
+          trip_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -192,60 +257,67 @@ export type Database = {
             referencedRelation: "points"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "shopping_list_items_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trip"
+            referencedColumns: ["id"]
+          },
         ]
       }
-      shared_points: {
+      trip: {
         Row: {
-          id: string;
-          point_id: string;
-          user_id: string; // destinatário
-          sender_id: string; // remetente
-          created_at: string;
+          created_at: string
+          datain: string | null
+          dataout: string | null
+          id: string
+          local: string | null
+          nome: string | null
+          user_id: string | null
         }
         Insert: {
-          id?: string;
-          point_id: string;
-          user_id: string;
-          sender_id: string;
-          created_at?: string;
+          created_at?: string
+          datain?: string | null
+          dataout?: string | null
+          id?: string
+          local?: string | null
+          nome?: string | null
+          user_id?: string | null
         }
         Update: {
-          id?: string;
-          point_id?: string;
-          user_id?: string;
-          sender_id?: string;
-          created_at?: string;
+          created_at?: string
+          datain?: string | null
+          dataout?: string | null
+          id?: string
+          local?: string | null
+          nome?: string | null
+          user_id?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "shared_points_point_id_fkey",
-            columns: ["point_id"],
-            isOneToOne: false,
-            referencedRelation: "points",
+            foreignKeyName: "trip_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "all_users"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "shared_points_user_id_fkey",
-            columns: ["user_id"],
-            isOneToOne: false,
-            referencedRelation: "users",
+            foreignKeyName: "trip_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "shared_points_sender_id_fkey",
-            columns: ["sender_id"],
-            isOneToOne: false,
-            referencedRelation: "users",
-            referencedColumns: ["id"]
-          }
         ]
-      },
+      }
       user_budgets: {
         Row: {
           amount: number
           created_at: string
           currency: string
           id: string
+          trip_id: string | null
           updated_at: string
           user_id: string
         }
@@ -254,6 +326,7 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          trip_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -262,14 +335,52 @@ export type Database = {
           created_at?: string
           currency?: string
           id?: string
+          trip_id?: string | null
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_budgets_trip_id_fkey"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trip"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
-      [_ in never]: never
+      all_users: {
+        Row: {
+          email: string | null
+          id: string | null
+        }
+        Insert: {
+          email?: string | null
+          id?: string | null
+        }
+        Update: {
+          email?: string | null
+          id?: string | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          email: string | null
+          id: string | null
+        }
+        Insert: {
+          email?: string | null
+          id?: string | null
+        }
+        Update: {
+          email?: string | null
+          id?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

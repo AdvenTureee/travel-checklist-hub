@@ -20,8 +20,24 @@ import { format } from 'date-fns';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import OpeningHoursInput from '@/components/points/OpeningHoursInput';
 import { ptBR } from 'date-fns/locale';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 const Points: React.FC = () => {
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Função para obter tripId da query ou localStorage
+  function getTripId() {
+    const params = new URLSearchParams(location.search);
+    return params.get('tripId') || localStorage.getItem('selectedTripId');
+  }
+  const tripId = getTripId();
+  // Se não houver tripId, redireciona para /trips
+  React.useEffect(() => {
+    if (!tripId) {
+      navigate('/trips');
+    }
+  }, [tripId, navigate]);
   const [sharePointId, setSharePointId] = useState<string | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -52,17 +68,17 @@ const Points: React.FC = () => {
     isLoading,
     error: fetchError
   } = useQuery({
-    queryKey: ['points'],
+    queryKey: ['points', tripId],
     queryFn: async () => {
-      const {
-        data,
-        error
-      } = await supabase.from('points').select('*').order('created_at', {
-        ascending: false
-      });
+      let query = supabase.from('points').select('*').order('created_at', { ascending: false });
+      if (tripId) {
+        query = query.eq('trip_id', tripId);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data as Point[];
-    }
+    },
+    enabled: !!tripId
   });
 
   // Add point mutation
@@ -80,14 +96,15 @@ const Points: React.FC = () => {
         google_maps_url: point.googleMapsUrl,
         opening_hours: point.openingHours,
         planned_visit_date: point.plannedVisitDate,
-        user_id: user?.id
+        user_id: user?.id,
+        trip_id: tripId
       }]).select();
       if (error) throw error;
       return data[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['points']
+        queryKey: ['points', tripId]
       });
       setIsAddDialogOpen(false);
       toast({

@@ -11,6 +11,7 @@ import Shopping from "./pages/Shopping";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Auth from "./pages/Auth";
+import Trips from "./pages/Trips";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import RequireAuth from "@/components/layout/RequireAuth";
 import { TopNavigationMenu } from "@/components/layout/TopNavigationMenu";
@@ -86,6 +87,14 @@ const App = () => {
                     <>
                       <TopNavigationMenu />
                       <Shopping />
+                    </>
+                  </RequireAuth>
+                } />
+                <Route path="/trips" element={
+                  <RequireAuth>
+                    <>
+                      <TopNavigationMenu />
+                      <Trips />
                     </>
                   </RequireAuth>
                 } />

@@ -15,8 +15,24 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Progress } from '@/components/ui/progress';
+import { useLocation, useNavigate } from 'react-router-dom';
+
 const Shopping: React.FC = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Função para obter tripId da query ou localStorage
+  function getTripId() {
+    const params = new URLSearchParams(location.search);
+    return params.get('tripId') || localStorage.getItem('selectedTripId');
+  }
+  const tripId = getTripId();
+  // Se não houver tripId, redireciona para /trips
+  React.useEffect(() => {
+    if (!tripId) {
+      navigate('/trips');
+    }
+  }, [tripId, navigate]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isBudgetDialogOpen, setIsBudgetDialogOpen] = useState(false);
   const [editItemId, setEditItemId] = useState<string | null>(null);
@@ -43,17 +59,17 @@ const Shopping: React.FC = () => {
     data: items = [],
     isLoading: isLoadingItems
   } = useQuery({
-    queryKey: ['shopping-items'],
+    queryKey: ['shopping-items', tripId],
     queryFn: async () => {
-      const {
-        data,
-        error
-      } = await supabase.from('shopping_list_items').select('*').order('created_at', {
-        ascending: false
-      });
+      let query = supabase.from('shopping_list_items').select('*').order('created_at', { ascending: false });
+      if (tripId) {
+        query = query.eq('trip_id', tripId);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data as ShoppingItem[];
-    }
+    },
+    enabled: !!tripId
   });
 
   // Fetch user budget
@@ -122,7 +138,8 @@ const Shopping: React.FC = () => {
         purchased: item.purchased,
         image_url: item.image_url,
         point_id: item.point_id === 'none' ? null : item.point_id,
-        user_id: user?.id
+        user_id: user?.id,
+        trip_id: tripId
       }]).select();
       if (error) throw error;
       return data[0];
@@ -164,7 +181,8 @@ const Shopping: React.FC = () => {
         price: item.price,
         currency: item.currency,
         image_url: item.image_url,
-        point_id: item.point_id === 'none' ? null : item.point_id
+        point_id: item.point_id === 'none' ? null : item.point_id,
+        trip_id: tripId
       }).eq('id', id).select();
       if (error) throw error;
       return data[0];

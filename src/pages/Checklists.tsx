@@ -21,8 +21,24 @@ import { ListChecks, Edit, Trash, Plus, ListPlus } from 'lucide-react';
 import ChecklistDropdown from '@/components/ui/ChecklistDropdown';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 
+import { useLocation } from 'react-router-dom';
+
 const Checklists = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Função para obter tripId da query ou localStorage
+  function getTripId() {
+    const params = new URLSearchParams(location.search);
+    return params.get('tripId') || localStorage.getItem('selectedTripId');
+  }
+  const tripId = getTripId();
+  // Se não houver tripId, redireciona para /trips
+  React.useEffect(() => {
+    if (!tripId) {
+      navigate('/trips');
+    }
+  }, [tripId, navigate]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
@@ -36,7 +52,6 @@ const Checklists = () => {
     isComplete: false
   });
   const [viewMode, setViewMode] = useState<'grid'>('grid');
-  const navigate = useNavigate();
   const {
     toast
   } = useToast();
@@ -49,23 +64,21 @@ const Checklists = () => {
   const {
     data: points = []
   } = useQuery({
-    queryKey: ['points'],
+    queryKey: ['points', tripId],
     queryFn: async () => {
-      const {
-        data: userData
-      } = await supabase.auth.getUser();
+      const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         throw new Error("User not authenticated");
       }
-      const {
-        data,
-        error
-      } = await supabase.from('points').select('*').order('created_at', {
-        ascending: false
-      });
+      let query = supabase.from('points').select('*').order('created_at', { ascending: false });
+      if (tripId) {
+        query = query.eq('trip_id', tripId);
+      }
+      const { data, error } = await query;
       if (error) throw error;
       return data as Point[];
-    }
+    },
+    enabled: !!tripId
   });
 
   // Fetch checklists
@@ -73,20 +86,17 @@ const Checklists = () => {
     data: checklists = [],
     isLoading: isLoadingChecklists
   } = useQuery({
-    queryKey: ['checklists'],
+    queryKey: ['checklists', tripId],
     queryFn: async () => {
-      const {
-        data: userData
-      } = await supabase.auth.getUser();
+      const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) {
         throw new Error("User not authenticated");
       }
-      const {
-        data,
-        error
-      } = await supabase.from('checklists').select('*').order('created_at', {
-        ascending: false
-      });
+      let checklistsQuery = supabase.from('checklists').select('*').order('created_at', { ascending: false });
+      if (tripId) {
+        checklistsQuery = checklistsQuery.eq('trip_id', tripId);
+      }
+      const { data, error } = await checklistsQuery;
       if (error) throw error;
       return data.map((checklist: any) => ({
         ...checklist,
@@ -94,7 +104,8 @@ const Checklists = () => {
         isComplete: checklist.is_complete,
         createdAt: checklist.created_at
       })) as Checklist[];
-    }
+    },
+    enabled: !!tripId
   });
 
   // Fetch checklist items
@@ -136,7 +147,8 @@ const Checklists = () => {
         description: checklist.description,
         point_id: checklist.pointId,
         is_complete: false,
-        user_id: userData.user.id
+        user_id: userData.user.id,
+        trip_id: tripId
       }]).select();
       if (error) {
         console.error("Error creating checklist:", error);
@@ -179,7 +191,8 @@ const Checklists = () => {
       } = await supabase.from('checklists').update({
         name: checklist.name,
         description: checklist.description,
-        point_id: checklist.pointId
+        point_id: checklist.pointId,
+        trip_id: tripId
       }).eq('id', id).select();
       if (error) throw error;
       return data[0];
@@ -257,7 +270,8 @@ const Checklists = () => {
       } = await supabase.from('checklist_items').insert([{
         text,
         completed: false,
-        checklist_id: checklistId
+        checklist_id: checklistId,
+        trip_id: tripId
       }]).select();
       if (error) throw error;
       return data[0];
@@ -345,12 +359,10 @@ const Checklists = () => {
       const itemsToInsert = items.map(text => ({
         text,
         completed: false,
-        checklist_id: checklistId
+        checklist_id: checklistId,
+        trip_id: tripId
       }));
-      const {
-        data,
-        error
-      } = await supabase.from('checklist_items').insert(itemsToInsert).select();
+      const { data, error } = await supabase.from('checklist_items').insert(itemsToInsert).select();
       if (error) throw error;
       return data;
     },
