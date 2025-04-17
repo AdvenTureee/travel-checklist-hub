@@ -25,19 +25,22 @@ const App = () => {
   const AnimatedRoutes = () => {
     const location = useLocation();
     return (
-      <PageTransition locationKey={location.key}>
-        <Routes location={location}>
-          <Route path="/" element={<Navigate to="/auth" replace />} />
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/points" element={<RequireAuth><><TopNavigationMenu /><Points /></></RequireAuth>} />
-                    <Route path="/checklists" element={<RequireAuth><><TopNavigationMenu /><Checklists /></></RequireAuth>} />
-          <Route path="/shopping" element={<RequireAuth><><TopNavigationMenu /><Shopping /></></RequireAuth>} />
-          <Route path="/trips" element={<RequireAuth><><TopNavigationMenu /><Trips /></></RequireAuth>} />
-          <Route path="/settings" element={<RequireAuth><><TopNavigationMenu /><Settings /></></RequireAuth>} />
-          <Route path="/chat" element={<RequireAuth><><TopNavigationMenu /><Chat /></></RequireAuth>} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </PageTransition>
+      <>
+        <TopNavigationMenu />
+        <PageTransition locationKey={location.key}>
+          <Routes location={location}>
+            <Route path="/" element={<Navigate to="/auth" replace />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/points" element={<RequireAuth><Points /></RequireAuth>} />
+            <Route path="/checklists" element={<RequireAuth><Checklists /></RequireAuth>} />
+            <Route path="/shopping" element={<RequireAuth><Shopping /></RequireAuth>} />
+            <Route path="/trips" element={<RequireAuth><Trips /></RequireAuth>} />
+            <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+            <Route path="/chat" element={<RequireAuth><Chat /></RequireAuth>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </PageTransition>
+      </>
     );
   }
   // Create the client as a state variable to ensure it's only created once

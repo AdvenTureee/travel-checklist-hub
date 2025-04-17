@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { PageContainer } from '@/components/layout/PageContainer';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import OpeningHoursInput from '@/components/points/OpeningHoursInput';
 import { ptBR } from 'date-fns/locale';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { ImageWithShimmer } from '../components/ImageWithShimmer';
 
 const Points: React.FC = () => {
   const { user } = useAuth();
@@ -333,18 +335,24 @@ const Points: React.FC = () => {
         </div>
       </PageContainer>;
   }
-  return <PageContainer>
-      <div className="flex items-center mb-6">
-        <button
-          onClick={() => navigate('/trips')}
-          className="mr-2 text-travel-blue hover:text-travel-dark flex items-center"
-          title="Sair da viagem"
-        >
-          <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        </button>
-        <h1 className="text-2xl font-bold">Pontos de Interesse</h1>
-      </div>
-      <div className="mb-6 flex flex-row gap-6 items-start">
+  return (
+    <PageContainer>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <div className="flex items-center mb-6">
+          <button
+            onClick={() => navigate('/trips')}
+            className="mr-2 text-travel-blue hover:text-travel-dark flex items-center"
+            title="Sair da viagem"
+          >
+            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          </button>
+          <h1 className="text-2xl font-bold">Pontos de Interesse</h1>
+        </div>
+        <div className="mb-6 flex flex-row gap-6 items-start">
         {/* Coluna esquerda com botões de ação global */}
         {/* Coluna esquerda com botões de ação global */}
         <div className="flex flex-col gap-3 items-start min-w-[56px]">
@@ -569,7 +577,7 @@ const Points: React.FC = () => {
             Adicione Seu Primeiro Ponto
           </Button>
         </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {points.map(point => <Card key={point.id} className="overflow-hidden card-hover border border-travel-mustard">
+          {points.map(point => <Card key={point.id} className="overflow-hidden card-hover border border-travel-mustard transition-transform duration-150 active:scale-95 cursor-pointer">
               {point.image_url && <ImageWithShimmer src={point.image_url} alt={point.name} onClick={() => handleOpenDetails(point)} />}
 
               <CardHeader>
@@ -642,8 +650,9 @@ const Points: React.FC = () => {
       />
       {/* Details Modal */}
       <PointDetailsModal point={selectedPoint} isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} />
-    </PageContainer>;
+      </motion.div>
+    </PageContainer>
+  );
 };
-import { ImageWithShimmer } from "../components/ImageWithShimmer";
 
 export default Points;

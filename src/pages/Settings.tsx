@@ -8,12 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { Settings as SettingsIcon, Save, Bell, Shield } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Bell, Shield, LogOut } from 'lucide-react';
 
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { signOut } = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [settings, setSettings] = useState({
@@ -67,9 +69,9 @@ const Settings = () => {
   };
 
   const handleLogout = async () => {
-    await import('@/integrations/supabase/client').then(({ supabase }) => supabase.auth.signOut());
-    navigate('/auth', { replace: true });
+    await signOut(); // AuthProvider já faz o redirect
   };
+
 
   return (
     <PageContainer>
@@ -152,9 +154,9 @@ const Settings = () => {
           </CardContent>
         </Card>
         
-        <div className="flex justify-end mt-4">
+        <div className="flex flex-col sm:flex-row justify-center sm:justify-end gap-4 mt-10 mb-2">
           <Button
-            className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark"
+            className="h-10 px-5 text-base font-medium rounded-md shadow bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark flex items-center gap-2"
             onClick={handleSaveSettings}
             disabled={isLoading}
           >
@@ -167,20 +169,18 @@ const Settings = () => {
               </>
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" />
-                Salvar Configurações
+                <Save className="h-5 w-5" /> Salvar
               </>
             )}
           </Button>
+          <Button
+            className="h-10 px-5 text-base font-medium rounded-md shadow bg-red-500 hover:bg-red-600 text-white flex items-center gap-2"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-5 w-5" />
+            Sair da Conta
+          </Button>
         </div>
-      </div>
-      <div className="flex justify-end mt-10">
-        <Button
-          className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg shadow-md text-lg font-semibold"
-          onClick={handleLogout}
-        >
-          Sair da Conta
-        </Button>
       </div>
     </PageContainer>
   );

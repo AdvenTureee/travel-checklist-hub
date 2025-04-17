@@ -12,11 +12,22 @@ import { Plane } from 'lucide-react';
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
   const { signIn, signUp, user, loading } = useAuth();
 
   // Handle keyboard navigation
   useEffect(() => {
+    // Preencher campos se houver dados salvos
+    const saved = localStorage.getItem('travelhub_login');
+    if (saved) {
+      try {
+        const { email, password } = JSON.parse(saved);
+        setEmail(email || '');
+        setPassword(password || '');
+        setRemember(true);
+      } catch {}
+    }
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
         if (activeTab === 'signin') {
@@ -37,6 +48,11 @@ const Auth: React.FC = () => {
 
   const handleSignIn = () => {
     if (email && password) {
+      if (remember) {
+        localStorage.setItem('travelhub_login', JSON.stringify({ email, password }));
+      } else {
+        localStorage.removeItem('travelhub_login');
+      }
       signIn(email, password);
     }
   };
@@ -60,50 +76,62 @@ const Auth: React.FC = () => {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-travel-beige p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center">
-          <div className="mx-auto bg-travel-mustard w-16 h-16 rounded-full flex items-center justify-center mb-4">
-            <Plane className="h-8 w-8 text-travel-dark" />
+    <div className="flex justify-center items-center min-h-screen bg-travel-beige p-2 sm:p-4">
+      <Card className="w-full max-w-md shadow-2xl rounded-2xl px-2 py-3 sm:px-6 sm:py-8 min-h-[340px] sm:min-h-[420px] bg-white flex flex-col justify-center">
+        <CardHeader className="text-center pb-1 mb-3">
+          <div className="mx-auto mb-2 bg-travel-mustard rounded-xl px-3 py-1.5 shadow-md flex items-center justify-center gap-2 w-fit">
+            <Plane className="h-6 w-6 text-travel-dark" />
+            <span className="text-2xl sm:text-3xl font-extrabold text-travel-dark tracking-wide">Travel Hub</span>
           </div>
-          <CardTitle className="text-2xl font-bold text-center text-travel-dark">Bem-vindo ao Travel Hub</CardTitle>
-          <CardDescription className="text-center">Entre ou crie uma conta para gerenciar seus pontos de interesse</CardDescription>
+          <CardDescription className="text-sm sm:text-base text-center text-travel-dark/80 mb-1">Acesse sua conta ou cadastre-se para gerenciar suas viagens</CardDescription>
         </CardHeader>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="signin">Entrar</TabsTrigger>
-            <TabsTrigger value="signup">Cadastrar</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 h-9 rounded-lg bg-travel-mustard/20 p-0.5 gap-0.5 mb-2">
+            <TabsTrigger value="signin" className="text-xs sm:text-sm font-normal rounded-lg py-1 px-1 transition-all data-[state=active]:bg-travel-mustard data-[state=active]:text-travel-dark data-[state=active]:shadow focus-visible:ring-2 focus-visible:ring-travel-mustard">Entrar</TabsTrigger>
+            <TabsTrigger value="signup" className="text-xs sm:text-sm font-normal rounded-lg py-1 px-1 transition-all data-[state=active]:bg-travel-mustard data-[state=active]:text-travel-dark data-[state=active]:shadow focus-visible:ring-2 focus-visible:ring-travel-mustard">Cadastrar</TabsTrigger>
           </TabsList>
           <TabsContent value="signin">
-            <CardContent className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="signin-email">Email</Label>
-                <Input
-                  id="signin-email"
-                  type="email"
-                  placeholder="seuemail@exemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                />
+            <CardContent className="space-y-5 pt-2 pb-1">
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="signin-email" className="text-xs font-medium text-travel-dark/70 mb-0.5">Email</Label>
+                  <Input
+                    id="signin-email"
+                    type="email"
+                    placeholder="seuemail@exemplo.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    className="h-11 text-base px-3 rounded-lg border border-travel-mustard/30 bg-travel-beige/60 shadow-sm focus:border-travel-mustard focus:ring-2 focus:ring-travel-mustard/40 transition"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="signin-password" className="text-xs font-medium text-travel-dark/70 mb-0.5">Senha</Label>
+                  <Input
+                    id="signin-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    className="h-11 text-base px-3 rounded-lg border border-travel-mustard/30 bg-travel-beige/60 shadow-sm focus:border-travel-mustard focus:ring-2 focus:ring-travel-mustard/40 transition"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="signin-password">Senha</Label>
-                <Input
-                  id="signin-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  id="remember-login"
+                  type="checkbox"
+                  checked={remember}
+                  onChange={e => setRemember(e.target.checked)}
+                  className="accent-travel-mustard w-5 h-5"
                 />
+                <Label htmlFor="remember-login" className="text-base cursor-pointer">Lembrar login</Label>
               </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Pressione Enter para entrar ou Alt+Shift+Tab para alternar abas
-              </p>
+
             </CardContent>
-            <CardFooter>
+            <CardFooter className="mt-6">
               <Button 
-                className="w-full bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark" 
+                className="w-full h-9 text-base font-normal bg-travel-mustard/90 hover:bg-travel-mustard text-travel-dark rounded-lg shadow px-3 transition-all"
                 onClick={handleSignIn}
               >
                 Entrar
@@ -111,35 +139,37 @@ const Auth: React.FC = () => {
             </CardFooter>
           </TabsContent>
           <TabsContent value="signup">
-            <CardContent className="space-y-4 pt-4">
-              <div className="space-y-2">
-                <Label htmlFor="signup-email">Email</Label>
-                <Input
-                  id="signup-email"
-                  type="email"
-                  placeholder="seuemail@exemplo.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                />
+            <CardContent className="space-y-5 pt-2 pb-1">
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="signup-email" className="text-xs font-medium text-travel-dark/70 mb-0.5">Email</Label>
+                  <Input
+                    id="signup-email"
+                    type="email"
+                    placeholder="seuemail@exemplo.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    className="h-11 text-base px-3 rounded-lg border border-travel-mustard/30 bg-travel-beige/60 shadow-sm focus:border-travel-mustard focus:ring-2 focus:ring-travel-mustard/40 transition"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <Label htmlFor="signup-password" className="text-xs font-medium text-travel-dark/70 mb-0.5">Senha</Label>
+                  <Input
+                    id="signup-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="new-password"
+                    className="h-11 text-base px-3 rounded-lg border border-travel-mustard/30 bg-travel-beige/60 shadow-sm focus:border-travel-mustard focus:ring-2 focus:ring-travel-mustard/40 transition"
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="signup-password">Senha</Label>
-                <Input
-                  id="signup-password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="new-password"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground mt-2">
-                Pressione Enter para cadastrar ou Alt+Shift+Tab para alternar abas
-              </p>
+
             </CardContent>
-            <CardFooter>
+            <CardFooter className="mt-6">
               <Button 
-                className="w-full bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark" 
+                className="w-full h-9 text-base font-normal bg-travel-mustard/90 hover:bg-travel-mustard text-travel-dark rounded-lg shadow px-3 transition-all"
                 onClick={handleSignUp}
               >
                 Cadastrar

@@ -99,7 +99,7 @@ const menuItems: MenuItem[] = [
         to={chatItem.to}
         title={chatItem.label + (chatItem.description ? ` — ${chatItem.description}` : '')}
         className={cn(
-          "fixed bottom-6 right-6 z-[60] bg-white/90 backdrop-blur-sm shadow-lg border border-travel-light-mustard/50 rounded-full p-3 flex items-center justify-center transition-all duration-200",
+          "fixed bottom-24 right-6 z-[60] bg-white/90 backdrop-blur-sm shadow-lg border border-travel-light-mustard/50 rounded-full p-3 flex items-center justify-center transition-all duration-200",
           isActive
             ? "bg-travel-mustard text-travel-dark scale-110 shadow-md ring-2 ring-travel-mustard ring-offset-2 underline underline-offset-4"
             : "hover:bg-travel-light-mustard/50 text-travel-dark/70 hover:scale-105"
@@ -127,8 +127,7 @@ const menuItems: MenuItem[] = [
       >
         <div className="bg-white/90 backdrop-blur-sm shadow-md border border-travel-light-mustard/50 rounded-full px-4 py-2 flex items-center gap-3 mt-3">
           {[
-            ...menuItems.filter(item => item.alwaysShow || (item.showWhenInTrip && inTrip)),
-  
+            ...menuItems,
             settingsItem
           ].map((item, idx, arr) => {
           const Icon = item.icon;
@@ -200,6 +199,22 @@ const menuItems: MenuItem[] = [
             );
           }
           // Outros
+          // Se o item depende de viagem e o usuário não está em uma viagem, renderiza esmaecido e não clicável
+          if (item.showWhenInTrip && !inTrip) {
+            return (
+              <div
+                key={item.to}
+                title={item.label + (item.description ? ` — ${item.description}` : '')}
+                className={cn(
+                  "flex items-center justify-center w-10 h-10 rounded-full opacity-40 cursor-not-allowed bg-transparent text-travel-dark/40"
+                )}
+                aria-label={item.label}
+              >
+                <Icon className="w-6 h-6 mx-auto my-auto align-middle leading-[0]" style={{ display: 'block' }} />
+              </div>
+            );
+          }
+          // Caso contrário, renderiza normalmente como Link
           return (
             <Link
               key={item.to}

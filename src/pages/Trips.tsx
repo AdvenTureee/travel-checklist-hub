@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -155,117 +157,124 @@ const Trips: React.FC = () => {
   }
 
   return (
-    <>
-
-      <div className="max-w-2xl mx-auto py-8 px-4 mt-16">
-        <h1 className="text-2xl font-bold mb-4">Minhas Viagens</h1>
-      <div className="mb-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Nova Viagem</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {showNewTripFields ? (
-              <div className="flex flex-col gap-3">
-                <Input placeholder="Nome da viagem" value={newTrip.nome} onChange={e => setNewTrip({ ...newTrip, nome: e.target.value })} />
-                <Input placeholder="Local" value={newTrip.local} onChange={e => setNewTrip({ ...newTrip, local: e.target.value })} />
-                <div className="flex gap-2">
-                  <Input type="date" value={newTrip.datain} onChange={e => setNewTrip({ ...newTrip, datain: e.target.value })} />
-                  <Input type="date" value={newTrip.dataout} onChange={e => setNewTrip({ ...newTrip, dataout: e.target.value })} />
-                </div>
-                <Button onClick={handleCreateTrip} disabled={createTripMutation.isPending}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Criar viagem
-                </Button>
-              </div>
-            ) : (
-              <Button onClick={() => setShowNewTripFields(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                Adicionar viagem
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid gap-4">
-        {trips.map(trip => (
-          <Card key={trip.id} className="hover:shadow-lg cursor-pointer transition" onClick={() => handleSelectTrip(trip.id)}>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div className="flex flex-col gap-1">
-                <CardTitle>{trip.nome}</CardTitle>
-                {trip.user_id && user?.id && trip.user_id !== user.id && (
-                  <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded">Viagem compartilhada</span>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <Button size="icon" variant="ghost" onClick={e => { e.stopPropagation(); setEditTripId(trip.id); setEditTrip({ nome: trip.nome, local: trip.local, datain: trip.datain, dataout: trip.dataout }); }}>
-                  <Edit className="w-4 h-4 text-travel-blue" />
-                </Button>
-
-                <Dialog open={deleteDialogId === trip.id} onOpenChange={open => { if (!open) setDeleteDialogId(null); }}>
-                  <DialogTrigger asChild>
-                    <Button size="icon" variant="ghost" onClick={e => { e.stopPropagation(); setDeleteDialogId(trip.id); }}>
-                      <Trash className="w-4 h-4 text-travel-red" />
+    <PageContainer>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 24 }}
+        transition={{ duration: 0.35, ease: 'easeInOut' }}
+      >
+        <div className="max-w-2xl mx-auto py-8 px-4 mt-16">
+          <h1 className="text-2xl font-bold mb-4">Minhas Viagens</h1>
+          <div className="mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Nova Viagem</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {showNewTripFields ? (
+                  <div className="flex flex-col gap-3">
+                    <Input placeholder="Nome da viagem" value={newTrip.nome} onChange={e => setNewTrip({ ...newTrip, nome: e.target.value })} />
+                    <Input placeholder="Local" value={newTrip.local} onChange={e => setNewTrip({ ...newTrip, local: e.target.value })} />
+                    <div className="flex gap-2">
+                      <Input type="date" value={newTrip.datain} onChange={e => setNewTrip({ ...newTrip, datain: e.target.value })} />
+                      <Input type="date" value={newTrip.dataout} onChange={e => setNewTrip({ ...newTrip, dataout: e.target.value })} />
+                    </div>
+                    <Button onClick={handleCreateTrip} disabled={createTripMutation.isPending}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Criar viagem
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Confirmar exclusão</DialogTitle>
-                    </DialogHeader>
-                    <p>Tem certeza que deseja excluir a viagem "{trip.nome}"?</p>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => setDeleteDialogId(null)}>Cancelar</Button>
-                      <Button className="bg-travel-red text-white hover:bg-travel-red/80" onClick={() => handleDeleteTrip(trip.id)}>Excluir</Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {editTripId === trip.id ? (
-                <form className="flex flex-col gap-3 bg-white/80 p-4 rounded-xl border-2 border-travel-mustard" onClick={e => e.stopPropagation()} onSubmit={e => { e.preventDefault(); handleEditTrip(); }}>
-                  <Input placeholder="Nome da viagem" value={editTrip.nome} onChange={e => setEditTrip({ ...editTrip, nome: e.target.value })} />
-                  <Input placeholder="Local" value={editTrip.local} onChange={e => setEditTrip({ ...editTrip, local: e.target.value })} />
+                  </div>
+                ) : (
+                  <Button onClick={() => setShowNewTripFields(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Adicionar viagem
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-4">
+            {trips.map(trip => (
+              <Card key={trip.id} className="hover:shadow-lg cursor-pointer transition" onClick={() => handleSelectTrip(trip.id)}>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div className="flex flex-col gap-1">
+                    <CardTitle>{trip.nome}</CardTitle>
+                    {trip.user_id && user?.id && trip.user_id !== user.id && (
+                      <span className="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2 py-1 rounded">Viagem compartilhada</span>
+                    )}
+                  </div>
                   <div className="flex gap-2">
-                    <Input type="date" value={editTrip.datain} onChange={e => setEditTrip({ ...editTrip, datain: e.target.value })} />
-                    <Input type="date" value={editTrip.dataout} onChange={e => setEditTrip({ ...editTrip, dataout: e.target.value })} />
+                    <Button size="icon" variant="ghost" onClick={e => { e.stopPropagation(); setEditTripId(trip.id); setEditTrip({ nome: trip.nome, local: trip.local, datain: trip.datain, dataout: trip.dataout }); }}>
+                      <Edit className="w-4 h-4 text-travel-blue" />
+                    </Button>
+
+                    <Dialog open={deleteDialogId === trip.id} onOpenChange={open => { if (!open) setDeleteDialogId(null); }}>
+                      <DialogTrigger asChild>
+                        <Button size="icon" variant="ghost" onClick={e => { e.stopPropagation(); setDeleteDialogId(trip.id); }}>
+                          <Trash className="w-4 h-4 text-travel-red" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Confirmar exclusão</DialogTitle>
+                        </DialogHeader>
+                        <p>Tem certeza que deseja excluir a viagem "{trip.nome}"?</p>
+                        <DialogFooter>
+                          <Button variant="outline" onClick={() => setDeleteDialogId(null)}>Cancelar</Button>
+                          <Button className="bg-travel-red text-white hover:bg-travel-red/80" onClick={() => handleDeleteTrip(trip.id)}>Excluir</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
-                  <div className="flex gap-2 mt-2">
-                    <Button type="submit" className="bg-travel-mustard text-travel-dark">Salvar</Button>
-                    <Button type="button" variant="outline" onClick={e => { e.stopPropagation(); setEditTripId(null); localStorage.removeItem('selectedTripId'); navigate('/trips'); }}>Cancelar</Button>
-                  </div>
-                </form>
-              ) : (
-                <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-2 bg-gradient-to-r from-yellow-100 via-pink-100 to-blue-100 rounded-xl p-4 shadow-md border-2 border-travel-mustard animate-pulse hover:animate-none transition">
-                  <span className="flex items-center gap-2 text-lg font-semibold text-travel-blue drop-shadow-sm">
-                    <MapPin className="text-pink-500 w-5 h-5 animate-bounce" />
-                    {trip.local}
-                  </span>
-                  <span className="flex items-center gap-2 text-md text-travel-dark/80">
-                    <Calendar className="text-yellow-600 w-5 h-5 animate-spin-slow" />
-                    De: <span className="font-bold text-travel-green">{trip.datain}</span> até <span className="font-bold text-travel-red">{trip.dataout}</span>
-                  </span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </div>
-    <ShareTripDialog
-      open={shareDialogOpen}
-      onOpenChange={setShareDialogOpen}
-      tripId={selectedTripId}
-    />
-    {/* Render floating chat button if a trip is selected and user is not the only participant */}
-    {selectedTripId && user && otherUserIdForSelectedTrip && (
-      <TripChatButton 
-        tripId={selectedTripId} 
-        otherUserId={otherUserIdForSelectedTrip} 
-      />
-    )}
-  </>);
+                </CardHeader>
+                <CardContent>
+                  {editTripId === trip.id ? (
+                    <form className="flex flex-col gap-3 bg-white/80 p-4 rounded-xl border-2 border-travel-mustard" onClick={e => e.stopPropagation()} onSubmit={e => { e.preventDefault(); handleEditTrip(); }}>
+                      <Input placeholder="Nome da viagem" value={editTrip.nome} onChange={e => setEditTrip({ ...editTrip, nome: e.target.value })} />
+                      <Input placeholder="Local" value={editTrip.local} onChange={e => setEditTrip({ ...editTrip, local: e.target.value })} />
+                      <div className="flex gap-2">
+                        <Input type="date" value={editTrip.datain} onChange={e => setEditTrip({ ...editTrip, datain: e.target.value })} />
+                        <Input type="date" value={editTrip.dataout} onChange={e => setEditTrip({ ...editTrip, dataout: e.target.value })} />
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <Button type="submit" className="bg-travel-mustard text-travel-dark">Salvar</Button>
+                        <Button type="button" variant="outline" onClick={e => { e.stopPropagation(); setEditTripId(null); localStorage.removeItem('selectedTripId'); navigate('/trips'); }}>Cancelar</Button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-2 bg-gradient-to-r from-yellow-100 via-pink-100 to-blue-100 rounded-xl p-4 shadow-md border-2 border-travel-mustard transition-transform duration-150 active:scale-95 cursor-pointer">
+                      <span className="flex items-center gap-2 text-lg font-semibold text-travel-blue drop-shadow-sm">
+                        <MapPin className="text-pink-500 w-5 h-5 animate-bounce" />
+                        {trip.local}
+                      </span>
+                      <span className="flex items-center gap-2 text-md text-travel-dark/80">
+                        <Calendar className="text-yellow-600 w-5 h-5 animate-spin-slow" />
+                        De: <span className="font-bold text-travel-green">{trip.datain}</span> até <span className="font-bold text-travel-red">{trip.dataout}</span>
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+        <ShareTripDialog
+          open={shareDialogOpen}
+          onOpenChange={setShareDialogOpen}
+          tripId={selectedTripId}
+        />
+        {/* Render floating chat button if a trip is selected and user is not the only participant */}
+        {selectedTripId && user && otherUserIdForSelectedTrip && (
+          <TripChatButton 
+            tripId={selectedTripId} 
+            otherUserId={otherUserIdForSelectedTrip} 
+          />
+        )}
+      </motion.div>
+    </PageContainer>
+  );
 };
 
 export default Trips;

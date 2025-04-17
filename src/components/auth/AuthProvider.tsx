@@ -76,17 +76,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signOut = async () => {
     try {
+      // Limpa localStorage de login salvo
+      localStorage.removeItem('travelhub_login');
+      // Se não há sessão, apenas redirecione
+      if (!session) {
+        toast({ title: 'Logout realizado', description: 'Você já estava desconectado.' });
+        setSession(null);
+        setUser(null);
+        navigate('/auth');
+        return;
+      }
       const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      navigate('/auth'); // Changed from '/points' to '/auth'
+      setSession(null);
+      setUser(null);
+      navigate('/auth');
+      if (error) {
+        toast({ title: 'Logout realizado', description: 'Sessão já estava expirada.' });
+      }
     } catch (error: any) {
+      setSession(null);
+      setUser(null);
+      navigate('/auth');
       toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
+        title: "Logout realizado",
+        description: "Sua sessão já estava expirada.",
       });
     }
   };
+
 
   return (
     <AuthContext.Provider value={{ session, user, loading, signIn, signUp, signOut }}>
