@@ -72,7 +72,7 @@ const BulkItemsDialog: React.FC<BulkItemsDialogProps> = ({
             }}
             className="w-full sm:w-auto text-xs sm:text-sm"
           >
-            Cancel
+            Cancelar
           </Button>
           <Button
             onClick={handleAddItems}
@@ -82,10 +82,10 @@ const BulkItemsDialog: React.FC<BulkItemsDialogProps> = ({
             {isAdding ? (
               <>
                 <Loader2 className="mr-2 h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
-                Adding...
+                Adicionando...
               </>
             ) : (
-              "Add Items"
+              "Adicionar itens"
             )}
           </Button>
         </DialogFooter>

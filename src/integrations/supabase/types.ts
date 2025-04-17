@@ -170,6 +170,52 @@ export type Database = {
           },
         ]
       }
+      shared_trips: {
+        Row: {
+          id: string;
+          trip_id: string;
+          user_id: string;
+          sender_id: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          trip_id: string;
+          user_id: string;
+          sender_id?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          trip_id?: string;
+          user_id?: string;
+          sender_id?: string | null;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "shared_trips_trip_id_fkey";
+            columns: ["trip_id"];
+            isOneToOne: false;
+            referencedRelation: "trip";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shared_trips_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "shared_trips_sender_id_fkey";
+            columns: ["sender_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
+      },
       shared_points: {
         Row: {
           created_at: string | null
