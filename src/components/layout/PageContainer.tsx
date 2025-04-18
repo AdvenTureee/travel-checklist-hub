@@ -16,7 +16,7 @@ export function PageContainer({
   }} transition={{
     duration: 0.3
   }}>
-      <div className="max-w-7xl w-full mx-0">
+      <div className="w-full mx-0">
         {children}
       </div>
     </motion.main>;

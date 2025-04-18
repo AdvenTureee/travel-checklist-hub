@@ -118,7 +118,7 @@ const menuItems: MenuItem[] = [
   return (
     <>
 
-      {renderChatButton()}
+
       <motion.div
         className="fixed left-0 right-0 top-0 z-50 flex justify-center"
         initial={{ opacity: 0, y: -20 }}
@@ -128,14 +128,15 @@ const menuItems: MenuItem[] = [
         <div className="bg-white/90 backdrop-blur-sm shadow-md border border-travel-light-mustard/50 rounded-full px-4 py-2 flex items-center gap-3 mt-3">
           {[
             ...menuItems,
+            chatItem,
             settingsItem
           ].map((item, idx, arr) => {
-          const Icon = item.icon;
-          const isActive = item.matchPath
-  ? location.pathname.startsWith(item.matchPath)
-  : location.pathname === item.to;
-          // Se for o botão de Viagens, sobrescreva o onClick
-          if (item.label === 'Viagens') {
+            const Icon = item.icon;
+            const isActive = item.matchPath
+              ? location.pathname.startsWith(item.matchPath)
+              : location.pathname === item.to;
+            // Se for o botão de Viagens, sobrescreva o onClick
+            if (item.label === 'Viagens') {
             return (
               <Link
                 key={item.to}
@@ -237,3 +238,5 @@ const menuItems: MenuItem[] = [
     </>
   );
 }
+
+export default TopNavigationMenu;

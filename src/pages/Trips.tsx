@@ -156,7 +156,7 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
         exit={{ opacity: 0, y: 24 }}
         transition={{ duration: 0.35, ease: 'easeInOut' }}
       >
-        <div className={`max-w-2xl mx-auto ${compact ? 'py-4 px-2 mt-6' : 'py-8 px-4 mt-16'}`}>
+        <div className={`${compact ? 'py-4 px-2 mt-6' : 'py-8 px-4 mt-16'} w-full`}>
           <h1 className={`${compact ? 'text-lg mb-2' : 'text-2xl mb-4'} font-bold`}>Minhas Viagens</h1>
           <div className={compact ? 'mb-4' : 'mb-8'}>
             <Card>
