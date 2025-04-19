@@ -638,11 +638,11 @@ const Shopping: React.FC = () => {
 
       {/* Floating Action Button para adicionar item */}
       <Button
-        className="fixed bottom-6 right-6 z-50 bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md"
-        aria-label="Adicionar Item de Compras"
         onClick={() => setIsAddDialogOpen(true)}
+        className="fixed bottom-6 right-6 z-50 bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md"
+        aria-label="Adicionar Item"
       >
-        <PlusCircle className="h-6 w-6" />
+        <Plus className="h-6 w-6" />
       </Button>
 
       {/* Add Item Dialog */}

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { usePoints } from './usePoints';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlusCircle, MapPin, Edit, Trash, Loader2, ExternalLink, Globe, Clock, Calendar, Share2 } from 'lucide-react';
 import { Point } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
+import { toast, useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -25,306 +26,42 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ImageWithShimmer } from '../components/ImageWithShimmer';
 
 const Points: React.FC = () => {
-  const { user } = useAuth();
-  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
-  // Função para obter tripId da query ou localStorage
-  function getTripId() {
-    const params = new URLSearchParams(location.search);
-    return params.get('tripId'); // Nunca use localStorage para garantir filtro correto
-  }
-  const tripId = getTripId();
-
-  // Função para verificar se o usuário tem acesso à viagem (dono ou compartilhada)
-  const [hasTripAccess, setHasTripAccess] = useState<boolean | null>(null);
-  useEffect(() => {
-    async function checkAccess() {
-      if (!tripId || !user) {
-        setHasTripAccess(false);
-        return;
-      }
-      // Limpar selectedTripId do localStorage para evitar confusão
-      localStorage.removeItem('selectedTripId');
-      // Checar se é dono
-      const { data: trip } = await supabase.from('trip').select('user_id').eq('id', tripId).maybeSingle();
-      if (trip && trip.user_id === user.id) {
-        setHasTripAccess(true);
-        return;
-      }
-      // Checar se é compartilhada
-      const { data: share } = await supabase.from('trip_shares')
-        .select('id')
-        .eq('trip_id', tripId)
-        .eq('status', 'accepted')
-        .or(`invitee_id.eq.${user.id},inviter_id.eq.${user.id}`)
-        .maybeSingle();
-      setHasTripAccess(!!share);
-    }
-    checkAccess();
-  }, [tripId, user]);
-
-  // Se não houver tripId ou não tiver acesso, redireciona
-  useEffect(() => {
-    if (hasTripAccess === false) {
-      navigate('/trips');
-    }
-  }, [hasTripAccess, navigate]);
-  const [sharePointId, setSharePointId] = useState<string | null>(null);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editPointId, setEditPointId] = useState<string | null>(null);
-  const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [date, setDate] = useState<Date | undefined>(undefined);
-  const [newPoint, setNewPoint] = useState<Partial<Point>>({
-    name: '',
-    description: '',
-    address: '',
-    type: 'tourist',
-    googleMapsUrl: '',
-    openingHours: '',
-    plannedVisitDate: null
-  });
+  const pointsHook = usePoints();
+  // Estado do wizard de criação de ponto
+  const [stepAddPoint, setStepAddPoint] = React.useState(1);
+  // Toda a lógica de estado e handlers foi movida para o hook usePoints
   const {
-    toast
-  } = useToast();
-
-  const queryClient = useQueryClient();
-
-  // Fetch points from Supabase
-  const {
-    data: points = [],
+    user,
+    tripId,
+    hasTripAccess,
+    isShareDialogOpen,
+    setIsShareDialogOpen,
+    sharePointId,
+    setSharePointId,
+    isAddDialogOpen,
+    setIsAddDialogOpen,
+    isEditDialogOpen,
+    setIsEditDialogOpen,
+    editPointId,
+    setEditPointId,
+    selectedPoint,
+    setSelectedPoint,
+    isDetailsModalOpen,
+    setIsDetailsModalOpen,
+    date,
+    setDate,
+    newPoint,
+    setNewPoint,
+    points,
     isLoading,
-    error: fetchError
-  } = useQuery({
-    queryKey: ['points', tripId],
-    queryFn: async () => {
-      if (!tripId) return [];
-      const { data, error } = await supabase
-        .from('points')
-        .select('*')
-        .eq('trip_id', tripId)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as Point[];
-    },
-    enabled: !!tripId
-  });
-
-  // Add point mutation
-  const addPointMutation = useMutation({
-    mutationFn: async (point: Omit<Point, 'id' | 'created_at'>) => {
-      const {
-        data,
-        error
-      } = await supabase.from('points').insert([{
-        name: point.name,
-        description: point.description,
-        address: point.address,
-        type: point.type,
-        image_url: point.imageUrl,
-        google_maps_url: point.googleMapsUrl,
-        opening_hours: point.openingHours,
-        planned_visit_date: point.plannedVisitDate,
-        user_id: user?.id,
-        trip_id: tripId
-      }]).select();
-      if (error) throw error;
-      return data[0];
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['points', tripId]
-      });
-      setIsAddDialogOpen(false);
-      toast({
-        title: "Ponto adicionado",
-        description: `${newPoint.name} foi adicionado aos seus pontos.`
-      });
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao adicionar ponto",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Update point mutation
-  const updatePointMutation = useMutation({
-    mutationFn: async ({
-      id,
-      point
-    }: {
-      id: string;
-      point: Partial<Point>;
-    }) => {
-      const {
-        data,
-        error
-      } = await supabase.from('points').update({
-        name: point.name,
-        description: point.description,
-        address: point.address,
-        type: point.type,
-        image_url: point.imageUrl,
-        google_maps_url: point.googleMapsUrl,
-        opening_hours: point.openingHours,
-        planned_visit_date: point.plannedVisitDate
-      }).eq('id', id).select();
-      if (error) throw error;
-      return data[0];
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['points']
-      });
-      setIsEditDialogOpen(false);
-      setEditPointId(null);
-      toast({
-        title: "Ponto atualizado",
-        description: `${newPoint.name} foi atualizado.`
-      });
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao atualizar ponto",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Delete point mutation
-  const deletePointMutation = useMutation({
-    mutationFn: async (id: string) => {
-      const {
-        error
-      } = await supabase.from('points').delete().eq('id', id);
-      if (error) throw error;
-      return id;
-    },
-    onSuccess: (_, id) => {
-      queryClient.invalidateQueries({
-        queryKey: ['points']
-      });
-      const pointToDelete = points.find(p => p.id === id);
-      toast({
-        title: "Ponto excluído",
-        description: `${pointToDelete?.name} foi removido.`
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Erro ao excluir ponto",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  });
-  const handleAddPoint = () => {
-    if (!newPoint.name || !newPoint.address) {
-      toast({
-        title: "Informações faltantes",
-        description: "Por favor, preencha pelo menos o nome e o endereço.",
-        variant: "destructive"
-      });
-      return;
-    }
-    addPointMutation.mutate({
-      name: newPoint.name,
-      description: newPoint.description || '',
-      address: newPoint.address,
-      type: newPoint.type as Point['type'],
-      imageUrl: newPoint.imageUrl,
-      googleMapsUrl: newPoint.googleMapsUrl,
-      openingHours: newPoint.openingHours,
-      plannedVisitDate: date ? format(date, 'yyyy-MM-dd') : null,
-      user_id: user!.id
-    } as any);
-  };
-  const handleDeletePoint = (id: string) => {
-    deletePointMutation.mutate(id);
-  };
-  const handleEditPoint = (id: string) => {
-    const pointToEdit = points.find(p => p.id === id);
-    if (pointToEdit) {
-      setNewPoint({
-        name: pointToEdit.name,
-        description: pointToEdit.description,
-        address: pointToEdit.address,
-        type: pointToEdit.type,
-        imageUrl: pointToEdit.image_url,
-        googleMapsUrl: pointToEdit.google_maps_url,
-        openingHours: pointToEdit.opening_hours,
-        plannedVisitDate: pointToEdit.planned_visit_date
-      });
-      setDate(pointToEdit.planned_visit_date ? new Date(pointToEdit.planned_visit_date) : undefined);
-      setEditPointId(id);
-      setIsEditDialogOpen(true);
-    }
-  };
-  const handleOpenDetails = (point: Point) => {
-    setSelectedPoint(point);
-    setIsDetailsModalOpen(true);
-  };
-  const handleUpdatePoint = () => {
-    if (!newPoint.name || !newPoint.address || !editPointId) {
-      toast({
-        title: "Informações faltantes",
-        description: "Por favor, preencha pelo menos o nome e o endereço.",
-        variant: "destructive"
-      });
-      return;
-    }
-    updatePointMutation.mutate({
-      id: editPointId,
-      point: {
-        ...newPoint,
-        plannedVisitDate: date ? format(date, 'yyyy-MM-dd') : null
-      }
-    });
-  };
-  const resetForm = () => {
-    setNewPoint({
-      name: '',
-      description: '',
-      address: '',
-      type: 'tourist',
-      googleMapsUrl: '',
-      openingHours: '',
-      plannedVisitDate: null
-    });
-    setDate(undefined);
-  };
-
-  // Fix for the type 'charAt' error in the Card component
-  const getPointTypeName = (type: string | undefined): string => {
-    if (!type) return 'Outro';
-    const typeMap: Record<string, string> = {
-      'tourist': 'Atração Turística',
-      'shopping': 'Compras',
-      'restaurant': 'Restaurante',
-      'accommodation': 'Hospedagem',
-      'other': 'Outro'
-    };
-    return typeMap[type] || 'Outro';
-  };
-
-  // Show error if fetch failed
-  useEffect(() => {
-    if (fetchError) {
-      toast({
-        title: "Erro ao buscar pontos",
-        description: (fetchError as any).message,
-        variant: "destructive"
-      });
-    }
-  }, [fetchError, toast]);
+    getPointTypeName,
+    handleAddPoint,
+    handleDeletePoint,
+    handleEditPoint,
+    handleOpenDetails,
+    handleUpdatePoint,
+    resetForm
+  } = pointsHook;
 
   // Show loading state
   if (isLoading) {
@@ -333,21 +70,17 @@ const Points: React.FC = () => {
           <Loader2 className="h-8 w-8 animate-spin text-travel-blue" />
           <span className="ml-2">Carregando pontos...</span>
         </div>
-      </PageContainer>;
+      </PageContainer>
   }
   return (
     <PageContainer>
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
+      <div>
         <div className="flex items-center mb-6">
-          <button
-            onClick={() => navigate('/trips')}
-            className="mr-2 text-travel-blue hover:text-travel-dark flex items-center"
-            title="Sair da viagem"
-          >
+           <button
+             onClick={() => pointsHook.navigate('/trips')}
+             className="mr-2 text-travel-blue hover:text-travel-dark flex items-center"
+             title="Sair da viagem"
+           >
             <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
           </button>
           
@@ -355,115 +88,137 @@ const Points: React.FC = () => {
         <div className="mb-6 flex flex-row gap-6 items-start">
         {/* Coluna esquerda com botões de ação global */}
         {/* Floating Action Button */}
-        <div className="fixed bottom-6 right-6 z-50">
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md" aria-label="Adicionar Ponto">
-                <PlusCircle className="h-6 w-6" />
-              </Button>
-            </DialogTrigger>
-            {/* DialogContent permanece igual */}
-          <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Adicionar Novo Ponto de Interesse</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Nome</Label>
-                <Input id="name" value={newPoint.name} onChange={e => setNewPoint({
-                ...newPoint,
-                name: e.target.value
-              })} placeholder="ex., Torre Eiffel" className="w-full" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="description">Descrição</Label>
-                <Textarea id="description" value={newPoint.description} onChange={e => setNewPoint({
-                ...newPoint,
-                description: e.target.value
-              })} placeholder="Breve descrição deste lugar..." className="w-full" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="address">Endereço</Label>
-                <Input id="address" value={newPoint.address} onChange={e => setNewPoint({
-                ...newPoint,
-                address: e.target.value
-              })} placeholder="Endereço completo" className="w-full" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="googleMapsUrl">URL do Google Maps (opcional)</Label>
-                <Input id="googleMapsUrl" value={newPoint.googleMapsUrl || ''} onChange={e => setNewPoint({
-                ...newPoint,
-                googleMapsUrl: e.target.value
-              })} placeholder="https://maps.google.com/..." className="w-full" />
-              </div>
-              
-              <OpeningHoursInput value={newPoint.openingHours || ''} onChange={value => setNewPoint({
-              ...newPoint,
-              openingHours: value
-            })} />
-              
-              <div className="grid gap-2">
-                <Label htmlFor="plannedVisitDate">Data da Visita Planejada (opcional)</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button id="plannedVisitDate" variant="outline" className="w-full flex justify-start text-left font-normal h-10">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {date ? format(date, 'PPP', {
-                      locale: ptBR
-                    }) : <span className="text-muted-foreground">Escolha uma data</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent mode="single" selected={date} onSelect={setDate} initialFocus locale={ptBR} className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="type">Tipo</Label>
-                <Select value={newPoint.type} onValueChange={value => setNewPoint({
-                ...newPoint,
-                type: value as Point['type']
-              })}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tourist">Atração Turística</SelectItem>
-                    <SelectItem value="shopping">Compras</SelectItem>
-                    <SelectItem value="restaurant">Restaurante</SelectItem>
-                    <SelectItem value="accommodation">Hospedagem</SelectItem>
-                    <SelectItem value="other">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="imageUrl">URL da Imagem (opcional)</Label>
-                <Input id="imageUrl" value={newPoint.imageUrl || ''} onChange={e => setNewPoint({
-                ...newPoint,
-                imageUrl: e.target.value
-              })} placeholder="https://exemplo.com/imagem.jpg" className="w-full" />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => {
-              resetForm();
-              setIsAddDialogOpen(false);
-            }} className="w-24 sm:w-28">
-                Cancelar
-              </Button>
-              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28" onClick={handleAddPoint} disabled={addPointMutation.isPending}>
-                {addPointMutation.isPending ? <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Adicionando...
-                  </> : "Adicionar"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <Button
+          onClick={() => setIsAddDialogOpen(true)}
+          className="fixed bottom-6 right-6 z-50 bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md"
+          aria-label="Adicionar Ponto"
+        >
+          <PlusCircle className="h-6 w-6" />
+        </Button>
+         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+           <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+             <DialogHeader>
+               <DialogTitle>Adicionar Novo Ponto de Interesse</DialogTitle>
+             </DialogHeader>
+             {/* Wizard de duas etapas */}
+             <>
+               <div className="grid gap-4 py-4">
+                 {stepAddPoint === 1 && (
+                   <>
+                     <div className="grid gap-2">
+                       <Label htmlFor="name">Nome</Label>
+                       <Input id="name" value={newPoint.name} onChange={e => setNewPoint({
+                         ...newPoint,
+                         name: e.target.value
+                       })} placeholder="ex., Torre Eiffel" className="w-full" />
+                     </div>
+                     <div className="grid gap-2">
+                       <Label htmlFor="address">Endereço</Label>
+                       <Input id="address" value={newPoint.address} onChange={e => setNewPoint({
+                         ...newPoint,
+                         address: e.target.value
+                       })} placeholder="Endereço completo" className="w-full" />
+                     </div>
+                     <div className="grid gap-2">
+                       <Label htmlFor="plannedVisitDate">Data da Visita Planejada (opcional)</Label>
+                       <Popover>
+                         <PopoverTrigger asChild>
+                           <Button id="plannedVisitDate" variant="outline" className="w-full flex justify-start text-left font-normal h-10">
+                             <Calendar className="mr-2 h-4 w-4" />
+                             {date ? format(date, 'PPP', {
+                               locale: ptBR
+                             }) : <span className="text-muted-foreground">Escolha uma data</span>}
+                           </Button>
+                         </PopoverTrigger>
+                         <PopoverContent className="w-auto p-0" align="start">
+                           <CalendarComponent mode="single" selected={date} onSelect={setDate} initialFocus locale={ptBR} className="p-3 pointer-events-auto" />
+                         </PopoverContent>
+                       </Popover>
+                     </div>
+                     <div className="grid gap-2">
+                       <Label htmlFor="type">Tipo</Label>
+                       <Select value={newPoint.type} onValueChange={value => setNewPoint({
+                         ...newPoint,
+                         type: value as Point['type']
+                       })}>
+                         <SelectTrigger className="w-full">
+                           <SelectValue placeholder="Selecione o tipo" />
+                         </SelectTrigger>
+                         <SelectContent>
+                           <SelectItem value="tourist">Atração Turística</SelectItem>
+                           <SelectItem value="shopping">Compras</SelectItem>
+                           <SelectItem value="restaurant">Restaurante</SelectItem>
+                           <SelectItem value="accommodation">Hospedagem</SelectItem>
+                           <SelectItem value="other">Outro</SelectItem>
+                         </SelectContent>
+                       </Select>
+                     </div>
+                   </>
+                 )}
+                 {stepAddPoint === 2 && (
+                   <>
+                     <div className="grid gap-2">
+                       <Label htmlFor="description">Descrição</Label>
+                       <Textarea id="description" value={newPoint.description} onChange={e => setNewPoint({
+                         ...newPoint,
+                         description: e.target.value
+                       })} placeholder="Breve descrição deste lugar..." className="w-full" />
+                     </div>
+                     <div className="grid gap-2">
+                       <Label htmlFor="googleMapsUrl">URL do Google Maps (opcional)</Label>
+                       <Input id="googleMapsUrl" value={newPoint.googleMapsUrl || ''} onChange={e => setNewPoint({
+                         ...newPoint,
+                         googleMapsUrl: e.target.value
+                       })} placeholder="https://maps.google.com/..." className="w-full" />
+                     </div>
+                     <OpeningHoursInput value={newPoint.openingHours || ''} onChange={value => setNewPoint({
+                       ...newPoint,
+                       openingHours: value
+                     })} />
+                     <div className="grid gap-2">
+                       <Label htmlFor="imageUrl">URL da Imagem (opcional)</Label>
+                       <Input id="imageUrl" value={newPoint.imageUrl || ''} onChange={e => setNewPoint({
+                         ...newPoint,
+                         imageUrl: e.target.value
+                       })} placeholder="https://exemplo.com/imagem.jpg" className="w-full" />
+                     </div>
+                   </>
+                 )}
+               </div>
+               <div className="flex justify-end gap-2">
+                 <Button variant="outline" onClick={() => {
+                   resetForm();
+                   setIsAddDialogOpen(false);
+                   setStepAddPoint(1);
+                 }} className="w-24 sm:w-28">
+                   Cancelar
+                 </Button>
+                 {stepAddPoint === 2 && (
+                   <Button variant="secondary" onClick={() => setStepAddPoint(1)} className="w-24 sm:w-28">
+                     Voltar
+                   </Button>
+                 )}
+                 {stepAddPoint === 1 && (
+                   <Button onClick={() => setStepAddPoint(2)} className="w-24 sm:w-28 bg-travel-mustard/80">
+                     Próximo
+                   </Button>
+                 )}
+                 {stepAddPoint === 2 && (
+                   <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28" onClick={handleAddPoint} disabled={pointsHook.isAddingPoint}>
+                     {pointsHook.isAddingPoint ? <>
+                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                         Adicionando...
+                       </> : "Adicionar"}
+                   </Button>
+                 )}
+               </div>
+             </>
+           </DialogContent>
+         </Dialog>
         </div>
         <div className="flex-1 ml-6">
-          <h1 className="text-3xl font-bold text-travel-dark">Pontos de Interesse</h1>
-          <p className="text-travel-dark/70">Gerencie seus lugares e destinos favoritos</p>
+          <h1 className="text-3xl font-bold text-travel-dark mb-2">Pontos de Interesse</h1>
+          <p className="text-travel-dark/70 mb-6">Gerencie seus lugares e destinos favoritos</p>
         </div>
         
         {/* Edit Dialog */}
@@ -557,8 +312,8 @@ const Points: React.FC = () => {
             }} className="w-24 sm:w-28">
                 Cancelar
               </Button>
-              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28" onClick={handleUpdatePoint} disabled={updatePointMutation.isPending}>
-                {updatePointMutation.isPending ? <>
+              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28" onClick={handleUpdatePoint} disabled={pointsHook.isUpdatingPoint}>
+                {pointsHook.isUpdatingPoint ? <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Atualizando...
                   </> : "Atualizar"}
@@ -674,7 +429,6 @@ const Points: React.FC = () => {
       />
       {/* Details Modal */}
       <PointDetailsModal point={selectedPoint} isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} />
-      </motion.div>
     </PageContainer>
   );
 };

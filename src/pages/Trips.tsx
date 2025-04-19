@@ -161,49 +161,17 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
   return (
     <PageContainer>
       <WorldClock />
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 24 }}
-        transition={{ duration: 0.35, ease: 'easeInOut' }}
-      >
+      <div>
         <div className={`${compact ? 'py-4 px-2 mt-6' : 'py-8 px-4 mt-16'} w-full`}>
-          <h1 className={`${compact ? 'text-lg mb-2' : 'text-2xl mb-4'} font-bold`}>Minhas Viagens</h1>
-          <div className={compact ? 'mb-4' : 'mb-8'}>
-            <Card>
-              <CardHeader>
-                <span className={`${compact ? 'text-base' : 'text-lg'} font-semibold`}>Nova Viagem</span>
-              </CardHeader>
-              <CardContent>
-                {showNewTripFields ? (
-                  <div className={`flex flex-col ${compact ? 'gap-1' : 'gap-3'}`}>
-                    <Input className={compact ? 'h-8 text-sm' : ''} placeholder="Nome da viagem" value={newTrip.nome} onChange={e => setNewTrip({ ...newTrip, nome: e.target.value })} />
-                    <Input className={compact ? 'h-8 text-sm' : ''} placeholder="Local" value={newTrip.local} onChange={e => setNewTrip({ ...newTrip, local: e.target.value })} />
-                    <div className="flex gap-2">
-                      <Input className={compact ? 'h-8 text-sm' : ''} type="date" value={newTrip.datain} onChange={e => setNewTrip({ ...newTrip, datain: e.target.value })} />
-                      <Input className={compact ? 'h-8 text-sm' : ''} type="date" value={newTrip.dataout} onChange={e => setNewTrip({ ...newTrip, dataout: e.target.value })} />
-                    </div>
-                    <Button size={compact ? 'sm' : 'default'} onClick={handleCreateTrip} disabled={createTripMutation.isPending}>
-                      <Plus className="mr-2 h-4 w-4" />
-                      Criar viagem
-                    </Button>
-                  </div>
-                ) : (
-                  <Button size={compact ? 'sm' : 'default'} onClick={() => setShowNewTripFields(true)}>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Adicionar viagem
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+          <h1 className="text-xl md:text-2xl mb-4 font-bold text-travel-blue font-['Lexend']">Minhas Viagens</h1>
+
 
           <div className={`grid ${compact ? 'gap-2' : 'gap-4'}`}>
             {trips.map(trip => (
               <Card key={trip.id} className={`hover:shadow-lg cursor-pointer transition ${compact ? 'p-2' : ''}`} onClick={() => handleSelectTrip(trip.id)}>
                 <CardHeader className={`flex flex-row items-center justify-between ${compact ? 'py-2 px-2' : ''}`}>
                   <div className={`flex flex-col ${compact ? 'gap-0.5' : 'gap-1'}`}>
-                    <span className={`${compact ? 'text-base' : 'text-lg'} font-semibold`}>{trip.nome}</span>
+                    <span className="text-lg font-bold text-travel-blue font-['Lexend']">{trip.nome}</span>
                     {trip.user_id && user?.id && trip.user_id !== user.id && (
                       <span className={`inline-block bg-blue-100 text-blue-700 ${compact ? 'text-[10px] px-1 py-0.5' : 'text-xs px-2 py-1'} font-semibold rounded`}>Viagem compartilhada</span>
                     )}
@@ -280,6 +248,14 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
             ))}
           </div>
         </div>
+        {/* Botão flutuante FAB para adicionar viagem */}
+        <Button
+          onClick={() => setShowNewTripFields(true)}
+          className="fixed bottom-6 right-6 z-50 bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md"
+          aria-label="Adicionar viagem"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
         <ShareTripDialog
           open={shareDialogOpen}
           onOpenChange={setShareDialogOpen}
@@ -291,7 +267,7 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
             otherUserId={otherUserIdForSelectedTrip} 
           />
         )}
-      </motion.div>
+      </div>
     </PageContainer>
   );
 };

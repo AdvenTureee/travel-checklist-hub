@@ -686,10 +686,11 @@ return (
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button
+              onClick={() => setIsAddDialogOpen(true)}
               className="fixed bottom-6 right-6 z-50 bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md"
               aria-label="Adicionar Checklist"
             >
-              <PlusCircle className="h-6 w-6" />
+              <Plus className="h-6 w-6" />
             </Button>
           </DialogTrigger>
         </Dialog>
@@ -821,6 +822,13 @@ return (
         </div>
       </div>
     )}
+    <Button
+      onClick={() => setIsAddDialogOpen(true)}
+      className="fixed bottom-6 right-6 z-50 bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md"
+      aria-label="Adicionar Checklist"
+    >
+      <Plus className="h-6 w-6" />
+    </Button>
     {/* Add/Edit Dialogs */}
     <ChecklistDialog isOpen={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} title="Criar nova Checklist" description="Adicione uma nova checklist para organizar suas tarefas." checklist={newChecklist} points={points} isSubmitting={createChecklistMutation.isPending} onSubmit={handleCreateChecklist} onCancel={() => setIsAddDialogOpen(false)} onChecklistChange={setNewChecklist} submitButtonText="Criar Checklist" loadingText="Criando..." />
     <ChecklistDialog isOpen={isEditDialogOpen} onOpenChange={setIsEditDialogOpen} title="Editar Checklist" checklist={newChecklist} points={points} isSubmitting={updateChecklistMutation.isPending} onSubmit={handleUpdateChecklist} onCancel={() => {
