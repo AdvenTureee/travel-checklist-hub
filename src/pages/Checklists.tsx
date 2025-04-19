@@ -21,6 +21,33 @@ import { ListChecks, Edit, Trash, Plus, ListPlus } from 'lucide-react';
 import ChecklistDropdown from '@/components/ui/ChecklistDropdown';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent } from '@/components/ui/dropdown-menu';
 
+// Utilitário para cor dinâmica da barra de progresso
+function getProgressColor(percent: number) {
+  if (percent <= 0) return '#ef4444'; // vermelho
+  if (percent >= 100) return '#22c55e'; // verde
+  if (percent < 50) {
+    // 0% vermelho (#ef4444) para 50% amarelo (#facc15)
+    const ratio = percent / 50;
+    return interpolateColor('#ef4444', '#facc15', ratio);
+  } else {
+    // 50% amarelo (#facc15) para 100% verde (#22c55e)
+    const ratio = (percent - 50) / 50;
+    return interpolateColor('#facc15', '#22c55e', ratio);
+  }
+}
+// Função para interpolar entre duas cores hex
+function interpolateColor(a: string, b: string, t: number) {
+  const ah = a.replace('#','');
+  const bh = b.replace('#','');
+  const ar = parseInt(ah.substring(0,2),16), ag = parseInt(ah.substring(2,4),16), ab = parseInt(ah.substring(4,6),16);
+  const br = parseInt(bh.substring(0,2),16), bg = parseInt(bh.substring(2,4),16), bb = parseInt(bh.substring(4,6),16);
+  const rr = Math.round(ar + (br-ar)*t);
+  const rg = Math.round(ag + (bg-ag)*t);
+  const rb = Math.round(ab + (bb-ab)*t);
+  return `rgb(${rr},${rg},${rb})`;
+}
+
+
 import { useLocation } from 'react-router-dom';
 import Confetti from '@/components/ui/Confetti';
 
@@ -628,7 +655,7 @@ if (isLoadingChecklists) {
         >
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
-        <h1 className="text-2xl font-bold">Checklists</h1>
+  
       </div>
       <div className="flex justify-center items-center h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-travel-blue" />
@@ -648,18 +675,18 @@ return (
       >
         <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
       </button>
-      <h1 className="text-2xl font-bold">Checklists</h1>
+
     </div>
     {showConfetti && (
       <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
     )}
     <div className="mb-4 flex flex-row items-center gap-6 sm:mb-6 sm:gap-6 sm:flex-row flex-col sm:items-center sm:justify-start w-full">
-      {/* Left action column for global actions (e.g., add checklist) */}
-      <div className="flex flex-row sm:flex-col items-start min-w-[56px] w-full sm:w-auto mb-2 sm:mb-0">
+      {/* Floating action button for global actions (e.g., add checklist) */}
+      <div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button
-              className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md focus-visible:ring-2 focus-visible:ring-travel-mustard/70"
+              className="fixed bottom-6 right-6 z-50 bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md"
               aria-label="Adicionar Checklist"
             >
               <PlusCircle className="h-6 w-6" />
@@ -677,31 +704,39 @@ return (
       <ChecklistEmptyState onCreateClick={() => setIsAddDialogOpen(true)} />
     ) : (
       <div className="overflow-x-auto w-full md:w-full lg:w-full xl:w-full 2xl:w-full">
-        <Table className="min-w-full sm:min-w-full md:min-w-full lg:min-w-full xl:min-w-full 2xl:min-w-full bg-white border border-travel-beige text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Nome</TableHead>
-              <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Descrição</TableHead>
-              <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Ponto Associado</TableHead>
-              <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Conclusão</TableHead>
-              <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Ações</TableHead>
-              <TableHead className="text-xs sm:text-sm md:text-base lg:text-lg xl:text-xl 2xl:text-2xl">Itens</TableHead>
+        <div className="border border-travel-mustard rounded-2xl overflow-hidden">
+          <Table className="min-w-full sm:min-w-full md:min-w-full bg-white text-xs sm:text-sm md:text-base rounded-2xl overflow-hidden">
+          <TableHeader className="rounded-t-2xl overflow-hidden">
+            <TableRow className="rounded-t-2xl overflow-hidden">
+              <TableHead className="text-xs sm:text-sm md:text-base w-1/5">Nome</TableHead>
+              <TableHead className="text-xs sm:text-sm md:text-base w-1/5">Descrição</TableHead>
+              <TableHead className="text-xs sm:text-sm md:text-base w-1/5">Ponto Associado</TableHead>
+              <TableHead className="text-xs sm:text-sm md:text-base w-1/5">Conclusão</TableHead>
+              <TableHead className="text-xs sm:text-sm md:text-base w-1/5 text-center">Ações</TableHead>
+
             </TableRow>
           </TableHeader>
-          <TableBody>
+          <TableBody className="overflow-hidden">
             {checklists.map((checklist) => {
               const completionPercentage = calculateCompletion(checklist.id);
               const associatedPoint = getAssociatedPoint(checklist.pointId || checklist.point_id);
               const items = checklistItems.filter(item => item.checklist_id === checklist.id);
               return (
-                <TableRow key={checklist.id}>
+                <TableRow key={checklist.id} className="last:rounded-b-2xl overflow-hidden">
                   <TableCell className="font-semibold text-travel-dark">
                     <div className="flex items-center gap-2">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button size="icon" variant="ghost" className="h-8 w-8 text-travel-mustard hover:bg-travel-mustard/10" title="Marcar itens rapidamente">
-                            <span className="font-bold text-lg">✓</span>
-                          </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              className="h-8 w-8 bg-travel-mustard text-travel-dark hover:bg-yellow-400 border-2 border-travel-mustard flex items-center justify-center rounded-full transition-all duration-200"
+                              title="Marcar itens rapidamente"
+                            >
+                              <span className="font-extrabold text-xl select-none">
+                                ✓
+                              </span>
+                            </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="start" className="p-0 bg-transparent border-none shadow-none">
                           <ChecklistDropdown
@@ -745,27 +780,36 @@ return (
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1 min-w-[120px]">
-                      <span className="text-xs font-medium text-travel-dark/70">{completionPercentage}%</span>
-                      <div className="w-full">
-                        <div className="h-2 bg-travel-beige rounded">
-                          <div className="h-2 rounded bg-gradient-to-r from-travel-blue to-travel-light-blue" style={{ width: `${completionPercentage}%` }} />
+                      <div className="relative w-full h-6 bg-travel-beige border border-travel-mustard rounded-full overflow-hidden transition-all">
+                        <div
+                          className="h-6 rounded-full transition-all duration-700 ease-in-out flex items-center justify-end pr-2"
+                          style={{
+                            width: `${completionPercentage}%`,
+                            minWidth: completionPercentage > 0 ? '2.5rem' : '0',
+                            background: `linear-gradient(90deg, ${getProgressColor(completionPercentage)} 0%, ${getProgressColor(completionPercentage)} 100%)`,
+                            transition: 'width 0.7s cubic-bezier(0.4, 2, 0.6, 1)'
+                          }}
+                        >
+                          <span className="text-[10px] font-bold text-travel-dark select-none">
+                            {completionPercentage}%
+                          </span>
                         </div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-2">
-                      <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-travel-light-blue/20" onClick={() => handleEditChecklist(checklist.id)} title="Editar">
-                        <Edit className="h-4 w-4 text-travel-blue" />
+                    <div className="flex gap-2 justify-center">
+                      <Button size="icon" variant="ghost" className="h-12 w-12 hover:bg-travel-light-blue/20" onClick={() => handleEditChecklist(checklist.id)} title="Editar">
+                        <Edit className="h-6 w-6 text-travel-blue" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-travel-light-red/20" onClick={() => deleteChecklistMutation.mutate(checklist.id)} title="Excluir">
-                        <Trash className="h-4 w-4 text-travel-red" />
+                      <Button size="icon" variant="ghost" className="h-12 w-12 hover:bg-travel-light-red/20" onClick={() => deleteChecklistMutation.mutate(checklist.id)} title="Excluir">
+                        <Trash className="h-6 w-6 text-travel-red" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-travel-light-blue/20" onClick={() => handleAddItem(checklist.id)} title="Adicionar Item">
-                        <Plus className="h-4 w-4 text-travel-blue" />
+                      <Button size="icon" variant="ghost" className="h-12 w-12 hover:bg-travel-light-blue/20" onClick={() => handleAddItem(checklist.id)} title="Adicionar Item">
+                        <Plus className="h-6 w-6 text-travel-blue" />
                       </Button>
-                      <Button size="icon" variant="ghost" className="h-8 w-8 hover:bg-travel-light-blue/20" onClick={() => handleBulkAddItems(checklist.id)} title="Adicionar em Massa">
-                        <ListPlus className="h-4 w-4 text-travel-blue" />
+                      <Button size="icon" variant="ghost" className="h-12 w-12 hover:bg-travel-light-blue/20" onClick={() => handleBulkAddItems(checklist.id)} title="Adicionar em Massa">
+                        <ListPlus className="h-6 w-6 text-travel-blue" />
                       </Button>
                     </div>
                   </TableCell>
@@ -774,6 +818,7 @@ return (
             })}
           </TableBody>
         </Table>
+        </div>
       </div>
     )}
     {/* Add/Edit Dialogs */}

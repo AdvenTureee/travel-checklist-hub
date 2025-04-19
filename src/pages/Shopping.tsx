@@ -440,7 +440,18 @@ const Shopping: React.FC = () => {
           <Loader2 className="h-8 w-8 animate-spin text-travel-blue" />
           <span className="ml-2">Carregando itens de compras...</span>
         </div>
-      </PageContainer>;
+      
+  {/* Botão flutuante de adicionar item */}
+  <button
+    onClick={() => setIsAddDialogOpen(true)}
+    className="fixed bottom-6 right-6 z-50 bg-travel-mustard hover:bg-travel-mustard/90 text-travel-dark rounded-full shadow-lg p-4 flex items-center justify-center transition-all duration-200"
+    aria-label="Adicionar Item"
+    style={{ boxShadow: '0 4px 24px 0 rgba(0,0,0,0.16)' }}
+  >
+    <Plus size={32} />
+  </button>
+</PageContainer>;
+
   }
   return <PageContainer>
       <div className="flex items-center mb-6">
@@ -451,19 +462,11 @@ const Shopping: React.FC = () => {
         >
           <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </button>
-        <h1 className="text-2xl font-bold">Lista de Compras</h1>
+        
       </div>
       <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:gap-6 items-start w-full">
         {/* Coluna esquerda com botões de ação global */}
-        <div className="flex flex-row sm:flex-col gap-2 sm:gap-3 items-start min-w-[56px] w-full sm:w-auto mb-2 sm:mb-0">
-          <Button
-            onClick={() => setIsAddDialogOpen(true)}
-            className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md"
-            aria-label="Adicionar Item"
-          >
-            <PlusCircle className="h-6 w-6" />
-          </Button>
-        </div>
+        
         {/* Header e descrição */}
         <div className="flex flex-col flex-1 w-full">
           <h1 className="text-2xl sm:text-3xl font-bold text-travel-dark">Lista de compras</h1>
@@ -557,12 +560,8 @@ const Shopping: React.FC = () => {
             <ShoppingCart className="h-16 w-16 text-travel-mustard/50 mb-4" />
             <h3 className="text-xl font-medium text-travel-dark">Nenhum item na sua lista de compras</h3>
             <p className="text-travel-dark/70 mb-4">Adicione itens que deseja comprar durante sua viagem</p>
-            <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark" onClick={() => setIsAddDialogOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Adicionar primeiro item
-            </Button>
-          </div> : <div className="overflow-x-auto w-full">
-          <Table className="min-w-[600px] sm:min-w-0">
+          </div> : <div className="overflow-x-auto w-full border border-travel-mustard rounded-2xl">
+          <Table className="min-w-full sm:min-w-full md:min-w-full bg-white rounded-2xl text-xs sm:text-sm md:text-base">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-10 mx-0"></TableHead>
@@ -609,12 +608,22 @@ const Shopping: React.FC = () => {
   })()}
 </TableCell>
                   <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleEditItem(item.id)}>
-                        <Edit className="h-4 w-4 text-travel-blue" />
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        className="inline-flex items-center justify-center gap-2 whitespace-nowrap h-10 w-10 hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => handleEditItem(item.id)}
+                        title="Editar"
+                      >
+                        <Edit className="w-4 h-4 text-travel-blue" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteItem(item.id)}>
-                        <Trash className="h-4 w-4 text-travel-red" />
+                      <Button
+                        variant="ghost"
+                        className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md h-10 w-10 hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => handleDeleteItem(item.id)}
+                        title="Excluir"
+                      >
+                        <Trash className="w-4 h-4 text-travel-red" />
                       </Button>
                     </div>
                   </TableCell>
@@ -622,6 +631,15 @@ const Shopping: React.FC = () => {
             </TableBody>
           </Table>
         </div>}
+
+      {/* Floating Action Button para adicionar item */}
+      <Button
+        className="fixed bottom-6 right-6 z-50 bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md"
+        aria-label="Adicionar Item de Compras"
+        onClick={() => setIsAddDialogOpen(true)}
+      >
+        <PlusCircle className="h-6 w-6" />
+      </Button>
 
       {/* Add Item Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>

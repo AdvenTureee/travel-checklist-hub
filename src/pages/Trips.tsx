@@ -198,14 +198,31 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
                     )}
                   </div>
                   <div className="flex gap-2">
-                    <Button size={compact ? 'sm' : 'icon'} variant="ghost" onClick={e => { e.stopPropagation(); setEditTripId(trip.id); setEditTrip({ nome: trip.nome, local: trip.local, datain: trip.datain, dataout: trip.dataout }); }}>
-                      <Edit className="w-4 h-4 text-travel-blue" />
+                    <Button
+                      variant="ghost"
+                      className="inline-flex items-center justify-center gap-2 whitespace-nowrap h-12 w-12 hover:bg-accent hover:text-accent-foreground"
+                      onClick={e => {
+                        e.stopPropagation();
+                        setEditTripId(trip.id);
+                        setEditTrip({ nome: trip.nome, local: trip.local, datain: trip.datain, dataout: trip.dataout });
+                      }}
+                      title="Editar"
+                    >
+                      <Edit className="w-6 h-6 text-travel-blue" />
                     </Button>
 
                     <Dialog open={deleteDialogId === trip.id} onOpenChange={open => { if (!open) setDeleteDialogId(null); }}>
                       <DialogTrigger asChild>
-                        <Button size="icon" variant="ghost" onClick={e => { e.stopPropagation(); setDeleteDialogId(trip.id); }}>
-                          <Trash className="w-4 h-4 text-travel-red" />
+                        <Button
+                          variant="ghost"
+                          className="inline-flex items-center justify-center gap-2 whitespace-nowrap h-12 w-12 hover:bg-accent hover:text-accent-foreground"
+                          onClick={e => {
+                            e.stopPropagation();
+                            setDeleteDialogId(trip.id);
+                          }}
+                          title="Excluir"
+                        >
+                          <Trash className="w-6 h-6 text-travel-red" />
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
