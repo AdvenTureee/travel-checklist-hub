@@ -1,10 +1,128 @@
 @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap');
+
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  html {
+    font-family: 'Lexend', 'Segoe UI', Arial, sans-serif;
+    background: #f9fafb;
+    min-height: 100%;
+    box-shadow: none;
+  }
+  .caricature-progress-bar {
+    border: 2px solid #ffe066;
+    background: linear-gradient(90deg, #fffbe6 40%, #ffe066 100%);
+    box-shadow: 0 2px 8px #ffe06633;
+    border-radius: 999px;
+    transition: box-shadow 0.2s;
+  }
+  .caricature-progress-bar:hover {
+    box-shadow: 0 4px 16px #f783ac44;
+  }
+
+  .caricature-clock {
+  border: 3px solid #ffe066;
+  border-radius: 1.4rem 1.7rem 1.3rem 1.6rem;
+  box-shadow: 0 6px 24px #f783ac44, 0 2px 0 #ffe06699;
+  background: linear-gradient(135deg, #fff 80%, #ffe06622 100%);
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 2px 2px #f783ac33);
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.caricature-clock:hover {
+  box-shadow: 0 12px 36px #f783ac55, 0 4px 0 #ffe066cc;
+  transform: scale(1.04) rotate(-1deg);
+}
+.caricature-clock-city-sys {
+  font-family: 'Lexend', 'system-ui', 'sans-serif';
+  font-size: 1.25rem;
+  color: #1e40af;
+  text-shadow: 1px 2px 0 #ffe06644;
+  font-weight: bold;
+  letter-spacing: 0.01em;
+}
+.caricature-clock-time-sys {
+  font-family: 'Lexend', 'system-ui', 'sans-serif';
+  font-size: 2.2rem;
+  color: #1e40af;
+  text-shadow: 1px 2px 0 #ffe06622;
+  letter-spacing: 0.08em;
+  filter: drop-shadow(0 2px 2px #ffe06622);
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: unset;
+  background-clip: unset;
+}
+.caricature-clock-flag {
+  filter: drop-shadow(0 2px 2px #ffe06688);
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', 'EmojiOne', 'Twemoji Mozilla', 'Segoe UI Symbol', sans-serif;
+  font-size: 2rem;
+  line-height: 1;
+}
+@keyframes caricature-flag-bounce {
+  0% { transform: translateY(0) rotate(-8deg); }
+  100% { transform: translateY(-5px) rotate(8deg); }
+}
+
+.caricature-na {
+    font-family: 'Caveat', cursive;
+    color: #ff7f50;
+    text-shadow: 1px 2px 0 #ffe066, 2px 4px 6px #ff7f5022;
+    font-size: 1.1em;
+    font-weight: 700;
+    border-bottom: 2px wavy #ffe066;
+    display: inline-block;
+    transform: rotate(-4deg);
+    letter-spacing: 0.04em;
+    transition: color 0.2s, text-shadow 0.2s, transform 0.2s;
+}
+.caricature-na:hover {
+    color: #f783ac;
+    text-shadow: 2px 4px 0 #ffe066, 3px 6px 12px #ff7f5044;
+    transform: rotate(4deg) scale(1.09);
+}
+
+.caricature-location-link {
+    font-family: 'Caveat', cursive;
+    color: #f783ac;
+    text-shadow: 1px 2px 0 #ffe066, 2px 4px 6px #f783ac22;
+    font-size: 1.15em;
+    font-weight: 700;
+    border-bottom: 2.5px wavy #ffe066;
+    display: inline-block;
+    transform: rotate(-2deg);
+    transition: color 0.2s, text-shadow 0.2s, transform 0.2s;
+  }
+  .caricature-location-link:hover {
+    color: #ff7f50;
+    text-shadow: 2px 4px 0 #ffe066, 3px 6px 12px #f783ac44;
+    transform: rotate(2deg) scale(1.07);
+  }
+  .caricature-date {
+    font-family: 'Caveat', 'Comic Sans MS', cursive, sans-serif;
+    font-size: 1.25rem;
+    background: linear-gradient(90deg, #ffe066 40%, #f783ac 100%);
+    color: #222;
+    padding: 0.1em 0.5em;
+    border-radius: 0.6em;
+    box-shadow: 2px 2px 0 #f783ac, 4px 4px 0 #ffe066;
+    text-shadow: 1px 1px 0 #fff, 2px 2px 2px #f783ac;
+    transform: rotate(-2deg) scale(1.1);
+    display: inline-block;
+    margin: 0 0.2em;
+    letter-spacing: 1px;
+    transition: transform 0.2s;
+  }
+  .caricature-date:hover {
+    transform: rotate(3deg) scale(1.15);
+    box-shadow: 2px 2px 0 #ffe066, 4px 4px 0 #f783ac;
+    background: linear-gradient(90deg, #f783ac 40%, #ffe066 100%);
+  }
+
   :root {
     --background: 47 82% 98%;
     --foreground: 214 60% 22%;

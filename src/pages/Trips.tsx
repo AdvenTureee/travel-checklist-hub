@@ -24,9 +24,19 @@ interface Trip {
 
 import type { Database } from '@/integrations/supabase/types';
 
+// Formata uma data ISO (yyyy-mm-dd) para o formato brasileiro (dd/mm/yyyy)
+function formatDateBR(dateStr?: string) {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-');
+  if (!year || !month || !day) return dateStr;
+  return `${day}/${month}/${year}`;
+}
+
 interface TripsProps {
   compact?: boolean;
 }
+
+import { WorldClock } from '@/components/WorldClock';
 
 const Trips: React.FC<TripsProps> = ({ compact = false }) => {
   const { user } = useAuth();
@@ -150,6 +160,7 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
 
   return (
     <PageContainer>
+      <WorldClock />
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -260,7 +271,7 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
                       </span>
                       <span className="flex items-center gap-2 text-md text-travel-dark/80">
                         <Calendar className="text-yellow-600 w-5 h-5 animate-spin-slow" />
-                        De: <span className="font-bold text-travel-green">{trip.datain}</span> até <span className="font-bold text-travel-red">{trip.dataout}</span>
+                        De: <span className="caricature-date font-bold text-travel-green">{formatDateBR(trip.datain)}</span> até <span className="caricature-date font-bold text-travel-red">{formatDateBR(trip.dataout)}</span>
                       </span>
                     </div>
                   )}

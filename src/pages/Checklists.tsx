@@ -780,7 +780,7 @@ return (
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1 min-w-[120px]">
-                      <div className="relative w-full h-6 bg-travel-beige border border-travel-mustard rounded-full overflow-hidden transition-all">
+                      <div className="relative w-full h-6 caricature-progress-bar bg-travel-beige border border-travel-mustard rounded-full overflow-hidden transition-all">
                         <div
                           className="h-6 rounded-full transition-all duration-700 ease-in-out flex items-center justify-end pr-2"
                           style={{

@@ -597,14 +597,18 @@ const Shopping: React.FC = () => {
           href={point.google_maps_url}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-travel-blue underline hover:text-travel-mustard transition-colors"
+          className="caricature-location-link"
           title={point.name}
         >
           {point.name}
         </a>
       );
     }
-    return getPointName(item.point_id);
+    const name = getPointName(item.point_id);
+    if (name === 'N/A') {
+      return <span className="caricature-na">N/A</span>;
+    }
+    return name;
   })()}
 </TableCell>
                   <TableCell className="text-right">

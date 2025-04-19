@@ -6,6 +6,9 @@
 }
 
 /* Scrollbar customizado para todo o app */
+html, body {
+  height: 100%;
+}
 .custom-scroll {
   scrollbar-width: thin;
   scrollbar-color: #f9d423 #f5f5f5;

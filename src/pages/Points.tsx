@@ -632,13 +632,7 @@ const Points: React.FC = () => {
                     </div>
                   </div>}
                 
-                {point.google_maps_url && <div className="flex items-start gap-2 mt-2">
-                    <Globe className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
-                    <a href={point.google_maps_url} target="_blank" rel="noopener noreferrer" className="text-sm text-travel-blue hover:underline flex items-center">
-                      Google Maps
-                      <ExternalLink className="h-3 w-3 ml-1" />
-                    </a>
-                  </div>}
+                {/* Google Maps link moved to the end, icon removed */}
                 
                 {/* Planned Visit Date */}
                 {(point.planned_visit_date || point.plannedVisitDate) && <div className="flex items-start gap-2 mt-2">
@@ -651,6 +645,15 @@ const Points: React.FC = () => {
 )}
                     </span>
                   </div>}
+                
+                {/* Google Maps link at the end */}
+                {point.google_maps_url && (
+                  <div className="flex items-start gap-2 mt-6">
+                    <a href={point.google_maps_url} target="_blank" rel="noopener noreferrer" className="caricature-date">
+                      Google Maps
+                    </a>
+                  </div>
+                )}
               </CardContent>
               <CardFooter>
                 <div className="w-full flex justify-between items-center">
