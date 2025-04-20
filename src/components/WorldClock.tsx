@@ -34,11 +34,11 @@ export const WorldClock: React.FC = () => {
       {clocks.map((clock, idx) => (
         <div
           key={clock.city}
-          className="flex flex-row items-center bg-white rounded-xl shadow-md border-2 border-travel-mustard px-4 md:px-6 py-4 min-w-[140px] md:min-w-[170px] max-w-[220px] mb-4 overflow-hidden"
+          className="flex flex-row items-center bg-white rounded-xl shadow-md border-2 border-travel-mustard px-2 md:px-3 py-2 min-w-[90px] md:min-w-[110px] max-w-[140px] mb-2 overflow-hidden"
         >
-          <div className="flex flex-col items-stretch">
-            <span className="caricature-clock-city-sys text-travel-dark/70 font-normal mb-1 truncate w-full">{clock.city}</span>
-            <span className="caricature-clock-time-sys text-3xl text-travel-blue">{formatTime(times[idx])}</span>
+          <div className="flex flex-col items-center justify-center w-full text-center">
+            <span className="caricature-clock-city-sys text-travel-dark/70 font-normal mb-0.5 truncate w-full text-xs md:text-sm text-center">{clock.city}</span>
+            <span className="caricature-clock-time-sys text-xl md:text-2xl text-travel-blue text-center w-full">{formatTime(times[idx])}</span>
           </div>
         </div>
       ))}

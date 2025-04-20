@@ -32,6 +32,14 @@ function formatDateBR(dateStr?: string) {
   return `${day}/${month}/${year}`;
 }
 
+// Formata para dd/mm/aa
+function formatDateShort(dateStr?: string) {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-');
+  if (!year || !month || !day) return dateStr;
+  return `${day}/${month}/${year.slice(2)}`;
+}
+
 interface TripsProps {
   compact?: boolean;
 }
@@ -204,9 +212,9 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
                     <MapPin className="text-pink-500 w-5 h-5" />
                     {trip.local}
                   </span>
-                  <span className="flex flex-wrap items-center gap-2 text-[15px] sm:text-md text-travel-dark/80 min-w-0 max-w-2xl overflow-visible justify-center w-full">
-                    <span className="whitespace-nowrap max-w-xl overflow-visible flex items-center gap-4">De: <span className="caricature-date font-bold text-travel-green">{formatDateBR(trip.datain)}</span> até <span className="caricature-date font-bold text-travel-red">{formatDateBR(trip.dataout)}</span></span>
-                  </span>
+                  <span className="flex flex-wrap items-center gap-1 text-xs sm:text-sm text-travel-dark/80 min-w-0 max-w-2xl overflow-visible justify-center w-full">
+  <span className="whitespace-nowrap max-w-xl overflow-visible flex items-center gap-2">De: <span className="caricature-date font-bold text-travel-green text-base sm:text-lg px-2 py-1">{formatDateShort(trip.datain)}</span> até <span className="caricature-date font-bold text-travel-red text-base sm:text-lg px-2 py-1">{formatDateShort(trip.dataout)}</span></span>
+</span>
                   <div className="flex gap-2 mt-2 justify-center w-full">
                     <Button
                       variant="ghost"

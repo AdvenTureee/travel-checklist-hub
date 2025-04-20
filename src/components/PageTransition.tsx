@@ -12,25 +12,33 @@ const variants = {
   exit: { opacity: 0, x: -48, y: 0, transition: { duration: 0.28, ease: "easeIn" } },
 };
 
-export const PageTransition: React.FC<PageTransitionProps> = ({ children, locationKey }) => (
-  <AnimatePresence mode="wait">
-    <motion.div
-      key={locationKey}
-      variants={variants}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      style={{
-        minHeight: 0,
-        height: '100%',
-        width: '100%',
-        overflow: 'hidden',
-        position: 'relative',
-        display: 'flex',
-        flexDirection: 'column',
-      }}
-    >
-      {children}
-    </motion.div>
-  </AnimatePresence>
-);
+export const PageTransition: React.FC<PageTransitionProps> = ({ children, locationKey }) => {
+  React.useEffect(() => {
+    // Sempre faz scroll para o topo antes da transição
+    // Scroll instantâneo para o topo, sem delay
+    window.scrollTo(0, 0);
+  }, [locationKey]);
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={locationKey}
+        variants={variants}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        style={{
+          minHeight: 0,
+          height: '100%',
+          width: '100%',
+          overflow: 'hidden',
+          position: 'relative',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
+  );
+};
