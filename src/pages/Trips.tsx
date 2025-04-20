@@ -188,7 +188,7 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
             {trips.map(trip => (
               <Card
                 key={trip.id}
-                className={`hover:shadow-lg cursor-pointer transition ${compact ? 'p-2' : 'p-4'} bg-white rounded-lg border border-travel-beige flex flex-col max-w-3xl w-full mx-auto`}
+                className={`hover:shadow-lg cursor-pointer transition ${compact ? 'p-2' : 'p-4'} bg-white rounded-lg border border-travel-beige flex flex-col max-w-4xl w-full min-w-[320px] md:w-[480px] lg:w-[520px] xl:w-[600px] mx-auto`}
                 style={{ minWidth: 0 }}
                 onClick={() => handleSelectTrip(trip.id)}
               >

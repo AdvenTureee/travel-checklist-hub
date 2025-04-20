@@ -75,16 +75,17 @@ const Points: React.FC = () => {
   return (
     <PageContainer>
       <div>
-        <div className="flex items-center mb-6">
-           <button
-             onClick={() => pointsHook.navigate('/trips')}
-             className="mr-2 text-travel-blue hover:text-travel-dark flex items-center"
-             title="Sair da viagem"
-           >
+        <div className="flex items-center mb-2">
+          <button
+            onClick={() => pointsHook.navigate('/trips')}
+            className="mr-2 text-travel-blue hover:text-travel-dark flex items-center"
+            title="Sair da viagem"
+          >
             <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
           </button>
-          
         </div>
+        <h1 className="text-xl md:text-2xl mb-1 font-bold text-travel-blue font-['Lexend']">Meus Pontos</h1>
+        <div className="text-sm sm:text-base text-travel-dark/80 mb-6">Gerencie seus pontos de interesse, locais visitados e experiências da sua viagem.</div>
         <div className="mb-6 flex flex-row gap-6 items-start">
         {/* Coluna esquerda com botões de ação global */}
         {/* Floating Action Button */}
@@ -217,8 +218,7 @@ const Points: React.FC = () => {
          </Dialog>
         </div>
         <div className="flex-1 ml-6">
-          <h1 className="text-3xl font-bold text-travel-dark mb-2">Pontos de Interesse</h1>
-          <p className="text-travel-dark/70 mb-6">Gerencie seus lugares e destinos favoritos</p>
+
         </div>
         
         {/* Edit Dialog */}

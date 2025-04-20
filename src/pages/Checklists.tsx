@@ -647,6 +647,8 @@ const Checklists = () => {
 if (isLoadingChecklists) {
   return (
     <PageContainer>
+      <h1 className="text-xl md:text-2xl mb-1 font-bold text-travel-blue font-['Lexend']">Minhas Checklists</h1>
+      <div className="text-sm sm:text-base text-travel-dark/80 mb-6">Gerencie suas listas de viagem e marque itens conforme for completando.</div>
       <div className="flex items-center mb-6">
         <button
           onClick={() => navigate('/trips')}
@@ -677,6 +679,8 @@ return (
       </button>
 
     </div>
+    <h1 className="text-xl md:text-2xl mb-1 font-bold text-travel-blue font-['Lexend']">Minhas Checklists</h1>
+    <div className="text-sm sm:text-base text-travel-dark/80 mb-6">Gerencie suas listas de viagem e marque itens conforme for completando.</div>
     {showConfetti && (
       <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
     )}
@@ -697,8 +701,7 @@ return (
       </div>
       {/* Header and description */}
       <div className="flex flex-col flex-1 w-full">
-        <h1 className="text-2xl sm:text-3xl font-bold text-travel-dark">Checklists</h1>
-        <p className="text-travel-dark/70 text-sm sm:text-base">Gerencie suas listas de viagem e tarefas</p>
+
       </div>
     </div>
     {checklists.length === 0 ? (

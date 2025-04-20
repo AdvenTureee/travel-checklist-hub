@@ -464,13 +464,14 @@ const Shopping: React.FC = () => {
         </button>
         
       </div>
+      <h1 className="text-xl md:text-2xl mb-1 font-bold text-travel-blue font-['Lexend']">Lista de Compras</h1>
+      <div className="text-sm sm:text-base text-travel-dark/80 mb-6">Gerencie itens para comprar antes e durante sua viagem.</div>
       <div className="mb-4 flex flex-col sm:flex-row gap-3 sm:gap-6 items-start w-full">
         {/* Coluna esquerda com botões de ação global */}
         
         {/* Header e descrição */}
         <div className="flex flex-col flex-1 w-full">
-          <h1 className="text-2xl sm:text-3xl font-bold text-travel-dark">Lista de compras</h1>
-          <p className="text-travel-dark/70 text-sm sm:text-base">Rastreie os itens que você deseja comprar durante sua viagem</p>
+
         </div>
       </div>
 

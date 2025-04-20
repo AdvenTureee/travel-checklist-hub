@@ -82,15 +82,7 @@ const Auth: React.FC = () => {
       <Dialog open={true}>
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
           <div className="w-full max-w-lg mx-auto bg-white rounded-2xl shadow-2xl p-4 sm:p-8 flex flex-col justify-center items-center relative animate-fade-in">
-            <button
-              className="absolute top-3 right-3 text-travel-dark/70 hover:text-travel-dark text-lg font-bold focus:outline-none"
-              onClick={() => {}}
-              tabIndex={-1}
-              aria-label="Fechar"
-              style={{ pointerEvents: 'none', opacity: 0.3 }}
-            >
-              ×
-            </button>
+
             <div className="mx-auto mb-3 bg-travel-mustard rounded-xl px-3 py-2 shadow-md flex items-center justify-center gap-2 w-fit">
               <Plane className="h-7 w-7 text-travel-dark" />
               <span className="text-2xl sm:text-3xl font-extrabold text-travel-dark tracking-wide">Travel Hub</span>
