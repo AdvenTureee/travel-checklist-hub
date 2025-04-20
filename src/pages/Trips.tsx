@@ -166,20 +166,51 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
           <h1 className="text-xl md:text-2xl mb-4 font-bold text-travel-blue font-['Lexend']">Minhas Viagens</h1>
 
 
-          <div className={`grid ${compact ? 'gap-2' : 'gap-4'}`}>
+          {showNewTripFields && (
+            <form
+              className="mb-8 max-w-3xl w-full mx-auto bg-white rounded-lg border border-travel-mustard p-4 flex flex-col gap-2 shadow-lg"
+              onSubmit={async e => { e.preventDefault(); await handleCreateTrip(); }}
+              style={{ gridColumn: '1/-1' }}
+            >
+              <Input placeholder="Nome da viagem" value={newTrip.nome} onChange={e => setNewTrip({ ...newTrip, nome: e.target.value })} required />
+              <Input placeholder="Local" value={newTrip.local} onChange={e => setNewTrip({ ...newTrip, local: e.target.value })} required />
+              <div className="flex gap-2">
+                <Input type="date" value={newTrip.datain} onChange={e => setNewTrip({ ...newTrip, datain: e.target.value })} required />
+                <Input type="date" value={newTrip.dataout} onChange={e => setNewTrip({ ...newTrip, dataout: e.target.value })} required />
+              </div>
+              <div className="flex gap-2 mt-2 justify-end">
+                <Button type="submit" className="bg-travel-mustard text-travel-dark">Salvar</Button>
+                <Button type="button" variant="outline" onClick={() => setShowNewTripFields(false)}>Cancelar</Button>
+              </div>
+            </form>
+          )}
+          <div className={`grid ${compact ? 'gap-2' : 'gap-6'} grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4`}>
             {trips.map(trip => (
-              <Card key={trip.id} className={`hover:shadow-lg cursor-pointer transition ${compact ? 'p-2' : ''}`} onClick={() => handleSelectTrip(trip.id)}>
-                <CardHeader className={`flex flex-row items-center justify-between ${compact ? 'py-2 px-2' : ''}`}>
-                  <div className={`flex flex-col ${compact ? 'gap-0.5' : 'gap-1'}`}>
-                    <span className="text-lg font-bold text-travel-blue font-['Lexend']">{trip.nome}</span>
-                    {trip.user_id && user?.id && trip.user_id !== user.id && (
-                      <span className={`inline-block bg-blue-100 text-blue-700 ${compact ? 'text-[10px] px-1 py-0.5' : 'text-xs px-2 py-1'} font-semibold rounded`}>Viagem compartilhada</span>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
+              <Card
+                key={trip.id}
+                className={`hover:shadow-lg cursor-pointer transition ${compact ? 'p-2' : 'p-4'} bg-white rounded-lg border border-travel-beige flex flex-col max-w-3xl w-full mx-auto`}
+                style={{ minWidth: 0 }}
+                onClick={() => handleSelectTrip(trip.id)}
+              >
+                <CardHeader
+                  className={`flex flex-col items-center justify-center text-center py-1 px-2 gap-1 mb-0 pb-0`}
+                  style={{ minWidth: 0 }}
+                >
+                  <span className={`text-base md:text-lg font-bold text-travel-blue font-['Lexend'] truncate w-full`} title={trip.nome}>{trip.nome}</span>
+                  {trip.user_id && user?.id && trip.user_id !== user.id && (
+                    <span className="inline-block bg-blue-100 text-blue-700 text-xs px-2 py-1 font-semibold rounded mb-1">Viagem compartilhada</span>
+                  )}
+                  <span className="flex items-center gap-2 text-travel-dark/80 text-base justify-center w-full">
+                    <MapPin className="text-pink-500 w-5 h-5" />
+                    {trip.local}
+                  </span>
+                  <span className="flex flex-wrap items-center gap-2 text-[15px] sm:text-md text-travel-dark/80 min-w-0 max-w-2xl overflow-visible justify-center w-full">
+                    <span className="whitespace-nowrap max-w-xl overflow-visible flex items-center gap-4">De: <span className="caricature-date font-bold text-travel-green">{formatDateBR(trip.datain)}</span> até <span className="caricature-date font-bold text-travel-red">{formatDateBR(trip.dataout)}</span></span>
+                  </span>
+                  <div className="flex gap-2 mt-2 justify-center w-full">
                     <Button
                       variant="ghost"
-                      className="inline-flex items-center justify-center gap-2 whitespace-nowrap h-12 w-12 hover:bg-accent hover:text-accent-foreground"
+                      className="inline-flex items-center justify-center gap-2 whitespace-nowrap h-10 w-10 md:h-12 md:w-12 hover:bg-accent hover:text-accent-foreground"
                       onClick={e => {
                         e.stopPropagation();
                         setEditTripId(trip.id);
@@ -187,14 +218,14 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
                       }}
                       title="Editar"
                     >
-                      <Edit className="w-6 h-6 text-travel-blue" />
+                      <Edit className="w-5 h-5 md:w-6 md:h-6 text-travel-blue" />
                     </Button>
 
                     <Dialog open={deleteDialogId === trip.id} onOpenChange={open => { if (!open) setDeleteDialogId(null); }}>
                       <DialogTrigger asChild>
                         <Button
                           variant="ghost"
-                          className="inline-flex items-center justify-center gap-2 whitespace-nowrap h-12 w-12 hover:bg-accent hover:text-accent-foreground"
+                          className="inline-flex items-center justify-center gap-2 whitespace-nowrap h-10 w-10 md:h-12 md:w-12 hover:bg-accent hover:text-accent-foreground"
                           onClick={e => {
                             e.stopPropagation();
                             setDeleteDialogId(trip.id);
@@ -217,8 +248,7 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
                     </Dialog>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  {editTripId === trip.id ? (
+                {editTripId === trip.id ? (
                     <form className="flex flex-col gap-3 bg-white/80 p-4 rounded-xl border-2 border-travel-mustard" onClick={e => e.stopPropagation()} onSubmit={e => { e.preventDefault(); handleEditTrip(); }}>
                       <Input placeholder="Nome da viagem" value={editTrip.nome} onChange={e => setEditTrip({ ...editTrip, nome: e.target.value })} />
                       <Input placeholder="Local" value={editTrip.local} onChange={e => setEditTrip({ ...editTrip, local: e.target.value })} />
@@ -231,19 +261,7 @@ const Trips: React.FC<TripsProps> = ({ compact = false }) => {
                         <Button type="button" variant="outline" onClick={e => { e.stopPropagation(); setEditTripId(null); localStorage.removeItem('selectedTripId'); navigate('/trips'); }}>Cancelar</Button>
                       </div>
                     </form>
-                  ) : (
-                    <div className="flex flex-col sm:flex-row sm:justify-between items-center gap-2 bg-gradient-to-r from-yellow-100 via-pink-100 to-blue-100 rounded-xl p-4 shadow-md border-2 border-travel-mustard transition-transform duration-150 active:scale-95 cursor-pointer">
-                      <span className="flex items-center gap-2 text-lg font-semibold text-travel-blue drop-shadow-sm">
-                        <MapPin className="text-pink-500 w-5 h-5 animate-bounce" />
-                        {trip.local}
-                      </span>
-                      <span className="flex items-center gap-2 text-md text-travel-dark/80">
-                        <Calendar className="text-yellow-600 w-5 h-5 animate-spin-slow" />
-                        De: <span className="caricature-date font-bold text-travel-green">{formatDateBR(trip.datain)}</span> até <span className="caricature-date font-bold text-travel-red">{formatDateBR(trip.dataout)}</span>
-                      </span>
-                    </div>
-                  )}
-                </CardContent>
+                  ) : null}
               </Card>
             ))}
           </div>

@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Navigate } from 'react-router-dom';
 import { Plane } from 'lucide-react';
+import { Dialog } from '@/components/ui/dialog';
 
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -48,7 +49,8 @@ const Auth: React.FC = () => {
 
   const handleSignIn = () => {
     if (email && password) {
-      if (remember) {
+      const cookieConsent = localStorage.getItem('cookie_consent');
+      if (remember && cookieConsent) {
         localStorage.setItem('travelhub_login', JSON.stringify({ email, password }));
       } else {
         localStorage.removeItem('travelhub_login');
@@ -76,16 +78,25 @@ const Auth: React.FC = () => {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-travel-beige p-2 sm:p-4">
-      <Card className="w-full max-w-md shadow-2xl rounded-2xl px-2 py-3 sm:px-6 sm:py-8 min-h-[340px] sm:min-h-[420px] bg-white flex flex-col justify-center">
-        <CardHeader className="text-center pb-1 mb-3">
-          <div className="mx-auto mb-2 bg-travel-mustard rounded-xl px-3 py-1.5 shadow-md flex items-center justify-center gap-2 w-fit">
-            <Plane className="h-6 w-6 text-travel-dark" />
-            <span className="text-2xl sm:text-3xl font-extrabold text-travel-dark tracking-wide">Travel Hub</span>
-          </div>
-          <CardDescription className="text-sm sm:text-base text-center text-travel-dark/80 mb-1">Acesse sua conta ou cadastre-se para gerenciar suas viagens</CardDescription>
-        </CardHeader>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+    <div className="flex justify-center items-center min-h-screen bg-travel-beige">
+      <Dialog open={true}>
+        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
+          <div className="w-full max-w-lg mx-auto bg-white rounded-2xl shadow-2xl p-4 sm:p-8 flex flex-col justify-center items-center relative animate-fade-in">
+            <button
+              className="absolute top-3 right-3 text-travel-dark/70 hover:text-travel-dark text-lg font-bold focus:outline-none"
+              onClick={() => {}}
+              tabIndex={-1}
+              aria-label="Fechar"
+              style={{ pointerEvents: 'none', opacity: 0.3 }}
+            >
+              ×
+            </button>
+            <div className="mx-auto mb-3 bg-travel-mustard rounded-xl px-3 py-2 shadow-md flex items-center justify-center gap-2 w-fit">
+              <Plane className="h-7 w-7 text-travel-dark" />
+              <span className="text-2xl sm:text-3xl font-extrabold text-travel-dark tracking-wide">Travel Hub</span>
+            </div>
+            <div className="text-sm sm:text-base text-center text-travel-dark/80 mb-2">Acesse sua conta ou cadastre-se para gerenciar suas viagens</div>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto">
           <TabsList className="grid w-full grid-cols-2 h-9 rounded-lg bg-travel-mustard/20 p-0.5 gap-0.5 mb-2">
             <TabsTrigger value="signin" className="text-xs sm:text-sm font-normal rounded-lg py-1 px-1 transition-all data-[state=active]:bg-travel-mustard data-[state=active]:text-travel-dark data-[state=active]:shadow focus-visible:ring-2 focus-visible:ring-travel-mustard">Entrar</TabsTrigger>
             <TabsTrigger value="signup" className="text-xs sm:text-sm font-normal rounded-lg py-1 px-1 transition-all data-[state=active]:bg-travel-mustard data-[state=active]:text-travel-dark data-[state=active]:shadow focus-visible:ring-2 focus-visible:ring-travel-mustard">Cadastrar</TabsTrigger>
@@ -177,7 +188,9 @@ const Auth: React.FC = () => {
             </CardFooter>
           </TabsContent>
         </Tabs>
-      </Card>
+          </div>
+        </div>
+      </Dialog>
     </div>
   );
 };

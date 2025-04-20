@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { PageTransition } from "@/components/PageTransition";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import Points from "./pages/Points";
+import { CookieConsent } from "@/components/ui/CookieConsent";
 
 import Checklists from "./pages/Checklists";
 import Shopping from "./pages/Shopping";
@@ -20,6 +21,12 @@ import RequireAuth from "@/components/layout/RequireAuth";
 import { TopNavigationMenu } from "@/components/layout/TopNavigationMenu";
 
 const App = () => {
+  const [cookieConsent, setCookieConsent] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !!localStorage.getItem('cookie_consent');
+    }
+    return false;
+  });
   const location = typeof window !== 'undefined' ? window.location : undefined;
   // React Router v6: useLocation só funciona dentro de Router, então criamos um wrapper
   const AnimatedRoutes = () => {
@@ -83,6 +90,9 @@ const App = () => {
                 Pular para o conteúdo principal
               </a>
               <AnimatedRoutes />
+              {!cookieConsent && (
+                <CookieConsent onAccept={() => setCookieConsent(true)} />
+              )}
             </div>
           </AuthProvider>
         </BrowserRouter>
