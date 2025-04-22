@@ -20,15 +20,18 @@ export function usePoints() {
   const [selectedPoint, setSelectedPoint] = useState<Point | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>(undefined);
-  const [newPoint, setNewPoint] = useState<Partial<Point>>({
+  const [newPoint, setNewPoint] = useState<Partial<Point> & { imageFile?: File | null }>({
     name: '',
     description: '',
     address: '',
     type: 'tourist',
     googleMapsUrl: '',
     openingHours: '',
-    plannedVisitDate: null
+    plannedVisitDate: null,
+    imageFile: null
   });
+  const [addPointError, setAddPointError] = useState<string | null>(null);
+  const [isAddingPoint, setIsAddingPoint] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -116,15 +119,53 @@ export function usePoints() {
         description: `${newPoint.name} foi adicionado aos seus pontos.`
       });
       resetForm();
+      setAddPointError(null);
+      setIsAddingPoint(false);
     },
     onError: (error: any) => {
+      setAddPointError(error.message || 'Erro ao adicionar ponto.');
       toast({
         title: 'Erro ao adicionar ponto',
         description: error.message,
         variant: 'destructive'
       });
+      setIsAddingPoint(false);
     }
   });
+
+  // Handler para adicionar ponto, incluindo upload de imagem
+  const handleAddPoint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsAddingPoint(true);
+    setAddPointError(null);
+    let imageUrl = '';
+    try {
+      if (newPoint.imageFile) {
+        const fileExt = newPoint.imageFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+        const { data, error: uploadError } = await supabase.storage.from('points-images').upload(fileName, newPoint.imageFile);
+        if (uploadError) throw uploadError;
+        const publicUrlResult = supabase.storage.from('points-images').getPublicUrl(data.path);
+        imageUrl = publicUrlResult.data.publicUrl;
+      }
+      await addPointMutation.mutateAsync({
+        name: newPoint.name || '',
+        description: newPoint.description || '',
+        address: newPoint.address || '',
+        type: newPoint.type || 'tourist',
+        imageUrl,
+        googleMapsUrl: newPoint.googleMapsUrl || '',
+        openingHours: newPoint.openingHours || '',
+        plannedVisitDate: newPoint.plannedVisitDate || null,
+        user_id: user?.id,
+        trip_id: tripId
+      } as any);
+    } catch (err: any) {
+      setAddPointError(err.message || 'Erro ao cadastrar ponto.');
+      setIsAddingPoint(false);
+    }
+  };
+
 
   // Update point mutation
   const updatePointMutation = useMutation({
@@ -185,22 +226,7 @@ export function usePoints() {
     }
   });
 
-  // Handlers agrupados para manipulação de pontos
-  const handleAddPoint = () => {
-    if (!newPoint.name || !newPoint.address) {
-      toast({
-        title: 'Informações faltantes',
-        description: 'Por favor, preencha pelo menos o nome e o endereço.',
-        variant: 'destructive'
-      });
-      return;
-    }
-    addPointMutation.mutate({
-      ...newPoint,
-      plannedVisitDate: date ? format(date, 'yyyy-MM-dd') : null,
-      user_id: user!.id
-    } as any);
-  };
+
 
   const handleDeletePoint = (id: string) => {
     deletePointMutation.mutate(id);
@@ -307,10 +333,10 @@ export function usePoints() {
     setDate,
     newPoint,
     setNewPoint,
+    addPointError,
+    isAddingPoint,
     points,
     isLoading,
-    isAddingPoint: addPointMutation.isPending,
-    isUpdatingPoint: updatePointMutation.isPending,
     getPointTypeName,
     handleAddPoint,
     handleDeletePoint,

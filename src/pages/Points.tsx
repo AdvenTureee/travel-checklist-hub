@@ -16,6 +16,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import PointDetailsModal from '@/components/points/PointDetailsModal';
+import { AddPointDialog } from '@/components/points/AddPointDialog';
 import { SharePointDialog } from '@/components/points/SharePointDialog';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import { format, parse } from 'date-fns';
@@ -50,8 +51,6 @@ const Points: React.FC = () => {
     setIsDetailsModalOpen,
     date,
     setDate,
-    newPoint,
-    setNewPoint,
     points,
     isLoading,
     getPointTypeName,
@@ -74,264 +73,31 @@ const Points: React.FC = () => {
   }
   return (
     <PageContainer>
-      <div>
-        <div className="flex items-center mb-2">
-          <button
-            onClick={() => pointsHook.navigate('/trips')}
-            className="mr-2 text-travel-blue hover:text-travel-dark flex items-center"
-            title="Sair da viagem"
-          >
-            <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-arrow-left w-6 h-6"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-          </button>
-        </div>
-        <h1 className="text-xl md:text-2xl mb-1 font-bold text-travel-blue font-['Lexend']">Meus Pontos</h1>
-        <div className="text-sm sm:text-base text-travel-dark/80 mb-6">Gerencie seus pontos de interesse, locais visitados e experiências da sua viagem.</div>
-        <div className="mb-6 flex flex-row gap-6 items-start">
-        {/* Coluna esquerda com botões de ação global */}
-        {/* Floating Action Button */}
+      <AddPointDialog
+        open={isAddDialogOpen}
+        onOpenChange={setIsAddDialogOpen}
+        name={pointsHook.newPoint.name || ''}
+        address={pointsHook.newPoint.address || ''}
+        description={pointsHook.newPoint.description || ''}
+        imageFile={pointsHook.newPoint.imageFile || null}
+        setName={val => pointsHook.setNewPoint({ ...pointsHook.newPoint, name: val })}
+        setAddress={val => pointsHook.setNewPoint({ ...pointsHook.newPoint, address: val })}
+        setDescription={val => pointsHook.setNewPoint({ ...pointsHook.newPoint, description: val })}
+        setImageFile={file => pointsHook.setNewPoint({ ...pointsHook.newPoint, imageFile: file })}
+        loading={pointsHook.isAddingPoint}
+        error={pointsHook.addPointError}
+        onSubmit={pointsHook.handleAddPoint}
+      />
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-travel-blue">Meus Pontos</h1>
         <Button
+          className="bg-travel-mustard text-travel-dark flex items-center gap-2"
           onClick={() => setIsAddDialogOpen(true)}
-          className="fixed bottom-6 right-6 z-50 bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark p-2 h-12 w-12 flex items-center justify-center rounded-full shadow-md"
-          aria-label="Adicionar Ponto"
         >
-          <PlusCircle className="h-6 w-6" />
+          <PlusCircle className="w-5 h-5" />
+          Novo ponto
         </Button>
-         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-           <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
-             <DialogHeader>
-               <DialogTitle>Adicionar Novo Ponto de Interesse</DialogTitle>
-             </DialogHeader>
-             {/* Wizard de duas etapas */}
-             <>
-               <div className="grid gap-4 py-4">
-                 {stepAddPoint === 1 && (
-                   <>
-                     <div className="grid gap-2">
-                       <Label htmlFor="name">Nome</Label>
-                       <Input id="name" value={newPoint.name} onChange={e => setNewPoint({
-                         ...newPoint,
-                         name: e.target.value
-                       })} placeholder="ex., Torre Eiffel" className="w-full" />
-                     </div>
-                     <div className="grid gap-2">
-                       <Label htmlFor="address">Endereço</Label>
-                       <Input id="address" value={newPoint.address} onChange={e => setNewPoint({
-                         ...newPoint,
-                         address: e.target.value
-                       })} placeholder="Endereço completo" className="w-full" />
-                     </div>
-                     <div className="grid gap-2">
-                       <Label htmlFor="plannedVisitDate">Data da Visita Planejada (opcional)</Label>
-                       <Popover>
-                         <PopoverTrigger asChild>
-                           <Button id="plannedVisitDate" variant="outline" className="w-full flex justify-start text-left font-normal h-10">
-                             <Calendar className="mr-2 h-4 w-4" />
-                             {date ? format(date, 'PPP', {
-                               locale: ptBR
-                             }) : <span className="text-muted-foreground">Escolha uma data</span>}
-                           </Button>
-                         </PopoverTrigger>
-                         <PopoverContent className="w-auto p-0" align="start">
-                           <CalendarComponent mode="single" selected={date} onSelect={setDate} initialFocus locale={ptBR} className="p-3 pointer-events-auto" />
-                         </PopoverContent>
-                       </Popover>
-                     </div>
-                     <div className="grid gap-2">
-                       <Label htmlFor="type">Tipo</Label>
-                       <Select value={newPoint.type} onValueChange={value => setNewPoint({
-                         ...newPoint,
-                         type: value as Point['type']
-                       })}>
-                         <SelectTrigger className="w-full">
-                           <SelectValue placeholder="Selecione o tipo" />
-                         </SelectTrigger>
-                         <SelectContent>
-                           <SelectItem value="tourist">Atração Turística</SelectItem>
-                           <SelectItem value="shopping">Compras</SelectItem>
-                           <SelectItem value="restaurant">Restaurante</SelectItem>
-                           <SelectItem value="accommodation">Hospedagem</SelectItem>
-                           <SelectItem value="other">Outro</SelectItem>
-                         </SelectContent>
-                       </Select>
-                     </div>
-                   </>
-                 )}
-                 {stepAddPoint === 2 && (
-                   <>
-                     <div className="grid gap-2">
-                       <Label htmlFor="description">Descrição</Label>
-                       <Textarea id="description" value={newPoint.description} onChange={e => setNewPoint({
-                         ...newPoint,
-                         description: e.target.value
-                       })} placeholder="Breve descrição deste lugar..." className="w-full" />
-                     </div>
-                     <div className="flex items-center justify-between">
-                       <Label htmlFor="googleMapsUrl">URL do Google Maps (opcional)</Label>
-                       <a
-                         href="https://www.google.com.br/maps"
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="text-travel-blue hover:underline flex items-center gap-1 text-xs"
-                         title="Abrir Google Maps em nova aba"
-                       >
-                         <ExternalLink className="w-4 h-4 inline" /> Google Maps
-                       </a>
-                     </div>
-                     <Input id="googleMapsUrl" value={newPoint.googleMapsUrl || ''} onChange={e => setNewPoint({
-                       ...newPoint,
-                       googleMapsUrl: e.target.value
-                     })} placeholder="https://maps.google.com/..." className="w-full" />
-                     <OpeningHoursInput value={newPoint.openingHours || ''} onChange={value => setNewPoint({
-                       ...newPoint,
-                       openingHours: value
-                     })} />
-                     <div className="grid gap-2">
-                       <Label htmlFor="imageUrl">URL da Imagem (opcional)</Label>
-                       <Input id="imageUrl" value={newPoint.imageUrl || ''} onChange={e => setNewPoint({
-                         ...newPoint,
-                         imageUrl: e.target.value
-                       })} placeholder="https://exemplo.com/imagem.jpg" className="w-full" />
-                     </div>
-                   </>
-                 )}
-               </div>
-               <div className="flex justify-end gap-2">
-                 <Button variant="outline" onClick={() => {
-                   resetForm();
-                   setIsAddDialogOpen(false);
-                   setStepAddPoint(1);
-                 }} className="w-24 sm:w-28">
-                   Cancelar
-                 </Button>
-                 {stepAddPoint === 2 && (
-                   <Button variant="secondary" onClick={() => setStepAddPoint(1)} className="w-24 sm:w-28">
-                     Voltar
-                   </Button>
-                 )}
-                 {stepAddPoint === 1 && (
-                   <Button onClick={() => setStepAddPoint(2)} className="w-24 sm:w-28 bg-travel-mustard/80">
-                     Próximo
-                   </Button>
-                 )}
-                 {stepAddPoint === 2 && (
-                   <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28" onClick={handleAddPoint} disabled={pointsHook.isAddingPoint}>
-                     {pointsHook.isAddingPoint ? <>
-                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                         Adicionando...
-                       </> : "Adicionar"}
-                   </Button>
-                 )}
-               </div>
-             </>
-           </DialogContent>
-         </Dialog>
-        </div>
-        <div className="flex-1 ml-6">
-
-        </div>
-        
-        {/* Edit Dialog */}
-        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-          <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Editar Ponto de Interesse</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-name">Nome</Label>
-                <Input id="edit-name" value={newPoint.name} onChange={e => setNewPoint({
-                ...newPoint,
-                name: e.target.value
-              })} placeholder="ex., Torre Eiffel" className="w-full" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-description">Descrição</Label>
-                <Textarea id="edit-description" value={newPoint.description} onChange={e => setNewPoint({
-                ...newPoint,
-                description: e.target.value
-              })} placeholder="Breve descrição deste lugar..." className="w-full" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-address">Endereço</Label>
-                <Input id="edit-address" value={newPoint.address} onChange={e => setNewPoint({
-                ...newPoint,
-                address: e.target.value
-              })} placeholder="Endereço completo" className="w-full" />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-googleMapsUrl">URL do Google Maps (opcional)</Label>
-                <Input id="edit-googleMapsUrl" value={newPoint.googleMapsUrl || ''} onChange={e => setNewPoint({
-                ...newPoint,
-                googleMapsUrl: e.target.value
-              })} placeholder="https://maps.google.com/..." className="w-full" />
-              </div>
-              
-              <OpeningHoursInput value={newPoint.openingHours || ''} onChange={value => setNewPoint({
-              ...newPoint,
-              openingHours: value
-            })} />
-              
-              <div className="grid gap-2">
-                <Label htmlFor="edit-plannedVisitDate">Data da Visita Planejada (opcional)</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button id="edit-plannedVisitDate" variant="outline" className="w-full flex justify-start text-left font-normal h-10">
-                      <Calendar className="mr-2 h-4 w-4" />
-                      {date ? format(date, 'PPP', {
-                      locale: ptBR
-                    }) : <span className="text-muted-foreground">Escolha uma data</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent mode="single" selected={date} onSelect={setDate} initialFocus locale={ptBR} className="p-3 pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-type">Tipo</Label>
-                <Select value={newPoint.type} onValueChange={value => setNewPoint({
-                ...newPoint,
-                type: value as Point['type']
-              })}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tourist">Atração Turística</SelectItem>
-                    <SelectItem value="shopping">Compras</SelectItem>
-                    <SelectItem value="restaurant">Restaurante</SelectItem>
-                    <SelectItem value="accommodation">Hospedagem</SelectItem>
-                    <SelectItem value="other">Outro</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="edit-imageUrl">URL da Imagem (opcional)</Label>
-                <Input id="edit-imageUrl" value={newPoint.imageUrl || ''} onChange={e => setNewPoint({
-                ...newPoint,
-                imageUrl: e.target.value
-              })} placeholder="https://exemplo.com/imagem.jpg" className="w-full" />
-              </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => {
-              resetForm();
-              setEditPointId(null);
-              setIsEditDialogOpen(false);
-            }} className="w-24 sm:w-28">
-                Cancelar
-              </Button>
-              <Button className="bg-travel-mustard hover:bg-travel-mustard/80 text-travel-dark w-24 sm:w-28" onClick={handleUpdatePoint} disabled={pointsHook.isUpdatingPoint}>
-                {pointsHook.isUpdatingPoint ? <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Atualizando...
-                  </> : "Atualizar"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
-
       {points.length === 0 ? <div className="flex flex-col items-center justify-center h-[400px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">
           <MapPin className="h-16 w-16 text-travel-mustard/50 mb-4" />
           <h3 className="text-xl font-medium text-travel-dark">Nenhum ponto adicionado ainda</h3>
@@ -342,7 +108,15 @@ const Points: React.FC = () => {
           </Button>
         </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {points.map(point => <Card key={point.id} className="overflow-hidden card-hover border border-travel-mustard transition-transform duration-150 active:scale-95 cursor-pointer">
-              {point.image_url && <ImageWithShimmer src={point.image_url} alt={point.name} onClick={() => handleOpenDetails(point)} />}
+              {point.image_url && (
+  <div className="relative group cursor-pointer" onClick={() => handleOpenDetails(point)}>
+    <ImageWithShimmer src={point.image_url} alt={point.name} />
+    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center z-10">
+      <MapPin className="h-8 w-8 text-travel-mustard mb-2 animate-bounce" />
+      <span className="text-white font-semibold text-base drop-shadow">Ver no mapa</span>
+    </div>
+  </div>
+)}
 
               <CardHeader>
                 <div className="flex items-center justify-between">
