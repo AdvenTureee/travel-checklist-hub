@@ -30,6 +30,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         setLoading(false);
+        // Redireciona para /trips após login social (OAuth)
+        if (event === 'SIGNED_IN' && currentSession && window.location.pathname.startsWith('/auth')) {
+          navigate('/trips', { replace: true });
+        }
       }
     );
 

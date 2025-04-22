@@ -21,52 +21,68 @@ const TripChatDialog: React.FC<TripChatDialogProps> = ({ open, onOpenChange, tri
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [chatId, setChatId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = (window as any).useAuth ? (window as any).useAuth() : { user: null };
 
   // Fetch or create chat room
   useEffect(() => {
     if (!open || !user) return;
-    let chatId: string;
     let subscription: any;
     const fetchChatAndMessages = async () => {
-      // Find or create chat room
-      let { data: chat, error } = await supabase
-        .from('trip_chats')
+      // Buscar chat pelo trip_id
+      const { data: chatArr, error: chatError } = await supabase
+        .from('trip_chats' as any)
         .select('id')
-        .or(`user1_id.eq.${user.id},user2_id.eq.${user.id}`)
-        .eq('trip_id', tripId)
-        .maybeSingle();
-      if (!chat) {
-        // Create chat
-        const { data: newChat } = await supabase
-          .from('trip_chats')
-          .insert([
-            { trip_id: tripId, user1_id: user.id, user2_id: otherUserId }
-          ])
-          .select('id')
-          .single();
-        chat = newChat;
+        .eq('trip_id', tripId);
+
+      let chat: any = null;
+      if (chatError) {
+        // trate o erro (exemplo: mostrar toast ou retornar)
+        return;
       }
-      chatId = chat.id;
-      // Fetch messages
-      const { data: msgs } = await supabase
-        .from('trip_chat_messages')
-        .select('*')
-        .eq('chat_id', chatId)
-        .order('sent_at', { ascending: true });
-      setMessages(msgs || []);
-      // Subscribe to new messages
-      subscription = supabase
-        .channel('trip_chat_messages')
-        .on(
-          'postgres_changes',
-          { event: 'INSERT', schema: 'public', table: 'trip_chat_messages', filter: `chat_id=eq.${chatId}` },
-          payload => {
-            setMessages(prev => [...prev, payload.new]);
-          }
-        )
-        .subscribe();
+      if (Array.isArray(chatArr) && chatArr.length > 0 && typeof chatArr[0]?.id === 'string') {
+        chat = chatArr[0];
+      }
+
+      if (!chat) {
+        // Criar chat
+        const { data: newChatArr, error: newChatError } = await supabase
+          .from('trip_chats' as any)
+          .insert([{ trip_id: tripId }])
+          .select('id');
+        if (Array.isArray(newChatArr) && newChatArr.length > 0 && typeof newChatArr[0]?.id === 'string') {
+          chat = newChatArr[0];
+        }
+      }
+
+      // Garantir que o usuário está como participante
+      if (chat && typeof chat.id === 'string') {
+        await supabase
+          .from('trip_chat_participants' as any)
+          .upsert([{ chat_id: chat.id, user_id: user.id }], { onConflict: 'chat_id,user_id' });
+        setChatId(chat.id);
+
+        // Buscar mensagens
+        const { data: msgs } = await supabase
+          .from('trip_chat_messages' as any)
+          .select('*')
+          .eq('chat_id', chat.id)
+          .order('sent_at', { ascending: true });
+        setMessages((Array.isArray(msgs) ? msgs : []).map(({id, sender_id, message, sent_at}: any) => ({id, sender_id, message, sent_at})));
+
+        // Subscribe para novas mensagens
+        subscription = supabase
+          .channel('trip_chat_messages')
+          .on(
+            'postgres_changes',
+            { event: 'INSERT', schema: 'public', table: 'trip_chat_messages', filter: `chat_id=eq.${chat.id}` },
+            (payload: any) => {
+              setMessages(prev => [...prev, (({id, sender_id, message, sent_at}) => ({id, sender_id, message, sent_at}))(payload.new)]);
+            }
+          )
+          .subscribe();
+      }
     };
     fetchChatAndMessages();
     return () => {
@@ -83,9 +99,20 @@ const TripChatDialog: React.FC<TripChatDialogProps> = ({ open, onOpenChange, tri
   const sendMessage = async () => {
     if (!newMessage.trim() || !user) return;
     setLoading(true);
-    await supabase.from('trip_chat_messages').insert([
-      { chat_id: messages[0]?.chat_id, sender_id: user.id, message: newMessage }
+    if (!chatId) {
+      console.error('chatId indefinido ao tentar enviar mensagem');
+      setLoading(false);
+      return;
+    }
+    console.log('Enviando mensagem:', { chat_id: chatId, sender_id: user.id, message: newMessage });
+    const { error, data } = await supabase.from('trip_chat_messages').insert([
+      { chat_id: chatId, sender_id: user.id, message: newMessage }
     ]);
+    if (error) {
+      console.error('Erro ao enviar mensagem:', error);
+    } else {
+      console.log('Mensagem enviada com sucesso:', data);
+    }
     setNewMessage('');
     setLoading(false);
   };

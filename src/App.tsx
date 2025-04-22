@@ -14,7 +14,8 @@ import Shopping from "./pages/Shopping";
 import Settings from './pages/Settings';
 import Chat from './pages/Chat';
 import NotFound from "./pages/NotFound";
-import Auth from "./pages/Auth";
+import Auth from '@/pages/Auth';
+import Login from '@/pages/auth/Login';
 import Trips from "./pages/Trips";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import RequireAuth from "@/components/layout/RequireAuth";
@@ -38,6 +39,7 @@ const App = () => {
           <Routes location={location}>
             <Route path="/" element={<Navigate to="/auth" replace />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/login" element={<Login />} />
             <Route path="/points" element={<RequireAuth><Points /></RequireAuth>} />
             <Route path="/checklists" element={<RequireAuth><Checklists /></RequireAuth>} />
             <Route path="/shopping" element={<RequireAuth><Shopping /></RequireAuth>} />

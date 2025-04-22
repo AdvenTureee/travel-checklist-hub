@@ -10,6 +10,8 @@ import { Navigate } from 'react-router-dom';
 import { Plane } from 'lucide-react';
 import { Dialog } from '@/components/ui/dialog';
 
+import { supabase } from '@/integrations/supabase/client';
+
 const Auth: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -73,6 +75,11 @@ const Auth: React.FC = () => {
     );
   }
 
+  // Função para login social Google
+  const handleSocialLogin = async () => {
+    await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/points' } });
+  };
+
   if (user) {
     return <Navigate to="/points" />;
   }
@@ -87,6 +94,14 @@ const Auth: React.FC = () => {
               <Plane className="h-7 w-7 text-travel-dark" />
               <span className="text-2xl sm:text-3xl font-extrabold text-travel-dark tracking-wide">Travel Hub</span>
             </div>
+            <button
+              type="button"
+              className="flex items-center justify-center gap-2 w-full py-2 px-4 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 shadow-sm text-base font-medium text-gray-700 transition mb-3"
+              onClick={handleSocialLogin}
+            >
+              <svg className="w-5 h-5" viewBox="0 0 48 48"><g><path fill="#4285F4" d="M24 9.5c3.54 0 6.72 1.22 9.22 3.62l6.9-6.9C35.64 2.63 30.24 0 24 0 14.84 0 6.71 5.82 2.69 14.13l8.18 6.35C12.7 13.13 17.91 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.6c0-1.67-.15-3.26-.43-4.8H24v9.1h12.43c-.54 2.9-2.16 5.36-4.6 7.05l7.07 5.51C43.94 37.12 46.1 31.3 46.1 24.6z"/><path fill="#FBBC05" d="M10.87 28.48A14.49 14.49 0 019.5 24c0-1.56.27-3.07.74-4.48l-8.18-6.35A23.97 23.97 0 000 24c0 3.91.94 7.62 2.56 10.92l8.31-6.44z"/><path fill="#EA4335" d="M24 48c6.24 0 11.48-2.07 15.3-5.63l-7.07-5.51c-2 1.35-4.55 2.14-8.23 2.14-6.09 0-11.3-3.63-13.13-8.7l-8.31 6.44C6.71 42.18 14.84 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></g></svg>
+              Entrar com Google
+            </button>
             <div className="text-sm sm:text-base text-center text-travel-dark/80 mb-2">Acesse sua conta ou cadastre-se para gerenciar suas viagens</div>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-md mx-auto">
           <TabsList className="grid w-full grid-cols-2 h-9 rounded-lg bg-travel-mustard/20 p-0.5 gap-0.5 mb-2">
@@ -118,6 +133,9 @@ const Auth: React.FC = () => {
                     autoComplete="current-password"
                     className="h-11 text-base px-3 rounded-lg border border-travel-mustard/30 bg-travel-beige/60 shadow-sm focus:border-travel-mustard focus:ring-2 focus:ring-travel-mustard/40 transition"
                   />
+                  <div className="text-right mt-1">
+                    <a href="/auth/forgot" className="text-xs text-travel-blue hover:underline">Esqueci a senha</a>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-2 mb-2">

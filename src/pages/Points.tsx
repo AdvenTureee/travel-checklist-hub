@@ -165,13 +165,22 @@ const Points: React.FC = () => {
                          description: e.target.value
                        })} placeholder="Breve descrição deste lugar..." className="w-full" />
                      </div>
-                     <div className="grid gap-2">
+                     <div className="flex items-center justify-between">
                        <Label htmlFor="googleMapsUrl">URL do Google Maps (opcional)</Label>
-                       <Input id="googleMapsUrl" value={newPoint.googleMapsUrl || ''} onChange={e => setNewPoint({
-                         ...newPoint,
-                         googleMapsUrl: e.target.value
-                       })} placeholder="https://maps.google.com/..." className="w-full" />
+                       <a
+                         href="https://www.google.com.br/maps"
+                         target="_blank"
+                         rel="noopener noreferrer"
+                         className="text-travel-blue hover:underline flex items-center gap-1 text-xs"
+                         title="Abrir Google Maps em nova aba"
+                       >
+                         <ExternalLink className="w-4 h-4 inline" /> Google Maps
+                       </a>
                      </div>
+                     <Input id="googleMapsUrl" value={newPoint.googleMapsUrl || ''} onChange={e => setNewPoint({
+                       ...newPoint,
+                       googleMapsUrl: e.target.value
+                     })} placeholder="https://maps.google.com/..." className="w-full" />
                      <OpeningHoursInput value={newPoint.openingHours || ''} onChange={value => setNewPoint({
                        ...newPoint,
                        openingHours: value
@@ -448,6 +457,20 @@ function formatOpeningHours(hours: string = ""): JSX.Element[] {
   const yellows = [
     "#FFF9DB", "#FFF3BF", "#FFEC99", "#FFE066", "#FFD43B", "#FCC419", "#FAB005"
   ];
+  function traduzirHorario(h: string) {
+    // Ex: 9am-5pm, 10:30am-8pm, 8:15-18:45
+    return h.replace(/(\d{1,2})(?::(\d{2}))?\s*([ap]m)?-(\d{1,2})(?::(\d{2}))?\s*([ap]m)?/gi, (_, h1, m1, ampm1, h2, m2, ampm2) => {
+      let hora1 = parseInt(h1, 10);
+      let hora2 = parseInt(h2, 10);
+      let min1 = m1 || "00";
+      let min2 = m2 || "00";
+      if (ampm1?.toLowerCase() === "pm" && hora1 < 12) hora1 += 12;
+      if (ampm1?.toLowerCase() === "am" && hora1 === 12) hora1 = 0;
+      if (ampm2?.toLowerCase() === "pm" && hora2 < 12) hora2 += 12;
+      if (ampm2?.toLowerCase() === "am" && hora2 === 12) hora2 = 0;
+      return `${hora1.toString().padStart(2, "0")}:${min1}–${hora2.toString().padStart(2, "0")}:${min2}`;
+    }).replace(/Closed|closed/gi, "Fechado");
+  }
   return hours.split(/, ?/).map((part, idx) => {
     const match = part.match(/^(\w{2,3})(-\w{2,3})?: (.+)$/);
     let dias = "";
@@ -460,9 +483,9 @@ function formatOpeningHours(hours: string = ""): JSX.Element[] {
       } else {
         dias = dayMap[match[1]] || match[1];
       }
-      horarios = match[3];
+      horarios = traduzirHorario(match[3]);
     } else {
-      dias = part;
+      dias = part.replace(/Closed|closed/gi, "Fechado");
     }
     return (
       <span key={idx} style={{ background: yellows[Math.min(idx, yellows.length - 1)], color: "#7C5E00", borderRadius: 4, padding: "1px 6px", fontWeight: 500, marginBottom: 2, display: "block" }}>

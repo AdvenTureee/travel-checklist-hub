@@ -24,6 +24,7 @@ const Settings = () => {
     password: '',
     confirmPassword: '',
   });
+  const [error, setError] = useState('');
 
   const handleSaveSettings = () => {
     setIsLoading(true);
@@ -124,34 +125,73 @@ const Settings = () => {
         
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-travel-blue" />
-              <CardTitle>Segurança</CardTitle>
-            </div>
-            <CardDescription>Atualize sua senha</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="current-password">Nova Senha</Label>
-              <Input
-                id="new-password"
-                type="password"
-                value={settings.password}
-                onChange={(e) => setSettings({ ...settings, password: e.target.value })}
-                placeholder="Digite a nova senha"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="confirm-password">Confirme a Nova Senha</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                value={settings.confirmPassword}
-                onChange={(e) => setSettings({ ...settings, confirmPassword: e.target.value })}
-                placeholder="Confirme a nova senha"
-              />
-            </div>
-          </CardContent>
+  <div className="flex items-center gap-2">
+    <Shield className="h-5 w-5 text-travel-blue" />
+    <CardTitle>Segurança</CardTitle>
+  </div>
+  <CardDescription>Altere sua senha</CardDescription>
+</CardHeader>
+<CardContent className="space-y-4">
+  <form
+    onSubmit={async (e) => {
+      e.preventDefault();
+      setIsLoading(true);
+      setError('');
+      if (!settings.password || !settings.confirmPassword) {
+        setError('Preencha todos os campos.');
+        setIsLoading(false);
+        return;
+      }
+      if (settings.password !== settings.confirmPassword) {
+        setError('As senhas não coincidem.');
+        setIsLoading(false);
+        return;
+      }
+      if (settings.password.length < 6) {
+        setError('A senha deve ter pelo menos 6 caracteres.');
+        setIsLoading(false);
+        return;
+      }
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        const { error } = await supabase.auth.updateUser({ password: settings.password });
+        if (error) throw error;
+        toast({ title: 'Senha atualizada!', description: 'Sua senha foi alterada com sucesso.' });
+        setSettings({ ...settings, password: '', confirmPassword: '' });
+      } catch (err: any) {
+        setError(err.message || 'Erro ao atualizar senha.');
+      } finally {
+        setIsLoading(false);
+      }
+    }}
+    className="flex flex-col gap-4"
+  >
+    <div className="grid gap-2">
+      <Label htmlFor="new-password">Nova Senha</Label>
+      <Input
+        id="new-password"
+        type="password"
+        value={settings.password}
+        onChange={(e) => setSettings({ ...settings, password: e.target.value })}
+        placeholder="Digite a nova senha"
+      />
+    </div>
+    <div className="grid gap-2">
+      <Label htmlFor="confirm-password">Confirme a Nova Senha</Label>
+      <Input
+        id="confirm-password"
+        type="password"
+        value={settings.confirmPassword}
+        onChange={(e) => setSettings({ ...settings, confirmPassword: e.target.value })}
+        placeholder="Confirme a nova senha"
+      />
+    </div>
+    {error && <div className="text-red-600 text-sm text-center">{error}</div>}
+    <Button type="submit" className="w-full bg-travel-mustard text-travel-dark mt-2" disabled={isLoading}>
+      {isLoading ? 'Salvando...' : 'Alterar Senha'}
+    </Button>
+  </form>
+</CardContent>
         </Card>
         
         <div className="flex flex-col sm:flex-row justify-center sm:justify-end gap-4 mt-10 mb-2">
