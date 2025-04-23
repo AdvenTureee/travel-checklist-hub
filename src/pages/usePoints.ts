@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import OpeningHoursInput from '@/components/points/OpeningHoursInput';
+const { formatScheduleToString } = OpeningHoursInput as any; // fallback if not exported directly
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
@@ -148,6 +150,14 @@ export function usePoints() {
         const publicUrlResult = supabase.storage.from('points-images').getPublicUrl(data.path);
         imageUrl = publicUrlResult.data.publicUrl;
       }
+      // Garante que openingHours seja string
+      let openingHoursString = '';
+      if (typeof newPoint.openingHours === 'string') {
+        openingHoursString = newPoint.openingHours;
+      } else if (typeof newPoint.openingHours === 'object' && newPoint.openingHours !== null) {
+        // Sempre converte objeto para string amigável
+        openingHoursString = formatScheduleToString(newPoint.openingHours);
+      }
       await addPointMutation.mutateAsync({
         name: newPoint.name || '',
         description: newPoint.description || '',
@@ -155,7 +165,7 @@ export function usePoints() {
         type: newPoint.type || 'tourist',
         imageUrl,
         googleMapsUrl: newPoint.googleMapsUrl || '',
-        openingHours: newPoint.openingHours || '',
+        openingHours: openingHoursString,
         plannedVisitDate: newPoint.plannedVisitDate || null,
         user_id: user?.id,
         trip_id: tripId
@@ -165,7 +175,6 @@ export function usePoints() {
       setIsAddingPoint(false);
     }
   };
-
 
   // Update point mutation
   const updatePointMutation = useMutation({
@@ -202,6 +211,56 @@ export function usePoints() {
     }
   });
 
+  // Handler para atualizar ponto
+  const handleUpdatePoint = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newPoint.name || !newPoint.address || !editPointId) {
+      toast({
+        title: 'Informações faltantes',
+        description: 'Por favor, preencha pelo menos o nome e o endereço.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    let imageUrl = newPoint.imageUrl || '';
+    try {
+      if (newPoint.imageFile) {
+        const fileExt = newPoint.imageFile.name.split('.').pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+        const { data, error: uploadError } = await supabase.storage.from('points-images').upload(fileName, newPoint.imageFile);
+        if (uploadError) throw uploadError;
+        const publicUrlResult = supabase.storage.from('points-images').getPublicUrl(data.path);
+        imageUrl = publicUrlResult.data.publicUrl;
+      }
+      // Garante que openingHours seja string ao atualizar
+      let openingHoursString = '';
+      if (typeof newPoint.openingHours === 'string') {
+        openingHoursString = newPoint.openingHours;
+      } else if (typeof newPoint.openingHours === 'object' && newPoint.openingHours !== null) {
+        if (typeof formatScheduleToString === 'function') {
+          openingHoursString = formatScheduleToString(newPoint.openingHours);
+        } else {
+          openingHoursString = JSON.stringify(newPoint.openingHours);
+        }
+      }
+      updatePointMutation.mutate({
+        id: editPointId,
+        point: {
+          ...newPoint,
+          imageUrl,
+          openingHours: openingHoursString,
+          plannedVisitDate: date ? format(date, 'yyyy-MM-dd') : null
+        }
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Erro ao atualizar ponto',
+        description: err.message || 'Erro ao atualizar ponto.',
+        variant: 'destructive'
+      });
+    }
+  };
+
   // Delete point mutation
   const deletePointMutation = useMutation({
     mutationFn: async (id: string) => {
@@ -225,8 +284,6 @@ export function usePoints() {
       });
     }
   });
-
-
 
   const handleDeletePoint = (id: string) => {
     deletePointMutation.mutate(id);
@@ -255,24 +312,6 @@ export function usePoints() {
     setIsDetailsModalOpen(true);
   };
 
-  const handleUpdatePoint = () => {
-    if (!newPoint.name || !newPoint.address || !editPointId) {
-      toast({
-        title: 'Informações faltantes',
-        description: 'Por favor, preencha pelo menos o nome e o endereço.',
-        variant: 'destructive'
-      });
-      return;
-    }
-    updatePointMutation.mutate({
-      id: editPointId,
-      point: {
-        ...newPoint,
-        plannedVisitDate: date ? format(date, 'yyyy-MM-dd') : null
-      }
-    });
-  };
-
   // Utilitário: reseta o formulário de ponto
   const resetForm = () => {
     setNewPoint({
@@ -281,8 +320,9 @@ export function usePoints() {
       address: '',
       type: 'tourist',
       googleMapsUrl: '',
-      openingHours: '',
-      plannedVisitDate: null
+      openingHours: {},
+      plannedVisitDate: null,
+      imageFile: null
     });
     setDate(undefined);
   };

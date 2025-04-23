@@ -73,9 +73,13 @@ const Points: React.FC = () => {
   }
   return (
     <PageContainer>
+      {/* Modal de adicionar/editar ponto */}
       <AddPointDialog
-        open={isAddDialogOpen}
-        onOpenChange={setIsAddDialogOpen}
+        open={isAddDialogOpen || isEditDialogOpen}
+        onOpenChange={open => {
+          if (isAddDialogOpen) setIsAddDialogOpen(open);
+          if (isEditDialogOpen) setIsEditDialogOpen(open);
+        }}
         name={pointsHook.newPoint.name || ''}
         address={pointsHook.newPoint.address || ''}
         description={pointsHook.newPoint.description || ''}
@@ -84,9 +88,24 @@ const Points: React.FC = () => {
         setAddress={val => pointsHook.setNewPoint({ ...pointsHook.newPoint, address: val })}
         setDescription={val => pointsHook.setNewPoint({ ...pointsHook.newPoint, description: val })}
         setImageFile={file => pointsHook.setNewPoint({ ...pointsHook.newPoint, imageFile: file })}
+        type={pointsHook.newPoint.type || 'tourist'}
+        setType={val => {
+  const allowedTypes = ['tourist', 'shopping', 'restaurant', 'accommodation', 'other'] as const;
+  if (allowedTypes.includes(val as typeof allowedTypes[number])) {
+    pointsHook.setNewPoint({ ...pointsHook.newPoint, type: val as typeof allowedTypes[number] });
+  }
+}}
+        imageUrl={pointsHook.newPoint.imageUrl || ''}
+        setImageUrl={val => pointsHook.setNewPoint({ ...pointsHook.newPoint, imageUrl: val })}
+        googleMapsUrl={pointsHook.newPoint.googleMapsUrl || ''}
+        setGoogleMapsUrl={val => pointsHook.setNewPoint({ ...pointsHook.newPoint, googleMapsUrl: val })}
+        openingHours={pointsHook.newPoint.openingHours || {}}
+        setOpeningHours={val => pointsHook.setNewPoint({ ...pointsHook.newPoint, openingHours: val })}
+        plannedVisitDate={pointsHook.newPoint.plannedVisitDate || ''}
+        setPlannedVisitDate={val => pointsHook.setNewPoint({ ...pointsHook.newPoint, plannedVisitDate: val })}
         loading={pointsHook.isAddingPoint}
         error={pointsHook.addPointError}
-        onSubmit={pointsHook.handleAddPoint}
+        onSubmit={isEditDialogOpen ? pointsHook.handleUpdatePoint : pointsHook.handleAddPoint}
       />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-travel-blue">Meus Pontos</h1>

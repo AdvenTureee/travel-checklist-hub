@@ -1,4 +1,6 @@
 
+import type { OpeningHours } from '@/components/points/AddPointDialog';
+
 export interface Point {
   id: string;
   name: string;
@@ -12,8 +14,8 @@ export interface Point {
   user_id: string;
   googleMapsUrl?: string;
   google_maps_url?: string;
-  openingHours?: string;
-  opening_hours?: string;
+  openingHours?: OpeningHours;
+  opening_hours?: OpeningHours;
   plannedVisitDate?: string | null;
   planned_visit_date?: string | null;
 }
