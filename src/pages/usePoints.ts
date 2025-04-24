@@ -28,7 +28,7 @@ export function usePoints() {
     address: '',
     type: 'tourist',
     googleMapsUrl: '',
-    openingHours: '',
+    openingHours: undefined,
     plannedVisitDate: null,
     imageFile: null
   });
@@ -88,7 +88,12 @@ export function usePoints() {
         .eq('trip_id', tripId)
         .order('created_at', { ascending: false });
       if (error) throw error;
-      return data as Point[];
+      // Parse opening_hours from string to OpeningHours
+      return (data ?? []).map((point: any) => ({
+        ...point,
+        opening_hours: point.opening_hours ? JSON.parse(point.opening_hours) : undefined,
+        openingHours: point.opening_hours ? JSON.parse(point.opening_hours) : undefined,
+      })) as Point[];
     },
     enabled: !!tripId
   });
@@ -104,7 +109,7 @@ export function usePoints() {
           type: point.type,
           image_url: point.imageUrl,
           google_maps_url: point.googleMapsUrl,
-          opening_hours: point.openingHours,
+          opening_hours: point.openingHours ? JSON.stringify(point.openingHours) : null,
           planned_visit_date: point.plannedVisitDate,
           user_id: user?.id,
           trip_id: tripId
@@ -186,7 +191,7 @@ export function usePoints() {
         type: point.type,
         image_url: point.imageUrl,
         google_maps_url: point.googleMapsUrl,
-        opening_hours: point.openingHours,
+        opening_hours: point.openingHours ? JSON.stringify(point.openingHours) : null,
         planned_visit_date: point.plannedVisitDate
       }).eq('id', id).select();
       if (error) throw error;
@@ -248,7 +253,8 @@ export function usePoints() {
         point: {
           ...newPoint,
           imageUrl,
-          openingHours: openingHoursString,
+          // Do not assign string, keep as object for local state
+          openingHours: typeof newPoint.openingHours === 'string' ? (newPoint.openingHours ? JSON.parse(newPoint.openingHours) : undefined) : newPoint.openingHours,
           plannedVisitDate: date ? format(date, 'yyyy-MM-dd') : null
         }
       });

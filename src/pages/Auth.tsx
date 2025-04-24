@@ -69,8 +69,8 @@ const Auth: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-travel-beige">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-travel-mustard"></div>
+      <div className="flex items-center justify-center min-h-screen bg-white">
+        <div className="animate-spin rounded-full h-14 w-14 border-4 border-travel-mustard border-t-travel-blue"></div>
       </div>
     );
   }
@@ -85,16 +85,16 @@ const Auth: React.FC = () => {
   }
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-travel-beige">
+    <div className="flex justify-center items-center min-h-screen bg-white">
       <Dialog open={true}>
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center">
-          <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto bg-white rounded-2xl shadow-2xl p-2 sm:p-4 md:p-8 flex flex-col justify-center items-center relative animate-fade-in overflow-y-auto max-h-[95vh]">
+          <div className="w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto bg-white rounded-2xl shadow-2xl p-2 sm:p-4 md:p-8 flex flex-col justify-center items-center relative animate-fade-in overflow-y-auto max-h-[95vh] border-2 border-travel-mustard">
 
             <div className="w-full flex justify-center mb-3">
               <img 
                 src="https://storage.wiseapp360.com/typebot/public/workspaces/clwl6fdyf000511ohlamongyl/typebots/cm683siyl000dm4kxlrec9tb8/results/m1y4olu1oilvu3kzi3j3otc6/blocks/cz78pvc8stcisz1y8sq2khj1/22%20de%20abr.%20de%202025%2C%2015_55_48.png"
                 alt="Logo Travel Hub"
-                className="max-h-36 sm:max-h-44 w-auto rounded-xl object-contain"
+                className="max-h-36 sm:max-h-44 w-auto rounded-xl object-contain border-2 border-travel-mustard bg-white"
               />
             </div>
 
@@ -180,13 +180,21 @@ const Auth: React.FC = () => {
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="mt-3">
+                <CardFooter className="mt-3 flex flex-row gap-2 w-full">
                   <Button 
-                    className="w-full h-8 text-xs font-normal bg-travel-mustard/90 hover:bg-travel-mustard text-travel-dark rounded-lg px-1 transition-all min-w-[90px]"
+                    className="w-1/2 h-8 text-xs font-normal bg-travel-mustard/90 hover:bg-travel-mustard text-travel-dark rounded-lg px-1 transition-all min-w-[90px]"
                     onClick={handleSignUp}
                   >
                     Cadastrar
                   </Button>
+                  <button
+                    type="button"
+                    className="w-1/2 h-8 flex items-center justify-center gap-1 border border-gray-200 rounded-lg bg-white hover:bg-gray-50 text-xs font-semibold text-gray-700 transition px-1 min-w-[90px] focus:outline-none focus:ring-2 focus:ring-travel-mustard"
+                    onClick={handleSocialLogin}
+                  >
+                    <svg className="w-4 h-4" viewBox="0 0 48 48"><g><path fill="#4285F4" d="M24 9.5c3.54 0 6.72 1.22 9.22 3.62l6.9-6.9C35.64 2.63 30.24 0 24 0 14.84 0 6.71 5.82 2.69 14.13l8.18 6.35C12.7 13.13 17.91 9.5 24 9.5z"/><path fill="#34A853" d="M46.1 24.6c0-1.67-.15-3.26-.43-4.8H24v9.1h12.43c-.54 2.9-2.16 5.36-4.6 7.05l7.07 5.51C43.94 37.12 46.1 31.3 46.1 24.6z"/><path fill="#FBBC05" d="M10.87 28.48A14.49 14.49 0 019.5 24c0-1.56.27-3.07.74-4.48l-8.18-6.35A23.97 23.97 0 000 24c0 3.91.94 7.62 2.56 10.92l8.31-6.44z"/><path fill="#EA4335" d="M24 48c6.24 0 11.48-2.07 15.3-5.63l-7.07-5.51c-2 1.35-4.55 2.14-8.23 2.14-6.09 0-11.3-3.63-13.13-8.7l-8.31 6.44C6.71 42.18 14.84 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></g></svg>
+                    Google
+                  </button>
                 </CardFooter>
               </TabsContent>
             </Tabs>
