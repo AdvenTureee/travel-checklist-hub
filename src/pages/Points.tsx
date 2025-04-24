@@ -108,15 +108,19 @@ const Points: React.FC = () => {
         onSubmit={isEditDialogOpen ? pointsHook.handleUpdatePoint : pointsHook.handleAddPoint}
       />
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-travel-blue">Meus Pontos</h1>
-        <Button
-          className="bg-travel-mustard text-travel-dark flex items-center gap-2"
-          onClick={() => setIsAddDialogOpen(true)}
-        >
-          <PlusCircle className="w-5 h-5" />
-          Novo ponto
-        </Button>
-      </div>
+  <h1 className="text-2xl font-bold text-travel-blue">Meus Pontos</h1>
+</div>
+
+{/* Botão flutuante adicionar ponto */}
+<Button
+  className="fixed bottom-6 right-6 bg-travel-mustard text-travel-dark rounded-full shadow-lg z-50 w-16 h-16 flex items-center justify-center p-0 hover:bg-travel-mustard/90 focus:outline-none focus:ring-2 focus:ring-travel-mustard focus:ring-offset-2"
+  style={{ boxShadow: '0 4px 16px rgba(0,0,0,0.18)' }}
+  onClick={() => setIsAddDialogOpen(true)}
+  size="icon"
+  aria-label="Adicionar novo ponto"
+>
+  <PlusCircle className="w-8 h-8" />
+</Button>
       {points.length === 0 ? <div className="flex flex-col items-center justify-center h-[400px] bg-travel-beige/50 rounded-lg border border-travel-mustard/20">
           <MapPin className="h-16 w-16 text-travel-mustard/50 mb-4" />
           <h3 className="text-xl font-medium text-travel-dark">Nenhum ponto adicionado ainda</h3>
@@ -185,7 +189,34 @@ const Points: React.FC = () => {
                 {(point.opening_hours || point.openingHours) && <div className="flex items-start gap-2 mt-2">
                     <Clock className="h-4 w-4 text-travel-blue mt-0.5 flex-shrink-0" />
                     <div className="text-sm text-travel-dark/70 flex flex-col gap-1">
-                      {formatOpeningHours(point.opening_hours || point.openingHours)}
+                      {(() => {
+  const oh = point.opening_hours || point.openingHours;
+  if (!oh || (typeof oh === 'object' && Object.keys(oh).length === 0)) {
+    return <span style={{background:'#FFF9DB',color:'#7C5E00',borderRadius:4,padding:'1px 6px',fontWeight:500,marginBottom:2,display:'block'}}>Horários não informados</span>;
+  }
+  let formatted = '';
+  if (typeof oh === 'string') {
+    try {
+      const parsed = JSON.parse(oh);
+      formatted = Object.entries(parsed)
+        .filter(([_, val]) => val && (val as any).open && (val as any).close)
+        .map(([day, val]) => `${day}: ${(val as any).open}-${(val as any).close}`)
+        .join(', ');
+    } catch {
+      formatted = oh;
+    }
+  } else if (typeof oh === 'object') {
+    formatted = Object.entries(oh)
+      .filter(([_, val]) => val && val.open && val.close)
+      .map(([day, val]: any) => `${day}: ${val.open}-${val.close}`)
+      .join(', ');
+  }
+  if (!formatted) {
+    return <span style={{background:'#FFF9DB',color:'#7C5E00',borderRadius:4,padding:'1px 6px',fontWeight:500,marginBottom:2,display:'block'}}>Horários não informados</span>;
+  }
+  return formatOpeningHours(formatted);
+})()}
+
                     </div>
                   </div>}
                 

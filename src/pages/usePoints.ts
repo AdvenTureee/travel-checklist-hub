@@ -155,13 +155,18 @@ export function usePoints() {
         const publicUrlResult = supabase.storage.from('points-images').getPublicUrl(data.path);
         imageUrl = publicUrlResult.data.publicUrl;
       }
-      // Garante que openingHours seja string
+      // Salva openingHours como JSON.stringify(objeto)
       let openingHoursString = '';
-      if (typeof newPoint.openingHours === 'string') {
-        openingHoursString = newPoint.openingHours;
-      } else if (typeof newPoint.openingHours === 'object' && newPoint.openingHours !== null) {
-        // Sempre converte objeto para string amigável
-        openingHoursString = formatScheduleToString(newPoint.openingHours);
+      if (typeof newPoint.openingHours === 'object' && newPoint.openingHours !== null) {
+        openingHoursString = JSON.stringify(newPoint.openingHours);
+      } else if (typeof newPoint.openingHours === 'string') {
+        // Caso edge: usuário nunca tenha editado e veio como string
+        try {
+          JSON.parse(newPoint.openingHours);
+          openingHoursString = newPoint.openingHours;
+        } catch {
+          openingHoursString = '{}';
+        }
       }
       await addPointMutation.mutateAsync({
         name: newPoint.name || '',
@@ -237,15 +242,16 @@ export function usePoints() {
         const publicUrlResult = supabase.storage.from('points-images').getPublicUrl(data.path);
         imageUrl = publicUrlResult.data.publicUrl;
       }
-      // Garante que openingHours seja string ao atualizar
+      // Salva openingHours como JSON.stringify(objeto) ao atualizar
       let openingHoursString = '';
-      if (typeof newPoint.openingHours === 'string') {
-        openingHoursString = newPoint.openingHours;
-      } else if (typeof newPoint.openingHours === 'object' && newPoint.openingHours !== null) {
-        if (typeof formatScheduleToString === 'function') {
-          openingHoursString = formatScheduleToString(newPoint.openingHours);
-        } else {
-          openingHoursString = JSON.stringify(newPoint.openingHours);
+      if (typeof newPoint.openingHours === 'object' && newPoint.openingHours !== null) {
+        openingHoursString = JSON.stringify(newPoint.openingHours);
+      } else if (typeof newPoint.openingHours === 'string') {
+        try {
+          JSON.parse(newPoint.openingHours);
+          openingHoursString = newPoint.openingHours;
+        } catch {
+          openingHoursString = '{}';
         }
       }
       updatePointMutation.mutate({
@@ -253,8 +259,7 @@ export function usePoints() {
         point: {
           ...newPoint,
           imageUrl,
-          // Do not assign string, keep as object for local state
-          openingHours: typeof newPoint.openingHours === 'string' ? (newPoint.openingHours ? JSON.parse(newPoint.openingHours) : undefined) : newPoint.openingHours,
+          openingHours: openingHoursString,
           plannedVisitDate: date ? format(date, 'yyyy-MM-dd') : null
         }
       });
@@ -298,6 +303,16 @@ export function usePoints() {
   const handleEditPoint = (id: string) => {
     const pointToEdit = points.find(p => p.id === id);
     if (!pointToEdit) return;
+    let openingHoursObj = {};
+    if (typeof pointToEdit.opening_hours === 'string') {
+      try {
+        openingHoursObj = JSON.parse(pointToEdit.opening_hours);
+      } catch {
+        openingHoursObj = {};
+      }
+    } else if (typeof pointToEdit.opening_hours === 'object' && pointToEdit.opening_hours !== null) {
+      openingHoursObj = pointToEdit.opening_hours;
+    }
     setNewPoint({
       name: pointToEdit.name,
       description: pointToEdit.description,
@@ -305,7 +320,7 @@ export function usePoints() {
       type: pointToEdit.type,
       imageUrl: pointToEdit.image_url,
       googleMapsUrl: pointToEdit.google_maps_url,
-      openingHours: pointToEdit.opening_hours,
+      openingHours: openingHoursObj,
       plannedVisitDate: pointToEdit.planned_visit_date
     });
     setDate(pointToEdit.planned_visit_date ? new Date(pointToEdit.planned_visit_date) : undefined);

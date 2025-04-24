@@ -6,6 +6,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
+import { formatOpeningHours } from './formatOpeningHours';
+import OpeningHoursInput from './OpeningHoursInput';
 
 interface AddPointDialogProps {
   open: boolean;
@@ -189,145 +191,64 @@ export const AddPointDialog: React.FC<AddPointDialogProps & {
           )}
           {step === 2 && (
             <>
-              {/* Horários de funcionamento minimalista */}
+              {/* Horários de funcionamento amigável */}
               <div className="pt-2">
-                <div className="flex justify-between items-center mb-2">
-                  <Label className="block text-travel-dark text-xs font-semibold">Horários de funcionamento</Label>
-                  <div className="flex gap-1">
-                    <button
-                      type="button"
-                      className="text-xs px-2 py-1 rounded-full border border-travel-mustard bg-travel-mustard/70 text-travel-dark font-semibold hover:bg-travel-mustard"
-                      onClick={() => {
-                        const seg = openingHours['Segunda'];
-                        if (seg) {
-                          const updated = Object.fromEntries(Object.entries(openingHours).map(([d, v]) => [d, { ...seg }]));
-                          setOpeningHours(updated);
-                          if (setOpeningHoursProp) setOpeningHoursProp(updated);
-                        }
-                      }}
-                    >Copiar segunda</button>
-                    <button
-                      type="button"
-                      className="text-xs px-2 py-1 rounded-full border border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-700"
-                      onClick={() => {
-                        const updated = Object.fromEntries(Object.entries(openingHours).map(([d]) => [d, { open: '', close: '' }]));
-                        setOpeningHours(updated);
-                        if (setOpeningHoursProp) setOpeningHoursProp(updated);
-                      }}
-                    >Fechar todos</button>
-                  </div>
-                </div>
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="bg-gray-50">
-                      <th className="px-1 py-1 text-left font-semibold text-travel-dark/80">Dia</th>
-                      <th className="px-1 py-1 font-semibold text-travel-dark/80">Abertura</th>
-                      <th className="px-1 py-1 font-semibold text-travel-dark/80">Fechamento</th>
-                      <th className="px-1 py-1"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(openingHours).map(([day, value]) => (
-                      <tr key={day} className="border-b last:border-b-0">
-                        <td className="px-1 py-1 whitespace-nowrap">{day}</td>
-                        <td className="px-1 py-1">
-                          <div className="flex items-center gap-1">
-                            <select
-                              value={value.open.split(':')[0] || ''}
-                              onChange={e => handleOpeningHourChange(day, 'open', `${e.target.value}:${value.open.split(':')[1] || '00'}`)}
-                              className="w-8 border rounded-lg px-1 py-1 bg-white text-xs"
-                            >
-                              <option value="">--</option>
-                              {[...Array(24).keys()].map(h => (
-                                <option key={h} value={h.toString().padStart(2, '0')}>{h.toString().padStart(2, '0')}</option>
-                              ))}
-                            </select>
-                            <span>:</span>
-                            <select
-                              value={value.open.split(':')[1] || ''}
-                              onChange={e => handleOpeningHourChange(day, 'open', `${value.open.split(':')[0] || '00'}:${e.target.value}`)}
-                              className="w-8 border rounded-lg px-1 py-1 bg-white text-xs"
-                            >
-                              <option value="">--</option>
-                              {[...Array(60).keys()].map(m => (
-                                <option key={m} value={m.toString().padStart(2, '0')}>{m.toString().padStart(2, '0')}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </td>
-                        <td className="px-1 py-1">
-                          <div className="flex items-center gap-1">
-                            <select
-                              value={value.close.split(':')[0] || ''}
-                              onChange={e => handleOpeningHourChange(day, 'close', `${e.target.value}:${value.close.split(':')[1] || '00'}`)}
-                              className="w-8 border rounded-lg px-1 py-1 bg-white text-xs"
-                            >
-                              <option value="">--</option>
-                              {[...Array(24).keys()].map(h => (
-                                <option key={h} value={h.toString().padStart(2, '0')}>{h.toString().padStart(2, '0')}</option>
-                              ))}
-                            </select>
-                            <span>:</span>
-                            <select
-                              value={value.close.split(':')[1] || ''}
-                              onChange={e => handleOpeningHourChange(day, 'close', `${value.close.split(':')[0] || '00'}:${e.target.value}`)}
-                              className="w-8 border rounded-lg px-1 py-1 bg-white text-xs"
-                            >
-                              <option value="">--</option>
-                              {[...Array(60).keys()].map(m => (
-                                <option key={m} value={m.toString().padStart(2, '0')}>{m.toString().padStart(2, '0')}</option>
-                              ))}
-                            </select>
-                          </div>
-                        </td>
-                        <td className="px-1 py-1">
-                          <button
-                            type="button"
-                            className="text-xs px-2 py-1 border rounded border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-700"
-                            onClick={() => {
-                              const updated = { ...openingHours, [day]: { open: '', close: '' } };
-                              setOpeningHours(updated);
-                              if (setOpeningHoursProp) setOpeningHoursProp(updated);
-                            }}
-                          >Fechado</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <OpeningHoursInput
+                  value={JSON.stringify(openingHours)}
+                  onChange={str => {
+                    try {
+                      const parsed = JSON.parse(str);
+                      setOpeningHours(parsed);
+                      if (setOpeningHoursProp) setOpeningHoursProp(parsed);
+                    } catch {
+                      // fallback: não atualiza
+                    }
+                  }}
+                />
+              </div>
+              {/* Resumo amigável dos horários de funcionamento */}
+              <div className="mt-4">
+                <Label className="block text-travel-dark text-xs font-semibold mb-1">Resumo dos horários</Label>
+                <pre className="bg-gray-50 rounded-lg p-2 text-xs text-travel-dark/80 whitespace-pre-wrap">
+                  {formatOpeningHours(openingHours)}
+                </pre>
               </div>
             </>
           )}
           <DialogFooter className="flex flex-col gap-2 pt-4">
             <div className="flex flex-row gap-2 w-full">
               {step === 2 && (
-                <button
+                <Button
                   type="button"
-                  className="flex-1 bg-travel-mustard text-travel-dark font-bold py-2 px-4 rounded-full hover:bg-yellow-400 transition"
+                  variant="outline"
+                  className="flex-1 border-travel-mustard text-travel-dark font-bold"
                   onClick={() => setStep(1)}
-                >Voltar</button>
+                >Voltar</Button>
               )}
               {step === 1 && (
-                <button
+                <Button
                   type="button"
-                  className="flex-1 bg-travel-mustard text-travel-dark font-bold py-2 px-4 rounded-full hover:bg-yellow-400 transition"
+                  variant="default"
+                  className="flex-1 bg-travel-mustard text-travel-dark font-bold"
                   onClick={() => setStep(2)}
-                >Próximo</button>
+                >Próximo</Button>
               )}
               {step === 2 && (
-                <button
+                <Button
                   type="submit"
-                  className="flex-1 bg-travel-mustard text-travel-dark font-bold py-2 px-4 rounded-full hover:bg-yellow-400 transition disabled:opacity-60"
+                  variant="default"
+                  className="flex-1 bg-travel-mustard text-travel-dark font-bold disabled:opacity-60"
                   disabled={loading}
                 >
                   {loading ? 'Salvando...' : 'Salvar ponto'}
-                </button>
+                </Button>
               )}
-              <button
+              <Button
                 type="button"
-                className="w-full bg-gray-100 text-travel-dark font-bold py-2 px-4 rounded-full hover:bg-gray-200 transition"
+                variant="ghost"
+                className="w-full text-travel-dark font-bold"
                 onClick={() => onOpenChange(false)}
-              >Cancelar</button>
+              >Cancelar</Button>
               {error && <div className="text-red-500 text-xs mt-1 text-center">{error}</div>}
             </div>
           </DialogFooter>

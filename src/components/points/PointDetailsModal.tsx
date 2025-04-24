@@ -14,6 +14,7 @@ import { useGeocode } from './useGeocode';
 import { useUserLocation } from './useUserLocation';
 import FullMapModal from './FullMapModal';
 import { useState } from 'react';
+import { formatOpeningHours } from './formatOpeningHours';
 
 // Corrige o ícone padrão do leaflet para funcionar com webpack
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
@@ -151,7 +152,7 @@ const PointDetailsModal: React.FC<PointDetailsModalProps> = ({ point, isOpen, on
               <div className="flex items-start gap-2">
                 <Clock className="h-5 w-5 text-travel-blue mt-0.5 flex-shrink-0" />
                 <span className="text-travel-dark/70">
-                  {point.opening_hours || point.openingHours}
+                  {formatOpeningHours(point.opening_hours || point.openingHours)}
                 </span>
               </div>
             )}
