@@ -1,69 +1,54 @@
-# Welcome to your Lovable project
+**Travel Checklist Hub**
 
-## Project info
+Travel Checklist Hub é um aplicativo web para quem quer planejar suas viagens de forma prática e organizada. Com ele, você pode criar roteiros, definir pontos de interesse, controlar seu orçamento, montar checklists personalizados e acompanhar o progresso dos seus objetivos durante a viagem.
 
-**URL**: https://lovable.dev/projects/99d9c1e9-d87d-41d2-823c-6a6aa636a479
+**Funcionalidades**
 
-## How can I edit this code?
+Cadastro de Viagens: Crie e gerencie múltiplas viagens.
+Pontos de Interesse: Adicione locais turísticos, restaurantes, acomodações e outros pontos importantes para cada viagem.
+Checklists Personalizados: Monte listas de tarefas e itens para não esquecer nada.
+Orçamento (Budget): Defina e acompanhe o orçamento da viagem, categorizando despesas.
+Progresso Visual: Veja o andamento dos seus objetivos e checklists.
+Recuperação de Senha: Sistema de autenticação seguro com recuperação de senha via e-mail.
+Interface Responsiva: Usável em qualquer dispositivo (mobile, tablet, desktop).
 
-There are several ways of editing your application.
+**Tecnologias Utilizadas**
 
-**Use Lovable**
+React (Vite): Frontend moderno e rápido
+TypeScript: Tipagem estática para maior segurança e produtividade
+Tailwind CSS: Estilização rápida e responsiva
+Supabase: Backend as a Service (autenticação, banco de dados Postgres e storage)
+React Router: Navegação SPA
+React Query: Gerenciamento de dados assíncronos
+Sonner/Toaster: Notificações amigáveis
+PostgreSQL: Banco de dados relacional robusto (via Supabase)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/99d9c1e9-d87d-41d2-823c-6a6aa636a479) and start prompting.
+**Como rodar localmente**
 
-Changes made via Lovable will be committed automatically to this repo.
+Clone o repositório:
 
-**Use your preferred IDE**
+git clone https://github.com/seu-usuario/travel-checklist-hub.git
+cd travel-checklist-hub
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Instale as dependências:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+npm install
 
-Follow these steps:
+Configure as variáveis de ambiente:
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Crie um arquivo .env na raiz do projeto com as seguintes chaves do Supabase:
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+VITE_SUPABASE_URL=...
+VITE_SUPABASE_ANON_KEY=...
 
-# Step 3: Install the necessary dependencies.
-npm i
+Inicie o aplicativo:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
 npm run dev
-```
 
-**Edit a file directly in GitHub**
+Acesse no navegador:
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+http://localhost:5173
 
-**Use GitHub Codespaces**
+Deploy
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/99d9c1e9-d87d-41d2-823c-6a6aa636a479) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+O deploy pode ser feito facilmente em plataformas como Vercel ou Netlify. Basta configurar as variáveis de ambiente do Supabase nessas plataformas.
