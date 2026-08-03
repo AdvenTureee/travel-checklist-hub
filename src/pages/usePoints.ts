@@ -1,4 +1,4 @@
-Nimport { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import OpeningHoursInput from '@/components/points/OpeningHoursInput';
 const { formatScheduleToString } = OpeningHoursInput as any; // fallback if not exported directly
 import { useLocation, useNavigate } from 'react-router-dom';
